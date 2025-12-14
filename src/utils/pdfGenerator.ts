@@ -27,11 +27,36 @@ interface DocumentData {
   companyTva?: string;
 }
 
+// Parse items safely - handles both JSON string and array
+function parseItems(items: unknown): LineItem[] {
+  if (!items) return [];
+  
+  // If it's a string, try to parse it
+  if (typeof items === "string") {
+    try {
+      const parsed = JSON.parse(items);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  
+  // If it's already an array, return it
+  if (Array.isArray(items)) {
+    return items;
+  }
+  
+  return [];
+}
+
 export function generatePDF(data: DocumentData): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   const contentWidth = pageWidth - margin * 2;
+
+  // Parse items safely
+  const items = parseItems(data.items);
 
   // Colors
   const primaryColor: [number, number, number] = [34, 139, 34]; // Green
@@ -125,7 +150,7 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setTextColor(...textDark);
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("FACTURÉ À", margin + 5, yPos + 3);
+  doc.text(data.type === "invoice" ? "FACTURÉ À" : "DESTINATAIRE", margin + 5, yPos + 3);
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...textGray);
@@ -138,6 +163,9 @@ export function generatePDF(data: DocumentData): jsPDF {
     yPos += 5;
     doc.setTextColor(...textGray);
     doc.setFontSize(9);
+  } else {
+    doc.text("Client non spécifié", margin + 5, yPos);
+    yPos += 5;
   }
   if (data.clientCompany) {
     doc.text(data.clientCompany, margin + 5, yPos);
@@ -150,12 +178,15 @@ export function generatePDF(data: DocumentData): jsPDF {
   // Items table
   yPos = 145;
 
-  const tableBody = data.items.map((item) => [
-    item.description,
-    item.quantity.toString(),
-    `${item.unit_price.toLocaleString("fr-FR")} €`,
-    `${(item.quantity * item.unit_price).toLocaleString("fr-FR")} €`,
-  ]);
+  // Build table body - handle empty items
+  const tableBody = items.length > 0
+    ? items.map((item) => [
+        item.description || "",
+        (item.quantity || 0).toString(),
+        `${(item.unit_price || 0).toLocaleString("fr-FR")} €`,
+        `${((item.quantity || 0) * (item.unit_price || 0)).toLocaleString("fr-FR")} €`,
+      ])
+    : [["Aucun article", "-", "-", `${data.amount.toLocaleString("fr-FR")} €`]];
 
   autoTable(doc, {
     startY: yPos,
@@ -255,7 +286,13 @@ export function generatePDF(data: DocumentData): jsPDF {
 }
 
 export function downloadPDF(data: DocumentData, filename?: string) {
-  const doc = generatePDF(data);
-  const name = filename || `${data.type === "invoice" ? "facture" : "devis"}_${data.number}.pdf`;
-  doc.save(name);
+  try {
+    const doc = generatePDF(data);
+    const name = filename || `${data.type === "invoice" ? "facture" : "devis"}_${data.number}.pdf`;
+    doc.save(name);
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la génération du PDF:", error);
+    return false;
+  }
 }
