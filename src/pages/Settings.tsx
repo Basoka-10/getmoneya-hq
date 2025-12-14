@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,9 @@ import {
   Zap,
   Users,
   Clock,
+  Upload,
+  Camera,
+  Image,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,20 +58,78 @@ const Settings = () => {
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  // Profile state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const profileInputRef = useRef<HTMLInputElement>(null);
+
+  // Business state
+  const [companyName, setCompanyName] = useState("");
+  const [siret, setSiret] = useState("");
+  const [address, setAddress] = useState("");
+  const [tva, setTva] = useState("");
+  const [activity, setActivity] = useState("");
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
   const addCategory = () => {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
       setCategories([...categories, newCategory.trim()]);
       setNewCategory("");
+      toast.success("Catégorie ajoutée");
     }
   };
 
   const removeCategory = (category: string) => {
     setCategories(categories.filter((c) => c !== category));
+    toast.success("Catégorie supprimée");
   };
 
   const handleSignOut = async () => {
     await signOut();
     toast.success("Déconnexion réussie");
+  };
+
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("L'image ne doit pas dépasser 5 Mo");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result as string);
+        toast.success("Photo de profil mise à jour");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("L'image ne doit pas dépasser 5 Mo");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCompanyLogo(reader.result as string);
+        toast.success("Logo mis à jour");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    toast.success("Profil enregistré");
+  };
+
+  const handleSaveBusiness = () => {
+    toast.success("Informations entreprise enregistrées");
   };
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
@@ -162,25 +223,38 @@ const Settings = () => {
                       )`
                     }} />
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="absolute top-3 right-3 bg-card/80 backdrop-blur-sm border border-border hover:bg-card"
-                  >
-                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                    Modifier
-                  </Button>
                 </div>
 
                 {/* Avatar & Info */}
                 <div className="px-6 pb-6">
-                  <div className="flex h-20 w-20 -mt-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-3xl font-bold text-white ring-4 ring-card">
-                    {userInitial}
+                  <div className="relative -mt-10 w-fit">
+                    <div 
+                      className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-3xl font-bold text-white ring-4 ring-card overflow-hidden"
+                    >
+                      {profilePhoto ? (
+                        <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        userInitial
+                      )}
+                    </div>
+                    <button
+                      onClick={() => profileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-colors"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                    </button>
+                    <input
+                      ref={profileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePhotoChange}
+                      className="hidden"
+                    />
                   </div>
 
                   <div className="mt-4 space-y-3">
                     <h3 className="text-xl font-semibold text-foreground">
-                      {user?.email?.split("@")[0] || "Utilisateur"}
+                      {firstName && lastName ? `${firstName} ${lastName}` : user?.email?.split("@")[0] || "Utilisateur"}
                     </h3>
                     
                     <div className="space-y-2 text-sm text-muted-foreground">
@@ -243,15 +317,30 @@ const Settings = () => {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Prénom</Label>
-                    <Input id="firstName" placeholder="Jean" />
+                    <Input 
+                      id="firstName" 
+                      placeholder="Jean" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Nom</Label>
-                    <Input id="lastName" placeholder="Dupont" />
+                    <Input 
+                      id="lastName" 
+                      placeholder="Dupont" 
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone</Label>
-                    <Input id="phone" placeholder="+33 6 12 34 56 78" />
+                    <Input 
+                      id="phone" 
+                      placeholder="+33 6 12 34 56 78" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -264,7 +353,7 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-                <Button className="mt-4">Enregistrer</Button>
+                <Button className="mt-4" onClick={handleSaveProfile}>Enregistrer</Button>
               </div>
             </div>
           )}
@@ -278,30 +367,93 @@ const Settings = () => {
                 </p>
               </div>
 
+              {/* Company Logo */}
               <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4">
+                  Logo de l'entreprise
+                </h3>
+                <div className="flex items-center gap-6">
+                  <div 
+                    className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    {companyLogo ? (
+                      <img src={companyLogo} alt="Logo" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <Image className="h-8 w-8 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Button variant="outline" onClick={() => logoInputRef.current?.click()}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      {companyLogo ? "Changer le logo" : "Télécharger un logo"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG ou SVG. Max 5 Mo.
+                    </p>
+                  </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4">
+                  Informations légales
+                </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="company">Nom de l'entreprise</Label>
-                    <Input id="company" placeholder="Mon Entreprise" />
+                    <Input 
+                      id="company" 
+                      placeholder="Mon Entreprise" 
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siret">SIRET</Label>
-                    <Input id="siret" placeholder="123 456 789 00012" />
+                    <Input 
+                      id="siret" 
+                      placeholder="123 456 789 00012" 
+                      value={siret}
+                      onChange={(e) => setSiret(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="address">Adresse</Label>
-                    <Input id="address" placeholder="123 Rue Exemple, 75001 Paris" />
+                    <Input 
+                      id="address" 
+                      placeholder="123 Rue Exemple, 75001 Paris" 
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="tva">Numéro TVA</Label>
-                    <Input id="tva" placeholder="FR12345678901" />
+                    <Input 
+                      id="tva" 
+                      placeholder="FR12345678901" 
+                      value={tva}
+                      onChange={(e) => setTva(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="activity">Secteur d'activité</Label>
-                    <Input id="activity" placeholder="Conseil, Services, etc." />
+                    <Input 
+                      id="activity" 
+                      placeholder="Conseil, Services, etc." 
+                      value={activity}
+                      onChange={(e) => setActivity(e.target.value)}
+                    />
                   </div>
                 </div>
-                <Button className="mt-4">Enregistrer</Button>
+                <Button className="mt-4" onClick={handleSaveBusiness}>Enregistrer</Button>
               </div>
             </div>
           )}
@@ -435,9 +587,9 @@ const Settings = () => {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Emails marketing</p>
+                    <p className="text-sm font-medium text-foreground">Résumé hebdomadaire</p>
                     <p className="text-sm text-muted-foreground">
-                      Nouveautés et offres spéciales
+                      Récapitulatif chaque lundi matin
                     </p>
                   </div>
                   <Switch />
@@ -459,21 +611,21 @@ const Settings = () => {
                 <h3 className="text-base font-semibold text-card-foreground mb-4">
                   Changer le mot de passe
                 </h3>
-                <div className="space-y-4 max-w-md">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-                    <Input id="currentPassword" type="password" />
+                    <Input id="currentPassword" type="password" placeholder="••••••••" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-                    <Input id="newPassword" type="password" />
+                    <Input id="newPassword" type="password" placeholder="••••••••" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                    <Input id="confirmPassword" type="password" />
+                    <Input id="confirmPassword" type="password" placeholder="••••••••" />
                   </div>
-                  <Button>Mettre à jour</Button>
                 </div>
+                <Button className="mt-4">Mettre à jour</Button>
               </div>
 
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
@@ -481,9 +633,9 @@ const Settings = () => {
                   Zone dangereuse
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Supprimer définitivement votre compte et toutes vos données.
+                  La suppression de votre compte est irréversible et entraînera la perte de toutes vos données.
                 </p>
-                <Button variant="destructive" size="sm">
+                <Button variant="destructive">
                   Supprimer mon compte
                 </Button>
               </div>
