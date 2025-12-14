@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { useTransactions } from "@/hooks/useTransactions";
 import {
   TrendingUp,
   TrendingDown,
@@ -18,45 +20,65 @@ import {
   Bar,
 } from "recharts";
 
-// Mock data for charts - based on document
-const monthlyData = [
-  { name: "Jan", revenus: 4200, depenses: 2800 },
-  { name: "Fév", revenus: 3800, depenses: 3200 },
-  { name: "Mar", revenus: 5100, depenses: 2900 },
-  { name: "Avr", revenus: 4700, depenses: 3100 },
-  { name: "Mai", revenus: 5500, depenses: 2700 },
-  { name: "Juin", revenus: 6200, depenses: 3400 },
-  { name: "Juil", revenus: 5800, depenses: 3800 },
-  { name: "Août", revenus: 4900, depenses: 2600 },
-  { name: "Sept", revenus: 6800, depenses: 3200 },
-  { name: "Oct", revenus: 7200, depenses: 3500 },
-  { name: "Nov", revenus: 6500, depenses: 3100 },
-  { name: "Déc", revenus: 7800, depenses: 3600 },
-];
-
-const categoryData = [
-  { name: "Outils", montant: 580 },
-  { name: "Infrastructure", montant: 920 },
-  { name: "Formation", montant: 450 },
-  { name: "Marketing", montant: 380 },
-  { name: "Banque", montant: 240 },
-];
+const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
 
 const Analysis = () => {
-  const avgIncome = Math.round(
-    monthlyData.reduce((acc, d) => acc + d.revenus, 0) / 12
-  );
-  const avgExpenses = Math.round(
-    monthlyData.reduce((acc, d) => acc + d.depenses, 0) / 12
-  );
+  const { data: transactions = [] } = useTransactions();
+
+  // Calculate monthly data from real transactions
+  const monthlyData = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const data = MONTHS.map((name, index) => ({
+      name,
+      revenus: 0,
+      depenses: 0,
+    }));
+
+    transactions.forEach((t) => {
+      const date = new Date(t.date);
+      if (date.getFullYear() === currentYear) {
+        const monthIndex = date.getMonth();
+        if (t.type === "income") {
+          data[monthIndex].revenus += Number(t.amount);
+        } else {
+          data[monthIndex].depenses += Number(t.amount);
+        }
+      }
+    });
+
+    return data;
+  }, [transactions]);
+
+  // Calculate category data from real expenses
+  const categoryData = useMemo(() => {
+    const categories: Record<string, number> = {};
+    
+    transactions
+      .filter((t) => t.type === "expense")
+      .forEach((t) => {
+        categories[t.category] = (categories[t.category] || 0) + Number(t.amount);
+      });
+
+    return Object.entries(categories)
+      .map(([name, montant]) => ({ name, montant }))
+      .sort((a, b) => b.montant - a.montant);
+  }, [transactions]);
+
+  const totalRevenue = monthlyData.reduce((acc, d) => acc + d.revenus, 0);
+  const totalExpenses = monthlyData.reduce((acc, d) => acc + d.depenses, 0);
+  const monthsWithData = monthlyData.filter((d) => d.revenus > 0 || d.depenses > 0).length || 1;
+
+  const avgIncome = Math.round(totalRevenue / monthsWithData);
+  const avgExpenses = Math.round(totalExpenses / monthsWithData);
+
   const bestMonth = monthlyData.reduce((prev, current) =>
     prev.revenus > current.revenus ? prev : current
   );
-  const worstMonth = monthlyData.reduce((prev, current) =>
-    prev.revenus - prev.depenses < current.revenus - current.depenses
-      ? prev
-      : current
-  );
+  const worstMonth = monthlyData.reduce((prev, current) => {
+    const prevMargin = prev.revenus - prev.depenses;
+    const currentMargin = current.revenus - current.depenses;
+    return prevMargin < currentMargin ? prev : current;
+  });
 
   return (
     <AppLayout>
@@ -85,17 +107,17 @@ const Analysis = () => {
           />
           <StatCard
             title="Mois le plus rentable"
-            value={bestMonth.name}
-            change={`${bestMonth.revenus.toLocaleString("fr-FR")} € de revenus`}
-            changeType="positive"
+            value={bestMonth.revenus > 0 ? bestMonth.name : "-"}
+            change={bestMonth.revenus > 0 ? `${bestMonth.revenus.toLocaleString("fr-FR")} € de revenus` : "Aucune donnée"}
+            changeType={bestMonth.revenus > 0 ? "positive" : "neutral"}
             icon={CalendarDays}
             iconColor="success"
           />
           <StatCard
             title="Mois à risque"
-            value={worstMonth.name}
-            change="Marge la plus faible"
-            changeType="negative"
+            value={worstMonth.depenses > 0 ? worstMonth.name : "-"}
+            change={worstMonth.depenses > 0 ? "Marge la plus faible" : "Aucune donnée"}
+            changeType={worstMonth.depenses > 0 ? "negative" : "neutral"}
             icon={AlertTriangle}
             iconColor="destructive"
           />
@@ -115,35 +137,36 @@ const Analysis = () => {
                     <linearGradient id="colorRevenu" x1="0" y1="0" x2="0" y2="1">
                       <stop
                         offset="5%"
-                        stopColor="hsl(142, 71%, 45%)"
+                        stopColor="hsl(var(--primary))"
                         stopOpacity={0.3}
                       />
                       <stop
                         offset="95%"
-                        stopColor="hsl(142, 71%, 45%)"
+                        stopColor="hsl(var(--primary))"
                         stopOpacity={0}
                       />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(220, 13%, 91%)"
+                    stroke="hsl(var(--border))"
                   />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                    axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                    axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
-                    tickFormatter={(value) => `${value / 1000}k`}
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(0, 0%, 100%)",
-                      border: "1px solid hsl(220, 13%, 91%)",
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
+                      color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number) => [
                       `${value.toLocaleString("fr-FR")} €`,
@@ -153,7 +176,7 @@ const Analysis = () => {
                   <Area
                     type="monotone"
                     dataKey="revenus"
-                    stroke="hsl(142, 71%, 45%)"
+                    stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorRevenu)"
@@ -181,35 +204,36 @@ const Analysis = () => {
                     >
                       <stop
                         offset="5%"
-                        stopColor="hsl(38, 92%, 50%)"
+                        stopColor="hsl(var(--warning))"
                         stopOpacity={0.3}
                       />
                       <stop
                         offset="95%"
-                        stopColor="hsl(38, 92%, 50%)"
+                        stopColor="hsl(var(--warning))"
                         stopOpacity={0}
                       />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(220, 13%, 91%)"
+                    stroke="hsl(var(--border))"
                   />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                    axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                    axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
-                    tickFormatter={(value) => `${value / 1000}k`}
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(0, 0%, 100%)",
-                      border: "1px solid hsl(220, 13%, 91%)",
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
+                      color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number) => [
                       `${value.toLocaleString("fr-FR")} €`,
@@ -219,7 +243,7 @@ const Analysis = () => {
                   <Area
                     type="monotone"
                     dataKey="depenses"
-                    stroke="hsl(38, 92%, 50%)"
+                    stroke="hsl(var(--warning))"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorDepenses)"
@@ -236,45 +260,52 @@ const Analysis = () => {
             Répartition des dépenses par catégorie
           </h2>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryData} layout="vertical">
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(220, 13%, 91%)"
-                  horizontal={true}
-                  vertical={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                  axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
-                  tickFormatter={(value) => `${value} €`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }}
-                  axisLine={{ stroke: "hsl(220, 13%, 91%)" }}
-                  width={100}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(0, 0%, 100%)",
-                    border: "1px solid hsl(220, 13%, 91%)",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value: number) => [
-                    `${value.toLocaleString("fr-FR")} €`,
-                    "Montant",
-                  ]}
-                />
-                <Bar
-                  dataKey="montant"
-                  fill="hsl(168, 76%, 36%)"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={categoryData} layout="vertical">
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    horizontal={true}
+                    vertical={false}
+                  />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    tickFormatter={(value) => `${value} €`}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    width={100}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      color: "hsl(var(--card-foreground))",
+                    }}
+                    formatter={(value: number) => [
+                      `${value.toLocaleString("fr-FR")} €`,
+                      "Montant",
+                    ]}
+                  />
+                  <Bar
+                    dataKey="montant"
+                    fill="hsl(var(--primary))"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                Aucune dépense enregistrée
+              </div>
+            )}
           </div>
         </div>
       </div>

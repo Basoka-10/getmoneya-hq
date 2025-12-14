@@ -5,13 +5,78 @@
 @tailwind utilities;
 
 /* GET MONEYA Design System
-   Dark Theme - Premium B2B SaaS
+   Premium B2B SaaS with Dark/Light Theme Support
    All colors in HSL
 */
 
 @layer base {
+  /* Light Theme */
   :root {
-    /* Dark theme by default - matching reference design */
+    --background: 0 0% 98%;
+    --foreground: 150 10% 10%;
+
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 150 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 10% 10%;
+
+    /* Primary - Bright Green */
+    --primary: 142 70% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 150 5% 92%;
+    --secondary-foreground: 150 10% 20%;
+
+    /* Muted */
+    --muted: 150 5% 95%;
+    --muted-foreground: 150 5% 40%;
+
+    /* Accent */
+    --accent: 142 40% 92%;
+    --accent-foreground: 142 70% 30%;
+
+    /* Destructive */
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    /* Success */
+    --success: 142 70% 40%;
+    --success-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 150 5% 85%;
+    --input: 150 5% 85%;
+    --ring: 142 70% 40%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 150 5% 40%;
+    --sidebar-primary: 142 70% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 40% 94%;
+    --sidebar-accent-foreground: 142 70% 30%;
+    --sidebar-border: 150 5% 90%;
+    --sidebar-ring: 142 70% 40%;
+
+    /* Chart colors */
+    --chart-1: 142 70% 40%;
+    --chart-2: 142 50% 30%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 62% 50%;
+    --chart-5: 200 70% 50%;
+  }
+
+  /* Dark Theme */
+  .dark {
     --background: 150 10% 8%;
     --foreground: 0 0% 95%;
 
@@ -22,7 +87,7 @@
     --popover: 150 8% 14%;
     --popover-foreground: 0 0% 95%;
 
-    /* Primary - Bright Green (accent color from reference) */
+    /* Primary - Bright Green */
     --primary: 142 70% 45%;
     --primary-foreground: 150 10% 8%;
 
@@ -30,7 +95,7 @@
     --secondary: 150 8% 15%;
     --secondary-foreground: 0 0% 85%;
 
-    /* Muted - Subtle backgrounds */
+    /* Muted */
     --muted: 150 6% 18%;
     --muted-foreground: 0 0% 55%;
 
@@ -38,15 +103,15 @@
     --accent: 142 40% 15%;
     --accent-foreground: 142 70% 55%;
 
-    /* Destructive - Critical alerts */
+    /* Destructive */
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warning - Financial alerts (Orange) */
+    /* Warning */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
 
-    /* Success - Positive indicators */
+    /* Success */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
 
@@ -54,8 +119,6 @@
     --border: 150 6% 20%;
     --input: 150 6% 20%;
     --ring: 142 70% 45%;
-
-    --radius: 0.75rem;
 
     /* Sidebar - Darker than main content */
     --sidebar-background: 150 12% 7%;
@@ -92,10 +155,18 @@
 
 @layer utilities {
   .shadow-card {
+    box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  }
+
+  .dark .shadow-card {
     box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
   }
   
   .shadow-elevated {
+    box-shadow: 0 10px 25px -5px hsl(0 0% 0% / 0.15), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
+  }
+
+  .dark .shadow-elevated {
     box-shadow: 0 10px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
   }
 
@@ -113,7 +184,7 @@
 
   /* Gradient backgrounds */
   .gradient-card {
-    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(150 8% 10%) 100%);
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
   }
   
   .gradient-accent {

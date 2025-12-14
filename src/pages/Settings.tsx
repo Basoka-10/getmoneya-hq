@@ -4,17 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   User,
   Building,
   Wallet,
   Bell,
-  Shield,
   Palette,
   Plus,
   X,
+  LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // From document: expense categories are modifiable by user
 const defaultCategories = [
@@ -30,6 +35,8 @@ const defaultCategories = [
 const Settings = () => {
   const [categories, setCategories] = useState(defaultCategories);
   const [newCategory, setNewCategory] = useState("");
+  const { signOut, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const addCategory = () => {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
@@ -42,6 +49,11 @@ const Settings = () => {
     setCategories(categories.filter((c) => c !== category));
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Déconnexion réussie");
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in max-w-3xl">
@@ -51,6 +63,42 @@ const Settings = () => {
           <p className="mt-1 text-muted-foreground">
             Gérez vos informations et préférences.
           </p>
+        </div>
+
+        {/* Theme Section */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-primary">
+              <Palette className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-card-foreground">
+                Apparence
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Personnalisez l'apparence de l'application
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {theme === "dark" ? (
+                <Moon className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <Sun className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Thème {theme === "dark" ? "sombre" : "clair"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Basculer entre le thème clair et sombre
+                </p>
+              </div>
+            </div>
+            <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
+          </div>
         </div>
 
         {/* Profile Section */}
@@ -80,7 +128,13 @@ const Settings = () => {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="jean@example.com" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={user?.email || ""} 
+                disabled 
+                className="bg-muted"
+              />
             </div>
           </div>
         </div>
@@ -222,8 +276,12 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
+        {/* Action Buttons */}
+        <div className="flex justify-between">
+          <Button variant="destructive" onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Se déconnecter
+          </Button>
           <Button>Enregistrer les modifications</Button>
         </div>
       </div>
