@@ -10,19 +10,25 @@ import {
   Send,
   Trash2,
   Loader2,
+  ArrowRightLeft,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useInvoices, useDeleteInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
-import { useQuotations, useDeleteQuotation, useUpdateQuotation } from "@/hooks/useQuotations";
+import { useInvoices, useDeleteInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
+import { useQuotations, useDeleteQuotation, useUpdateQuotation, Quotation } from "@/hooks/useQuotations";
+import { useClients } from "@/hooks/useClients";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { QuotationModal } from "@/components/modals/QuotationModal";
+import { downloadPDF } from "@/utils/pdfGenerator";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -42,12 +48,24 @@ const invoiceStatusStyles = {
   cancelled: { label: "Annulée", bg: "bg-muted", text: "text-muted-foreground" },
 };
 
+interface LineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+}
+
 const Invoices = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [invoicePrefillData, setInvoicePrefillData] = useState<{
+    clientId?: string;
+    items?: LineItem[];
+    notes?: string;
+  } | undefined>(undefined);
 
   const { data: invoices = [], isLoading: loadingInvoices } = useInvoices();
   const { data: quotations = [], isLoading: loadingQuotations } = useQuotations();
+  const { data: clients = [] } = useClients();
   const deleteInvoice = useDeleteInvoice();
   const deleteQuotation = useDeleteQuotation();
   const updateInvoice = useUpdateInvoice();
@@ -57,10 +75,71 @@ const Invoices = () => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
   };
 
+  const getClientById = (clientId: string | null) => {
+    if (!clientId) return null;
+    return clients.find((c) => c.id === clientId);
+  };
+
+  // Download invoice as PDF
+  const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
+    const client = getClientById(invoice.client_id);
+    
+    downloadPDF({
+      type: "invoice",
+      number: invoice.invoice_number,
+      clientName: invoice.clients?.name,
+      clientEmail: client?.email || undefined,
+      clientCompany: client?.company || undefined,
+      issueDate: invoice.issue_date,
+      dueDate: invoice.due_date,
+      items: invoice.items as LineItem[],
+      notes: invoice.notes || undefined,
+      amount: Number(invoice.amount),
+    });
+    
+    toast.success("Facture téléchargée");
+  };
+
+  // Download quotation as PDF
+  const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
+    const client = getClientById(quotation.client_id);
+    
+    downloadPDF({
+      type: "quotation",
+      number: quotation.quotation_number,
+      clientName: quotation.clients?.name,
+      clientEmail: client?.email || undefined,
+      clientCompany: client?.company || undefined,
+      issueDate: quotation.issue_date,
+      validUntil: quotation.valid_until,
+      items: quotation.items as LineItem[],
+      notes: quotation.notes || undefined,
+      amount: Number(quotation.amount),
+    });
+    
+    toast.success("Devis téléchargé");
+  };
+
+  // Convert quotation to invoice
+  const handleConvertToInvoice = (quotation: Quotation & { clients: { name: string } | null }) => {
+    setInvoicePrefillData({
+      clientId: quotation.client_id || undefined,
+      items: quotation.items as LineItem[],
+      notes: quotation.notes || undefined,
+    });
+    setShowInvoiceModal(true);
+    toast.info("Créez la facture à partir de ce devis");
+  };
+
   // Calculate stats
   const pendingQuotations = quotations.filter((q) => q.status === "sent");
   const unpaidInvoices = invoices.filter((i) => i.status === "sent" || i.status === "overdue");
   const paidInvoices = invoices.filter((i) => i.status === "paid");
+
+  const handleOpenNewInvoice = () => {
+    setInvoicePrefillData(undefined);
+    setShowInvoiceModal(true);
+  };
 
   return (
     <AppLayout>
@@ -124,7 +203,7 @@ const Invoices = () => {
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-4">
             <div className="flex justify-end">
-              <Button size="sm" onClick={() => setShowInvoiceModal(true)}>
+              <Button size="sm" onClick={handleOpenNewInvoice}>
                 <Plus className="mr-2 h-4 w-4" />
                 Nouvelle facture
               </Button>
@@ -138,7 +217,7 @@ const Invoices = () => {
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground">Aucune facture créée</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowInvoiceModal(true)}>
+                  <Button variant="outline" className="mt-4" onClick={handleOpenNewInvoice}>
                     <Plus className="mr-2 h-4 w-4" />
                     Créer votre première facture
                   </Button>
@@ -185,6 +264,11 @@ const Invoices = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleDownloadInvoice(invoice)}>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Télécharger PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 {invoice.status === "draft" && (
                                   <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "sent" })}>
                                     <Send className="mr-2 h-4 w-4" />
@@ -193,9 +277,11 @@ const Invoices = () => {
                                 )}
                                 {(invoice.status === "sent" || invoice.status === "overdue") && (
                                   <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "paid" })}>
+                                    <Check className="mr-2 h-4 w-4" />
                                     Marquer comme payée
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-destructive" onClick={() => deleteInvoice.mutate(invoice.id)}>
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Supprimer
@@ -276,6 +362,15 @@ const Invoices = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleDownloadQuotation(quotation)}>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Télécharger PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>
+                                  <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                  Convertir en facture
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 {quotation.status === "draft" && (
                                   <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "sent" })}>
                                     <Send className="mr-2 h-4 w-4" />
@@ -284,9 +379,11 @@ const Invoices = () => {
                                 )}
                                 {quotation.status === "sent" && (
                                   <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "accepted" })}>
+                                    <Check className="mr-2 h-4 w-4" />
                                     Marquer comme accepté
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-destructive" onClick={() => deleteQuotation.mutate(quotation.id)}>
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Supprimer
@@ -305,7 +402,11 @@ const Invoices = () => {
         </Tabs>
       </div>
 
-      <InvoiceModal open={showInvoiceModal} onOpenChange={setShowInvoiceModal} />
+      <InvoiceModal 
+        open={showInvoiceModal} 
+        onOpenChange={setShowInvoiceModal}
+        prefillData={invoicePrefillData}
+      />
       <QuotationModal open={showQuotationModal} onOpenChange={setShowQuotationModal} />
     </AppLayout>
   );
