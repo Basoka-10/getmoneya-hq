@@ -8,6 +8,7 @@ import Finances from "./pages/Finances";
 import Analysis from "./pages/Analysis";
 import Clients from "./pages/Clients";
 import Tasks from "./pages/Tasks";
+import Calendar from "./pages/Calendar";
 import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/calendar" element={<Calendar />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

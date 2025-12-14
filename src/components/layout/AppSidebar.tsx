@@ -12,18 +12,15 @@ import {
   Sun,
   Zap,
   Crown,
+  CalendarDays,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { name: "Finances", href: "/finances", icon: Wallet },
   { name: "Analyse", href: "/analysis", icon: BarChart3 },
   { name: "Clients", href: "/clients", icon: Users },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
+  { name: "Calendrier", href: "/calendar", icon: CalendarDays },
   { name: "Facturation", href: "/invoices", icon: FileText },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ];
