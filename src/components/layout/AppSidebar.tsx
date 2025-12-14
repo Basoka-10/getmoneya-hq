@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useTheme } from "@/contexts/ThemeContext";
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { name: "Finances", href: "/finances", icon: Wallet },
@@ -32,6 +33,7 @@ const navigation = [
 export function AppSidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <aside
@@ -86,11 +88,29 @@ export function AppSidebar() {
       <div className="mt-auto border-t border-sidebar-border p-3 space-y-3">
         {/* Theme Toggle */}
         <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
-          <button className="p-2 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80 transition-colors">
+          <button 
+            onClick={toggleTheme}
+            className={cn(
+              "p-2 rounded-lg transition-colors",
+              theme === "dark" 
+                ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+            )}
+            title="Mode sombre"
+          >
             <Moon className="h-4 w-4" />
           </button>
           {!collapsed && (
-            <button className="p-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+            <button 
+              onClick={toggleTheme}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                theme === "light" 
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+              )}
+              title="Mode clair"
+            >
               <Sun className="h-4 w-4" />
             </button>
           )}
