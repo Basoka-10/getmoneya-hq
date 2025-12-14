@@ -80,11 +80,27 @@ const Invoices = () => {
     return clients.find((c) => c.id === clientId);
   };
 
+  // Parse items safely
+  const parseItems = (items: unknown): LineItem[] => {
+    if (!items) return [];
+    if (typeof items === "string") {
+      try {
+        const parsed = JSON.parse(items);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(items)) return items;
+    return [];
+  };
+
   // Download invoice as PDF
   const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
+    const items = parseItems(invoice.items);
     
-    downloadPDF({
+    const success = downloadPDF({
       type: "invoice",
       number: invoice.invoice_number,
       clientName: invoice.clients?.name,
@@ -92,19 +108,24 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: invoice.issue_date,
       dueDate: invoice.due_date,
-      items: invoice.items as LineItem[],
+      items: items,
       notes: invoice.notes || undefined,
       amount: Number(invoice.amount),
     });
     
-    toast.success("Facture téléchargée");
+    if (success) {
+      toast.success("Facture téléchargée");
+    } else {
+      toast.error("Erreur lors du téléchargement");
+    }
   };
 
   // Download quotation as PDF
   const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
+    const items = parseItems(quotation.items);
     
-    downloadPDF({
+    const success = downloadPDF({
       type: "quotation",
       number: quotation.quotation_number,
       clientName: quotation.clients?.name,
@@ -112,19 +133,25 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: quotation.issue_date,
       validUntil: quotation.valid_until,
-      items: quotation.items as LineItem[],
+      items: items,
       notes: quotation.notes || undefined,
       amount: Number(quotation.amount),
     });
     
-    toast.success("Devis téléchargé");
+    if (success) {
+      toast.success("Devis téléchargé");
+    } else {
+      toast.error("Erreur lors du téléchargement");
+    }
   };
 
   // Convert quotation to invoice
   const handleConvertToInvoice = (quotation: Quotation & { clients: { name: string } | null }) => {
+    const items = parseItems(quotation.items);
+    
     setInvoicePrefillData({
       clientId: quotation.client_id || undefined,
-      items: quotation.items as LineItem[],
+      items: items,
       notes: quotation.notes || undefined,
     });
     setShowInvoiceModal(true);
