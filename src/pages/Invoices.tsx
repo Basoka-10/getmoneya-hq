@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useInvoices, useDeleteInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
 import { useQuotations, useDeleteQuotation, useUpdateQuotation, Quotation } from "@/hooks/useQuotations";
 import { useClients } from "@/hooks/useClients";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { QuotationModal } from "@/components/modals/QuotationModal";
 import { downloadPDF } from "@/utils/pdfGenerator";
@@ -70,9 +71,18 @@ const Invoices = () => {
   const deleteQuotation = useDeleteQuotation();
   const updateInvoice = useUpdateInvoice();
   const updateQuotation = useUpdateQuotation();
+  const { formatAmount, currencyConfig } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
+  };
+
+  const formatCurrency = (amount: number) => {
+    const formatted = formatAmount(amount);
+    if (currencyConfig.code === "USD") {
+      return `${currencyConfig.symbol}${formatted}`;
+    }
+    return `${formatted} ${currencyConfig.symbol}`;
   };
 
   const getClientById = (clientId: string | null) => {
@@ -111,6 +121,8 @@ const Invoices = () => {
       items: items,
       notes: invoice.notes || undefined,
       amount: Number(invoice.amount),
+      currencySymbol: currencyConfig.symbol,
+      currencyLocale: currencyConfig.locale,
     });
     
     if (success) {
@@ -136,6 +148,8 @@ const Invoices = () => {
       items: items,
       notes: quotation.notes || undefined,
       amount: Number(quotation.amount),
+      currencySymbol: currencyConfig.symbol,
+      currencyLocale: currencyConfig.locale,
     });
     
     if (success) {
@@ -191,7 +205,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0).toLocaleString("fr-FR")} € en cours
+              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -200,7 +214,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0).toLocaleString("fr-FR")} € à encaisser
+              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -209,7 +223,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0).toLocaleString("fr-FR")} € encaissés
+              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
             </p>
           </div>
         </div>
@@ -281,7 +295,7 @@ const Invoices = () => {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-foreground">
-                            {Number(invoice.amount).toLocaleString("fr-FR")} €
+                            {formatCurrency(Number(invoice.amount))}
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-right">
                             <DropdownMenu>
@@ -379,7 +393,7 @@ const Invoices = () => {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-foreground">
-                            {Number(quotation.amount).toLocaleString("fr-FR")} €
+                            {formatCurrency(Number(quotation.amount))}
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-right">
                             <DropdownMenu>

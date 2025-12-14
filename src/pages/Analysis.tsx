@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   TrendingUp,
   TrendingDown,
@@ -24,6 +25,15 @@ const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Se
 
 const Analysis = () => {
   const { data: transactions = [] } = useTransactions();
+  const { formatAmount, currencyConfig } = useCurrency();
+
+  const formatCurrency = (amount: number) => {
+    const formatted = formatAmount(amount);
+    if (currencyConfig.code === "USD") {
+      return `${currencyConfig.symbol}${formatted}`;
+    }
+    return `${formatted} ${currencyConfig.symbol}`;
+  };
 
   // Calculate monthly data from real transactions
   const monthlyData = useMemo(() => {
@@ -95,20 +105,20 @@ const Analysis = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Moyenne revenus/mois"
-            value={`${avgIncome.toLocaleString("fr-FR")} €`}
+            value={formatCurrency(avgIncome)}
             icon={TrendingUp}
             iconColor="success"
           />
           <StatCard
             title="Moyenne dépenses/mois"
-            value={`${avgExpenses.toLocaleString("fr-FR")} €`}
+            value={formatCurrency(avgExpenses)}
             icon={TrendingDown}
             iconColor="warning"
           />
           <StatCard
             title="Mois le plus rentable"
             value={bestMonth.revenus > 0 ? bestMonth.name : "-"}
-            change={bestMonth.revenus > 0 ? `${bestMonth.revenus.toLocaleString("fr-FR")} € de revenus` : "Aucune donnée"}
+            change={bestMonth.revenus > 0 ? `${formatCurrency(bestMonth.revenus)} de revenus` : "Aucune donnée"}
             changeType={bestMonth.revenus > 0 ? "positive" : "neutral"}
             icon={CalendarDays}
             iconColor="success"
@@ -169,7 +179,7 @@ const Analysis = () => {
                       color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number) => [
-                      `${value.toLocaleString("fr-FR")} €`,
+                      formatCurrency(value),
                       "Revenus",
                     ]}
                   />
@@ -236,7 +246,7 @@ const Analysis = () => {
                       color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number) => [
-                      `${value.toLocaleString("fr-FR")} €`,
+                      formatCurrency(value),
                       "Dépenses",
                     ]}
                   />
@@ -273,7 +283,7 @@ const Analysis = () => {
                     type="number"
                     tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
-                    tickFormatter={(value) => `${value} €`}
+                    tickFormatter={(value) => `${value} ${currencyConfig.symbol}`}
                   />
                   <YAxis
                     type="category"
@@ -290,7 +300,7 @@ const Analysis = () => {
                       color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number) => [
-                      `${value.toLocaleString("fr-FR")} €`,
+                      formatCurrency(value),
                       "Montant",
                     ]}
                   />

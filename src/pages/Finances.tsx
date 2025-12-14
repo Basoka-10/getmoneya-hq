@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -24,9 +25,18 @@ const Finances = () => {
   const { data: incomes = [], isLoading: loadingIncomes } = useTransactions("income");
   const { data: expenses = [], isLoading: loadingExpenses } = useTransactions("expense");
   const deleteTransaction = useDeleteTransaction();
+  const { formatAmount, currencyConfig } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
+  };
+
+  const formatCurrency = (amount: number) => {
+    const formatted = formatAmount(amount);
+    if (currencyConfig.code === "USD") {
+      return `${currencyConfig.symbol}${formatted}`;
+    }
+    return `${formatted} ${currencyConfig.symbol}`;
   };
 
   return (
@@ -133,7 +143,7 @@ const Finances = () => {
                           {formatDate(income.date)}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-success">
-                          +{Number(income.amount).toLocaleString("fr-FR")} €
+                          +{formatCurrency(Number(income.amount))}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right">
                           <Button
@@ -221,7 +231,7 @@ const Finances = () => {
                           {formatDate(expense.date)}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-destructive">
-                          -{Number(expense.amount).toLocaleString("fr-FR")} €
+                          -{formatCurrency(Number(expense.amount))}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right">
                           <Button
