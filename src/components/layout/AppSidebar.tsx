@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { name: "Finances", href: "/finances", icon: Wallet },
@@ -34,36 +36,41 @@ export function AppSidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+
+  const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
+  const userName = user?.email?.split("@")[0] || "Utilisateur";
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col",
+        "fixed left-0 top-0 z-40 h-screen border-r transition-all duration-300 flex flex-col",
+        "bg-sidebar border-sidebar-border",
         collapsed ? "w-20" : "w-64"
       )}
     >
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
             <span className="text-lg font-bold text-primary-foreground">G</span>
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
               GET MONEYA
             </span>
           )}
         </Link>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-md p-1.5 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+          className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
         >
-          <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
+          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")} />
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -71,13 +78,16 @@ export function AppSidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-sidebar-accent text-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                  ? "bg-primary/10 text-primary shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
+              <item.icon className={cn(
+                "h-5 w-5 flex-shrink-0 transition-colors",
+                isActive && "text-primary"
+              )} />
               {!collapsed && <span>{item.name}</span>}
             </Link>
           );
@@ -87,14 +97,17 @@ export function AppSidebar() {
       {/* Bottom Section */}
       <div className="mt-auto border-t border-sidebar-border p-3 space-y-3">
         {/* Theme Toggle */}
-        <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
+        <div className={cn(
+          "flex items-center rounded-xl bg-muted/50 p-1",
+          collapsed ? "justify-center" : "justify-between"
+        )}>
           <button 
-            onClick={toggleTheme}
+            onClick={() => theme === "light" && toggleTheme()}
             className={cn(
-              "p-2 rounded-lg transition-colors",
+              "flex items-center justify-center rounded-lg p-2 transition-all duration-200",
               theme === "dark" 
-                ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                ? "bg-card text-primary shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
             )}
             title="Mode sombre"
           >
@@ -102,12 +115,12 @@ export function AppSidebar() {
           </button>
           {!collapsed && (
             <button 
-              onClick={toggleTheme}
+              onClick={() => theme === "dark" && toggleTheme()}
               className={cn(
-                "p-2 rounded-lg transition-colors",
+                "flex items-center justify-center rounded-lg p-2 transition-all duration-200",
                 theme === "light" 
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-card text-primary shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               title="Mode clair"
             >
@@ -118,40 +131,47 @@ export function AppSidebar() {
 
         {/* Usage Card */}
         {!collapsed && (
-          <div className="rounded-xl bg-primary/10 border border-primary/20 p-4 space-y-3">
+          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">
-                <span className="text-primary font-bold">50</span> restant sur 50
-              </span>
-              <span className="ml-auto text-xs text-muted-foreground">0%</span>
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20">
+                <Zap className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">Crédits</span>
+                  <span className="text-xs text-muted-foreground">0%</span>
+                </div>
+              </div>
             </div>
-            <Progress value={0} className="h-1.5 bg-sidebar-accent" />
+            <Progress value={0} className="h-1.5 bg-primary/10" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-primary">50</span> restant sur 50
+            </p>
           </div>
         )}
 
         {/* Upgrade Button */}
         {!collapsed && (
-          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-2">
-            <Crown className="h-4 w-4" />
+          <Button className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200">
+            <Crown className="h-4 w-4 mr-2" />
             Passer PRO
-            <span className="ml-auto">↗</span>
           </Button>
         )}
 
         {/* User */}
-        <div className={cn("flex items-center gap-3 px-2 py-2", collapsed && "justify-center")}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-            U
+        <div className={cn(
+          "flex items-center gap-3 p-2 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer",
+          collapsed && "justify-center"
+        )}>
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-sm font-bold text-white shadow-lg">
+            {userInitial}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-sidebar-accent text-sidebar-foreground">
+              <p className="text-sm font-medium text-foreground truncate">{userName}</p>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-muted text-muted-foreground">
                   Gratuit
-                </span>
-                <span className="text-sm font-medium text-foreground truncate">
-                  Utilisateur
                 </span>
               </div>
             </div>
