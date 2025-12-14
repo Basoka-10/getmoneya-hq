@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useTransactionStats, useTransactions } from "@/hooks/useTransactions";
 import { useClients } from "@/hooks/useClients";
 import { useTasks, useToggleTask } from "@/hooks/useTasks";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const { data: clients = [] } = useClients();
   const { data: tasks = [] } = useTasks();
   const toggleTask = useToggleTask();
+  const { formatAmount, currencyConfig } = useCurrency();
 
   const today = format(new Date(), "yyyy-MM-dd");
   const todayTasks = tasks.filter((t) => t.due_date === today).slice(0, 4);
@@ -25,6 +27,14 @@ const Dashboard = () => {
 
   const handleToggle = (id: string, completed: boolean) => {
     toggleTask.mutate({ id, completed: !completed });
+  };
+
+  const formatCurrency = (amount: number) => {
+    const formatted = formatAmount(amount);
+    if (currencyConfig.code === "USD") {
+      return `${currencyConfig.symbol}${formatted}`;
+    }
+    return `${formatted} ${currencyConfig.symbol}`;
   };
 
   return (
@@ -51,8 +61,8 @@ const Dashboard = () => {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             ) : (
               <p className="text-5xl font-bold tracking-tight text-card-foreground">
-                {(stats?.balance || 0).toLocaleString("fr-FR")}
-                <span className="text-2xl ml-1">€</span>
+                {formatAmount(stats?.balance || 0)}
+                <span className="text-2xl ml-1">{currencyConfig.symbol}</span>
               </p>
             )}
           </div>
@@ -69,13 +79,13 @@ const Dashboard = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             title="Revenus totaux"
-            value={(stats?.totalIncome || 0).toLocaleString("fr-FR") + " €"}
+            value={formatCurrency(stats?.totalIncome || 0)}
             icon={TrendingUp}
             iconColor="success"
           />
           <StatCard
             title="Dépenses totales"
-            value={(stats?.totalExpenses || 0).toLocaleString("fr-FR") + " €"}
+            value={formatCurrency(stats?.totalExpenses || 0)}
             icon={TrendingDown}
             iconColor="warning"
           />
@@ -134,7 +144,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground">{format(new Date(t.date), "d MMM", { locale: fr })}</p>
                     </div>
                     <span className={cn("text-sm font-semibold", t.type === "income" ? "text-success" : "text-destructive")}>
-                      {t.type === "income" ? "+" : "-"}{Number(t.amount).toLocaleString("fr-FR")} €
+                      {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
                     </span>
                   </div>
                 ))}

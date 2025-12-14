@@ -25,6 +25,8 @@ interface DocumentData {
   companyAddress?: string;
   companySiret?: string;
   companyTva?: string;
+  currencySymbol?: string;
+  currencyLocale?: string;
 }
 
 // Parse items safely - handles both JSON string and array
@@ -57,6 +59,18 @@ export function generatePDF(data: DocumentData): jsPDF {
 
   // Parse items safely
   const items = parseItems(data.items);
+
+  // Currency settings
+  const currencySymbol = data.currencySymbol || "€";
+  const currencyLocale = data.currencyLocale || "fr-FR";
+
+  const formatCurrency = (amount: number) => {
+    const formatted = amount.toLocaleString(currencyLocale);
+    if (currencySymbol === "$") {
+      return `${currencySymbol}${formatted}`;
+    }
+    return `${formatted} ${currencySymbol}`;
+  };
 
   // Colors
   const primaryColor: [number, number, number] = [34, 139, 34]; // Green
@@ -183,10 +197,10 @@ export function generatePDF(data: DocumentData): jsPDF {
     ? items.map((item) => [
         item.description || "",
         (item.quantity || 0).toString(),
-        `${(item.unit_price || 0).toLocaleString("fr-FR")} €`,
-        `${((item.quantity || 0) * (item.unit_price || 0)).toLocaleString("fr-FR")} €`,
+        formatCurrency(item.unit_price || 0),
+        formatCurrency((item.quantity || 0) * (item.unit_price || 0)),
       ])
-    : [["Aucun article", "-", "-", `${data.amount.toLocaleString("fr-FR")} €`]];
+    : [["Aucun article", "-", "-", formatCurrency(data.amount)]];
 
   autoTable(doc, {
     startY: yPos,
@@ -226,7 +240,7 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setFontSize(10);
   doc.text("Sous-total HT:", totalsX, yPos);
   doc.setTextColor(...textDark);
-  doc.text(`${data.amount.toLocaleString("fr-FR")} €`, pageWidth - margin, yPos, {
+  doc.text(formatCurrency(data.amount), pageWidth - margin, yPos, {
     align: "right",
   });
 
@@ -236,7 +250,7 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setTextColor(...textGray);
   doc.text("TVA (0%):", totalsX, yPos);
   doc.setTextColor(...textDark);
-  doc.text("0,00 €", pageWidth - margin, yPos, { align: "right" });
+  doc.text(formatCurrency(0), pageWidth - margin, yPos, { align: "right" });
 
   yPos += 10;
 
@@ -248,7 +262,7 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("TOTAL TTC", totalsX, yPos + 3);
-  doc.text(`${data.amount.toLocaleString("fr-FR")} €`, pageWidth - margin - 5, yPos + 3, {
+  doc.text(formatCurrency(data.amount), pageWidth - margin - 5, yPos + 3, {
     align: "right",
   });
 

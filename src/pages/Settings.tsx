@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrency, CURRENCIES, Currency } from "@/contexts/CurrencyContext";
 import {
   User,
   Building,
@@ -28,13 +29,23 @@ import {
   Upload,
   Camera,
   Image,
+  Coins,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const settingsTabs = [
   { id: "profile", name: "Profil", icon: User },
   { id: "business", name: "Entreprise", icon: Building },
+  { id: "currency", name: "Devise", icon: Coins },
   { id: "subscription", name: "Abonnement", icon: CreditCard },
   { id: "categories", name: "Catégories", icon: Wallet },
   { id: "notifications", name: "Notifications", icon: Bell },
@@ -57,6 +68,7 @@ const Settings = () => {
   const [newCategory, setNewCategory] = useState("");
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { currency, setCurrency, currencyConfig } = useCurrency();
 
   // Profile state
   const [firstName, setFirstName] = useState("");
@@ -540,6 +552,118 @@ const Settings = () => {
                     <Plus className="mr-2 h-4 w-4" />
                     Ajouter
                   </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "currency" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Devise</h2>
+                <p className="text-sm text-muted-foreground">
+                  Sélectionnez la devise principale pour votre compte
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4">
+                  Devise principale
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Cette devise sera utilisée pour afficher tous les montants dans l'application et les documents générés.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Sélectionner une devise</Label>
+                    <Select
+                      value={currency}
+                      onValueChange={(value: Currency) => {
+                        setCurrency(value);
+                        toast.success(`Devise changée en ${CURRENCIES[value].name}`);
+                      }}
+                    >
+                      <SelectTrigger className="w-full max-w-xs">
+                        <SelectValue placeholder="Sélectionner une devise" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(CURRENCIES).map((curr) => (
+                          <SelectItem key={curr.code} value={curr.code}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{curr.symbol}</span>
+                              <span>{curr.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Currency Preview */}
+                  <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border">
+                    <p className="text-sm text-muted-foreground mb-2">Aperçu de l'affichage</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Coins className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Montant exemple</p>
+                          <p className="text-lg font-semibold text-foreground">
+                            {currency === "USD" 
+                              ? `${currencyConfig.symbol}${(1234.56).toLocaleString(currencyConfig.locale)}`
+                              : `${(1234.56).toLocaleString(currencyConfig.locale)} ${currencyConfig.symbol}`
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Currency list with visual selection */}
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4">
+                  Devises disponibles
+                </h3>
+                <div className="grid gap-3">
+                  {Object.values(CURRENCIES).map((curr) => (
+                    <button
+                      key={curr.code}
+                      onClick={() => {
+                        setCurrency(curr.code);
+                        toast.success(`Devise changée en ${curr.name}`);
+                      }}
+                      className={cn(
+                        "flex items-center justify-between p-4 rounded-lg border transition-all",
+                        currency === curr.code
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-muted/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "h-10 w-10 rounded-lg flex items-center justify-center text-lg font-bold",
+                          currency === curr.code
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {curr.symbol}
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-foreground">{curr.name}</p>
+                          <p className="text-sm text-muted-foreground">{curr.code}</p>
+                        </div>
+                      </div>
+                      {currency === curr.code && (
+                        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
