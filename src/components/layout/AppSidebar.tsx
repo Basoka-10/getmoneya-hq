@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,6 +15,9 @@ import {
   Crown,
   CalendarDays,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { name: "Finances", href: "/finances", icon: Wallet },
