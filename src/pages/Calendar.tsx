@@ -58,10 +58,17 @@ const Calendar = () => {
 
   const { data: tasks = [] } = useTasks();
 
+  // Helper to safely parse date
+  const safeParseDate = (dateStr: string): Date | null => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
   // Combine events and tasks with due dates
   const allEvents = useMemo(() => {
     const taskEvents = tasks
-      .filter((t) => t.due_date)
+      .filter((t) => t.due_date && safeParseDate(t.due_date))
       .map((t) => ({
         id: `task-${t.id}`,
         title: t.title,
@@ -72,15 +79,17 @@ const Calendar = () => {
         completed: t.completed,
       }));
 
-    const calEvents = events.map((e) => ({
-      id: e.id,
-      title: e.title,
-      start_date: e.start_date,
-      end_date: e.end_date,
-      color: e.color || "primary",
-      isTask: false,
-      completed: false,
-    }));
+    const calEvents = events
+      .filter((e) => safeParseDate(e.start_date) && safeParseDate(e.end_date))
+      .map((e) => ({
+        id: e.id,
+        title: e.title,
+        start_date: e.start_date,
+        end_date: e.end_date,
+        color: e.color || "primary",
+        isTask: false,
+        completed: false,
+      }));
 
     return [...calEvents, ...taskEvents];
   }, [events, tasks]);
@@ -312,7 +321,7 @@ const Calendar = () => {
                         >
                           <div className="truncate">{event.title}</div>
                           <div className="text-[10px] opacity-80">
-                            {format(new Date(event.start_date), "HH:mm")}
+                            {safeParseDate(event.start_date) ? format(safeParseDate(event.start_date)!, "HH:mm") : "--:--"}
                           </div>
                         </div>
                       ))}
@@ -374,7 +383,7 @@ const Calendar = () => {
                         {event.title}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(event.start_date), "HH:mm")} - {format(new Date(event.end_date), "HH:mm")}
+                        {safeParseDate(event.start_date) ? format(safeParseDate(event.start_date)!, "HH:mm") : "--:--"} - {safeParseDate(event.end_date) ? format(safeParseDate(event.end_date)!, "HH:mm") : "--:--"}
                       </p>
                     </div>
                     {event.isTask && (
