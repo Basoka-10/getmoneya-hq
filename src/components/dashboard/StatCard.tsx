@@ -8,13 +8,14 @@ interface StatCardProps {
   changeType?: "positive" | "negative" | "neutral";
   icon: LucideIcon;
   iconColor?: "primary" | "success" | "warning" | "destructive";
+  subtitle?: string;
 }
 
 const iconColorClasses = {
-  primary: "bg-accent text-primary",
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/10 text-warning",
-  destructive: "bg-destructive/10 text-destructive",
+  primary: "text-primary",
+  success: "text-success",
+  warning: "text-warning",
+  destructive: "text-destructive",
 };
 
 export function StatCard({
@@ -24,36 +25,37 @@ export function StatCard({
   changeType = "neutral",
   icon: Icon,
   iconColor = "primary",
+  subtitle,
 }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-200 hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-semibold tracking-tight text-card-foreground">
+    <div className="rounded-xl border border-border bg-card p-6 transition-all duration-200 hover:border-primary/30 hover:glow-primary">
+      <div className="flex items-center gap-2 text-muted-foreground mb-4">
+        <Icon className={cn("h-5 w-5", iconColorClasses[iconColor])} />
+        <p className="text-sm font-medium">{title}</p>
+      </div>
+      
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-4xl font-bold tracking-tight text-card-foreground">
             {value}
           </p>
-          {change && (
-            <p
-              className={cn(
-                "text-xs font-medium",
-                changeType === "positive" && "text-success",
-                changeType === "negative" && "text-destructive",
-                changeType === "neutral" && "text-muted-foreground"
-              )}
-            >
-              {change}
-            </p>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
           )}
         </div>
-        <div
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-lg",
-            iconColorClasses[iconColor]
-          )}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
+        
+        {change && (
+          <p
+            className={cn(
+              "text-sm font-medium",
+              changeType === "positive" && "text-primary",
+              changeType === "negative" && "text-destructive",
+              changeType === "neutral" && "text-muted-foreground"
+            )}
+          >
+            {change}
+          </p>
+        )}
       </div>
     </div>
   );
