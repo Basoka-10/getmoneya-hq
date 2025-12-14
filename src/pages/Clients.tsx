@@ -1,62 +1,18 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, MoreHorizontal, Mail, Phone } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Mail, Trash2, Loader2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-
-// Mock data from document
-const mockClients = [
-  {
-    id: "1",
-    name: "ABC Corporation",
-    email: "contact@abc-corp.com",
-    phone: "+33 6 12 34 56 78",
-    status: "active" as const,
-    totalRevenue: 12500,
-    invoices: 8,
-    lastActivity: "Il y a 2 jours",
-  },
-  {
-    id: "2",
-    name: "Beta Industries",
-    email: "hello@beta-ind.com",
-    phone: "+33 6 98 76 54 32",
-    status: "active" as const,
-    totalRevenue: 8200,
-    invoices: 5,
-    lastActivity: "Il y a 1 semaine",
-  },
-  {
-    id: "3",
-    name: "Startup Innovations",
-    email: "team@startup-innov.com",
-    phone: "+33 6 11 22 33 44",
-    status: "prospect" as const,
-    totalRevenue: 0,
-    invoices: 0,
-    lastActivity: "Il y a 3 jours",
-  },
-  {
-    id: "4",
-    name: "Delta Services SA",
-    email: "info@delta-services.fr",
-    phone: "+33 6 55 66 77 88",
-    status: "former" as const,
-    totalRevenue: 4800,
-    invoices: 3,
-    lastActivity: "Il y a 2 mois",
-  },
-  {
-    id: "5",
-    name: "Gamma Tech",
-    email: "contact@gamma-tech.io",
-    phone: "+33 6 99 88 77 66",
-    status: "prospect" as const,
-    totalRevenue: 0,
-    invoices: 0,
-    lastActivity: "Il y a 5 jours",
-  },
-];
+import { useState } from "react";
+import { useClients, useDeleteClient, Client } from "@/hooks/useClients";
+import { useTransactions } from "@/hooks/useTransactions";
+import { ClientModal } from "@/components/modals/ClientModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const statusStyles = {
   prospect: {
@@ -80,6 +36,38 @@ const statusStyles = {
 };
 
 const Clients = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: clients = [], isLoading } = useClients();
+  const { data: transactions = [] } = useTransactions();
+  const deleteClient = useDeleteClient();
+
+  // Calculate revenue per client
+  const getClientRevenue = (clientId: string) => {
+    return transactions
+      .filter((t) => t.client_id === clientId && t.type === "income")
+      .reduce((acc, t) => acc + Number(t.amount), 0);
+  };
+
+  // Filter clients by search query
+  const filteredClients = clients.filter((client) =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.company?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = (open: boolean) => {
+    setShowModal(open);
+    if (!open) setEditingClient(null);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -91,7 +79,7 @@ const Clients = () => {
               Gérez vos contacts professionnels.
             </p>
           </div>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setShowModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un client
           </Button>
@@ -104,6 +92,8 @@ const Clients = () => {
             <Input
               placeholder="Rechercher un client..."
               className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -116,7 +106,7 @@ const Clients = () => {
               <span className="text-sm text-muted-foreground">Clients actifs</span>
             </div>
             <p className="mt-2 text-2xl font-semibold text-foreground">
-              {mockClients.filter((c) => c.status === "active").length}
+              {clients.filter((c) => c.status === "active").length}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -125,7 +115,7 @@ const Clients = () => {
               <span className="text-sm text-muted-foreground">Prospects</span>
             </div>
             <p className="mt-2 text-2xl font-semibold text-foreground">
-              {mockClients.filter((c) => c.status === "prospect").length}
+              {clients.filter((c) => c.status === "prospect").length}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -134,99 +124,129 @@ const Clients = () => {
               <span className="text-sm text-muted-foreground">Anciens clients</span>
             </div>
             <p className="mt-2 text-2xl font-semibold text-foreground">
-              {mockClients.filter((c) => c.status === "former").length}
+              {clients.filter((c) => c.status === "former").length}
             </p>
           </div>
         </div>
 
         {/* Clients Table */}
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Statut
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Revenus générés
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Factures
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Dernière activité
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {mockClients.map((client) => {
-                const status = statusStyles[client.status];
-                return (
-                  <tr
-                    key={client.id}
-                    className="transition-colors hover:bg-muted/30"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-sm font-semibold text-primary">
-                          {client.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {client.name}
-                          </p>
-                          <div className="flex items-center gap-3 mt-0.5">
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Mail className="h-3 w-3" />
-                              {client.email}
-                            </span>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredClients.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground">
+                {clients.length === 0 ? "Aucun client enregistré" : "Aucun client trouvé"}
+              </p>
+              {clients.length === 0 && (
+                <Button variant="outline" className="mt-4" onClick={() => setShowModal(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Ajouter votre premier client
+                </Button>
+              )}
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Client
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Statut
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Revenus générés
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredClients.map((client) => {
+                  const status = statusStyles[client.status];
+                  const revenue = getClientRevenue(client.id);
+                  return (
+                    <tr
+                      key={client.id}
+                      className="transition-colors hover:bg-muted/30"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-sm font-semibold text-primary">
+                            {client.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {client.name}
+                            </p>
+                            {client.email && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                                <Mail className="h-3 w-3" />
+                                {client.email}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          status.bg,
-                          status.text
-                        )}
-                      >
+                      </td>
+                      <td className="px-6 py-4">
                         <span
-                          className={cn("h-1.5 w-1.5 rounded-full", status.dot)}
-                        />
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-foreground">
-                      {client.totalRevenue > 0
-                        ? `${client.totalRevenue.toLocaleString("fr-FR")} €`
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {client.invoices > 0 ? client.invoices : "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {client.lastActivity}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                            status.bg,
+                            status.text
+                          )}
+                        >
+                          <span
+                            className={cn("h-1.5 w-1.5 rounded-full", status.dot)}
+                          />
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {revenue > 0
+                          ? `${revenue.toLocaleString("fr-FR")} €`
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(client)}>
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => deleteClient.mutate(client.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
+
+      <ClientModal
+        open={showModal}
+        onOpenChange={handleCloseModal}
+        client={editingClient}
+      />
     </AppLayout>
   );
 };

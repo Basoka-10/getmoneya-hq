@@ -14,7 +14,311 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calendar_events: {
+        Row: {
+          all_day: boolean
+          client_id: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          end_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          start_date: string
+          task_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          start_date: string
+          task_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          start_date?: string
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          items: Json
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          items?: Json
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          items?: Json
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotations: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          id: string
+          issue_date: string
+          items: Json
+          notes: string | null
+          quotation_number: string
+          status: Database["public"]["Enums"]["quotation_status"]
+          updated_at: string
+          user_id: string
+          valid_until: string
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string
+          items?: Json
+          notes?: string | null
+          quotation_number: string
+          status?: Database["public"]["Enums"]["quotation_status"]
+          updated_at?: string
+          user_id: string
+          valid_until: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string
+          items?: Json
+          notes?: string | null
+          quotation_number?: string
+          status?: Database["public"]["Enums"]["quotation_status"]
+          updated_at?: string
+          user_id?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          client_id: string | null
+          completed: boolean
+          created_at: string
+          description: string | null
+          due_date: string | null
+          due_time: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category: string
+          client_id: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          client_id?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          client_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_transactions_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +327,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      client_status: "active" | "prospect" | "former"
+      event_type: "task" | "appointment" | "reminder"
+      invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+      quotation_status: "draft" | "sent" | "accepted" | "rejected" | "expired"
+      task_priority: "low" | "medium" | "high"
+      transaction_type: "income" | "expense"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +459,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      client_status: ["active", "prospect", "former"],
+      event_type: ["task", "appointment", "reminder"],
+      invoice_status: ["draft", "sent", "paid", "overdue", "cancelled"],
+      quotation_status: ["draft", "sent", "accepted", "rejected", "expired"],
+      task_priority: ["low", "medium", "high"],
+      transaction_type: ["income", "expense"],
+    },
   },
 } as const

@@ -7,25 +7,28 @@ import {
   ArrowUpRight,
   Filter,
   Download,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Mock data from document
-const mockIncomes = [
-  { id: "1", source: "ABC Corp - Consulting", amount: 3500, date: "14 déc. 2024", type: "Ponctuel" },
-  { id: "2", source: "Beta Inc - Projet mensuel", amount: 2500, date: "01 déc. 2024", type: "Récurrent" },
-  { id: "3", source: "Startup X - Formation", amount: 1200, date: "28 nov. 2024", type: "Ponctuel" },
-  { id: "4", source: "Delta SA - Maintenance", amount: 800, date: "15 nov. 2024", type: "Récurrent" },
-];
-
-const mockExpenses = [
-  { id: "1", description: "Abonnement logiciel", amount: 49, date: "13 déc. 2024", category: "Outils" },
-  { id: "2", description: "Frais bancaires", amount: 25, date: "10 déc. 2024", category: "Banque" },
-  { id: "3", description: "Hébergement web", amount: 120, date: "05 déc. 2024", category: "Infrastructure" },
-  { id: "4", description: "Formation en ligne", amount: 299, date: "01 déc. 2024", category: "Formation" },
-];
+import { useState } from "react";
+import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const Finances = () => {
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+
+  const { data: incomes = [], isLoading: loadingIncomes } = useTransactions("income");
+  const { data: expenses = [], isLoading: loadingExpenses } = useTransactions("expense");
+  const deleteTransaction = useDeleteTransaction();
+
+  const formatDate = (dateStr: string) => {
+    return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -65,131 +68,191 @@ const Finances = () => {
           {/* Income Tab */}
           <TabsContent value="income" className="space-y-4">
             <div className="flex justify-end">
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowIncomeModal(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Ajouter un revenu
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Source
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Montant
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {mockIncomes.map((income) => (
-                    <tr
-                      key={income.id}
-                      className="transition-colors hover:bg-muted/30"
-                    >
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
-                            <ArrowDownLeft className="h-4 w-4" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">
-                            {income.source}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                            income.type === "Récurrent"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          )}
-                        >
-                          {income.type}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                        {income.date}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-success">
-                        +{income.amount.toLocaleString("fr-FR")} €
-                      </td>
+              {loadingIncomes ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : incomes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <ArrowDownLeft className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">Aucun revenu enregistré</p>
+                  <Button variant="outline" className="mt-4" onClick={() => setShowIncomeModal(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter votre premier revenu
+                  </Button>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Description
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Catégorie
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Montant
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {incomes.map((income) => (
+                      <tr
+                        key={income.id}
+                        className="transition-colors hover:bg-muted/30"
+                      >
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
+                              <ArrowDownLeft className="h-4 w-4" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground">
+                              {income.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                            {income.category}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                          {formatDate(income.date)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-success">
+                          +{Number(income.amount).toLocaleString("fr-FR")} €
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => deleteTransaction.mutate(income.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </TabsContent>
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-4">
             <div className="flex justify-end">
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowExpenseModal(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Ajouter une dépense
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Description
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Catégorie
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Montant
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {mockExpenses.map((expense) => (
-                    <tr
-                      key={expense.id}
-                      className="transition-colors hover:bg-muted/30"
-                    >
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                            <ArrowUpRight className="h-4 w-4" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">
-                            {expense.description}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                          {expense.category}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                        {expense.date}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-destructive">
-                        -{expense.amount.toLocaleString("fr-FR")} €
-                      </td>
+              {loadingExpenses ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : expenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <ArrowUpRight className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">Aucune dépense enregistrée</p>
+                  <Button variant="outline" className="mt-4" onClick={() => setShowExpenseModal(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter votre première dépense
+                  </Button>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Description
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Catégorie
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Montant
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {expenses.map((expense) => (
+                      <tr
+                        key={expense.id}
+                        className="transition-colors hover:bg-muted/30"
+                      >
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                              <ArrowUpRight className="h-4 w-4" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground">
+                              {expense.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                            {expense.category}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                          {formatDate(expense.date)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-destructive">
+                          -{Number(expense.amount).toLocaleString("fr-FR")} €
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => deleteTransaction.mutate(expense.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      <TransactionModal
+        open={showIncomeModal}
+        onOpenChange={setShowIncomeModal}
+        type="income"
+      />
+      <TransactionModal
+        open={showExpenseModal}
+        onOpenChange={setShowExpenseModal}
+        type="expense"
+      />
     </AppLayout>
   );
 };
