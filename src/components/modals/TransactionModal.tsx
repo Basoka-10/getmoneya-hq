@@ -12,11 +12,12 @@ import { format } from "date-fns";
 interface TransactionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  type: "income" | "expense";
+  type: "income" | "expense" | "savings";
 }
 
 const INCOME_CATEGORIES = ["Service", "Conseil", "Produit", "Commission", "Autre"];
 const EXPENSE_CATEGORIES = ["Outils", "Infrastructure", "Formation", "Marketing", "Banque", "Transport", "Autre"];
+const SAVINGS_CATEGORIES = ["Urgence", "Investissement", "Projet", "Retraite", "Autre"];
 
 export function TransactionModal({ open, onOpenChange, type }: TransactionModalProps) {
   const [description, setDescription] = useState("");
@@ -29,7 +30,7 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
   const { data: clients } = useClients();
   const { currency, currencyConfig, convertToEUR } = useCurrency();
 
-  const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const categories = type === "income" ? INCOME_CATEGORIES : type === "expense" ? EXPENSE_CATEGORIES : SAVINGS_CATEGORIES;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +62,7 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
       <DialogContent className="sm:max-w-[425px] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">
-            {type === "income" ? "Ajouter un revenu" : "Ajouter une dépense"}
+            {type === "income" ? "Ajouter un revenu" : type === "expense" ? "Ajouter une dépense" : "Ajouter une épargne"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,7 +72,7 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={type === "income" ? "Ex: Paiement client ABC" : "Ex: Abonnement logiciel"}
+              placeholder={type === "income" ? "Ex: Paiement client ABC" : type === "expense" ? "Ex: Abonnement logiciel" : "Ex: Épargne mensuelle"}
               required
             />
           </div>

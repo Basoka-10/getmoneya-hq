@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
+import { useGuideMode } from "@/components/onboarding/GuideTooltip";
 import {
   User,
   Building,
@@ -77,6 +78,7 @@ const Settings = () => {
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
+  const { guideEnabled, setGuideEnabled } = useGuideMode();
 
   // Profile state
   const [firstName, setFirstName] = useState("");
@@ -753,6 +755,25 @@ const Settings = () => {
                 <p className="text-sm text-muted-foreground">
                   Gérez vos alertes et notifications
                 </p>
+              </div>
+
+              {/* Guide Mode */}
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4">
+                  Mode Guide
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Activer les conseils</p>
+                    <p className="text-sm text-muted-foreground">
+                      Affiche des bulles d'aide pour vous guider dans l'utilisation de l'application
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={guideEnabled} 
+                    onCheckedChange={setGuideEnabled}
+                  />
+                </div>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-6 shadow-card space-y-4">

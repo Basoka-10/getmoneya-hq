@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export type Transaction = {
   id: string;
   user_id: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "savings";
   amount: number;
   description: string;
   category: string;
@@ -16,7 +16,7 @@ export type Transaction = {
 };
 
 export type CreateTransactionInput = {
-  type: "income" | "expense";
+  type: "income" | "expense" | "savings";
   amount: number;
   description: string;
   category: string;
@@ -24,7 +24,7 @@ export type CreateTransactionInput = {
   client_id?: string | null;
 };
 
-export function useTransactions(type?: "income" | "expense") {
+export function useTransactions(type?: "income" | "expense" | "savings") {
   return useQuery({
     queryKey: ["transactions", type],
     queryFn: async () => {
@@ -117,10 +117,15 @@ export function useTransactionStats() {
         .filter((t) => t.type === "expense")
         .reduce((acc, t) => acc + Number(t.amount), 0);
 
+      const totalSavings = transactions
+        .filter((t) => t.type === "savings")
+        .reduce((acc, t) => acc + Number(t.amount), 0);
+
       return {
         totalIncome,
         totalExpenses,
-        balance: totalIncome - totalExpenses,
+        totalSavings,
+        balance: totalIncome - totalExpenses - totalSavings,
         percentageSpent: totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0,
       };
     },
