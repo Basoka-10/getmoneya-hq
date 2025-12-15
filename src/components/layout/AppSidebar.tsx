@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -53,17 +52,17 @@ export function AppSidebar() {
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-            <span className="text-lg font-bold text-primary-foreground">G</span>
+            <span className="text-lg font-bold text-primary-foreground">M</span>
           </div>
           {!collapsed && (
             <span className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-              GET MONEYA
+              MONEYA
             </span>
           )}
         </Link>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+          className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 hidden md:block"
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")} />
         </button>
@@ -129,32 +128,26 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* Usage Card */}
+        {/* Beta Info Card */}
         {!collapsed && (
-          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 space-y-3">
+          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 space-y-2">
             <div className="flex items-center gap-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20">
                 <Zap className="h-3.5 w-3.5 text-primary" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-foreground">Crédits</span>
-                  <span className="text-xs text-muted-foreground">0%</span>
-                </div>
-              </div>
+              <span className="text-xs font-semibold text-primary">Plan gratuit</span>
             </div>
-            <Progress value={0} className="h-1.5 bg-primary/10" />
             <p className="text-xs text-muted-foreground">
-              <span className="font-semibold text-primary">50</span> restant sur 50
+              Accès gratuit pendant la phase de lancement
             </p>
           </div>
         )}
 
-        {/* Upgrade Button */}
+        {/* Beta Testers Button */}
         {!collapsed && (
           <Button className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200">
             <Crown className="h-4 w-4 mr-2" />
-            Passer PRO
+            BETA TESTEURS
           </Button>
         )}
 

@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useCurrency, CURRENCIES, Currency } from "@/contexts/CurrencyContext";
+import { useCurrency, CURRENCIES, Currency, EXCHANGE_RATES } from "@/contexts/CurrencyContext";
 import {
   User,
   Building,
@@ -22,10 +22,8 @@ import {
   Calendar,
   CreditCard,
   Shield,
-  Pencil,
   Zap,
   Users,
-  Clock,
   Upload,
   Camera,
   Image,
@@ -46,7 +44,6 @@ const settingsTabs = [
   { id: "profile", name: "Profil", icon: User },
   { id: "business", name: "Entreprise", icon: Building },
   { id: "currency", name: "Devise", icon: Coins },
-  { id: "subscription", name: "Abonnement", icon: CreditCard },
   { id: "categories", name: "Catégories", icon: Wallet },
   { id: "notifications", name: "Notifications", icon: Bell },
   { id: "security", name: "Sécurité", icon: Shield },
@@ -68,7 +65,7 @@ const Settings = () => {
   const [newCategory, setNewCategory] = useState("");
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currency, setCurrency, currencyConfig } = useCurrency();
+  const { currency, setCurrency, currencyConfig, getConvertedAmounts } = useCurrency();
 
   // Profile state
   const [firstName, setFirstName] = useState("");
@@ -151,10 +148,10 @@ const Settings = () => {
 
   return (
     <AppLayout>
-      <div className="flex gap-6 animate-fade-in min-h-[calc(100vh-6rem)]">
+      <div className="flex flex-col md:flex-row gap-6 animate-fade-in min-h-[calc(100vh-6rem)]">
         {/* Settings Sidebar */}
-        <div className="w-56 flex-shrink-0">
-          <div className="sticky top-6">
+        <div className="w-full md:w-56 flex-shrink-0">
+          <div className="md:sticky md:top-6">
             <div className="flex items-center gap-2 mb-6">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Wallet className="h-4 w-4" />
@@ -162,20 +159,20 @@ const Settings = () => {
               <h1 className="text-xl font-semibold text-foreground">Paramètres</h1>
             </div>
             
-            <nav className="space-y-1">
+            <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0 md:space-y-1">
               {settingsTabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-2 md:gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap",
                     activeTab === tab.id
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
                   <tab.icon className="h-4 w-4" />
-                  {tab.name}
+                  <span className="hidden md:inline">{tab.name}</span>
                 </button>
               ))}
             </nav>
@@ -282,16 +279,13 @@ const Settings = () => {
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-muted-foreground">Crédits</span>
+                        <span className="text-xs text-muted-foreground">Plan</span>
                         <Zap className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="text-lg font-semibold text-foreground">
-                        <span className="text-primary">50</span>
-                        <span className="text-muted-foreground text-sm"> / 50</span>
-                      </p>
+                      <p className="text-sm font-semibold text-primary">Beta gratuit</p>
                     </div>
                     
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -300,14 +294,6 @@ const Settings = () => {
                         <Users className="h-4 w-4 text-primary" />
                       </div>
                       <p className="text-lg font-semibold text-foreground">0</p>
-                    </div>
-                    
-                    <div className="rounded-lg border border-border bg-muted/30 p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-muted-foreground">Jours actifs</span>
-                        <Clock className="h-4 w-4 text-primary" />
-                      </div>
-                      <p className="text-lg font-semibold text-foreground">1</p>
                     </div>
                     
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -470,49 +456,6 @@ const Settings = () => {
             </div>
           )}
 
-          {activeTab === "subscription" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Abonnement</h2>
-                <p className="text-sm text-muted-foreground">
-                  Gérez votre plan et votre facturation
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-muted text-muted-foreground">
-                      GRATUIT
-                    </span>
-                    <h3 className="text-lg font-semibold text-foreground mt-2">Plan Gratuit</h3>
-                    <p className="text-sm text-muted-foreground">Fonctionnalités de base</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    50 crédits / mois
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    5 clients maximum
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    Tableaux de bord basiques
-                  </div>
-                </div>
-
-                <Button className="w-full">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Passer à PRO - 19€/mois
-                </Button>
-              </div>
-            </div>
-          )}
-
           {activeTab === "categories" && (
             <div className="space-y-6">
               <div>
@@ -664,6 +607,59 @@ const Settings = () => {
                       )}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Conversion Rates */}
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-2">
+                  Taux de conversion (référence)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Taux approximatifs pour consulter vos montants dans d'autres devises
+                </p>
+                
+                <div className="space-y-4">
+                  {/* Example amount conversion */}
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border">
+                    <p className="text-sm text-muted-foreground mb-3">Exemple : 1 000 {currencyConfig.symbol}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {Object.values(CURRENCIES).map((curr) => {
+                        const convertedAmount = getConvertedAmounts(1000)[curr.code];
+                        return (
+                          <div key={curr.code} className={cn(
+                            "p-3 rounded-lg border",
+                            currency === curr.code 
+                              ? "border-primary bg-primary/5" 
+                              : "border-border bg-card"
+                          )}>
+                            <p className="text-xs text-muted-foreground">{curr.name}</p>
+                            <p className="text-lg font-semibold text-foreground">
+                              {curr.code === "USD" 
+                                ? `${curr.symbol}${convertedAmount.toLocaleString(curr.locale, { maximumFractionDigits: 2 })}`
+                                : `${convertedAmount.toLocaleString(curr.locale, { maximumFractionDigits: 2 })} ${curr.symbol}`
+                              }
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Rate table */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">Taux de change (base EUR)</p>
+                    <div className="grid gap-2">
+                      {Object.entries(EXCHANGE_RATES).map(([code, rate]) => (
+                        <div key={code} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/20">
+                          <span className="text-sm text-foreground">{CURRENCIES[code as Currency].name}</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            1 EUR = {rate.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} {CURRENCIES[code as Currency].symbol}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
