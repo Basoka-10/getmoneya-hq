@@ -49,7 +49,7 @@ const settingsTabs = [
   { id: "security", name: "Sécurité", icon: Shield },
 ];
 
-const defaultCategories = [
+const defaultExpenseCategories = [
   "Outils",
   "Infrastructure",
   "Formation",
@@ -59,10 +59,21 @@ const defaultCategories = [
   "Repas",
 ];
 
+const defaultIncomeCategories = [
+  "Vente de services",
+  "Vente de produits",
+  "Consulting",
+  "Commission",
+  "Subvention",
+  "Autre revenu",
+];
+
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
-  const [categories, setCategories] = useState(defaultCategories);
-  const [newCategory, setNewCategory] = useState("");
+  const [expenseCategories, setExpenseCategories] = useState(defaultExpenseCategories);
+  const [newExpenseCategory, setNewExpenseCategory] = useState("");
+  const [incomeCategories, setIncomeCategories] = useState(defaultIncomeCategories);
+  const [newIncomeCategory, setNewIncomeCategory] = useState("");
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates } = useCurrency();
@@ -83,17 +94,30 @@ const Settings = () => {
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
-  const addCategory = () => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories([...categories, newCategory.trim()]);
-      setNewCategory("");
-      toast.success("Catégorie ajoutée");
+  const addExpenseCategory = () => {
+    if (newExpenseCategory.trim() && !expenseCategories.includes(newExpenseCategory.trim())) {
+      setExpenseCategories([...expenseCategories, newExpenseCategory.trim()]);
+      setNewExpenseCategory("");
+      toast.success("Catégorie de dépense ajoutée");
     }
   };
 
-  const removeCategory = (category: string) => {
-    setCategories(categories.filter((c) => c !== category));
-    toast.success("Catégorie supprimée");
+  const removeExpenseCategory = (category: string) => {
+    setExpenseCategories(expenseCategories.filter((c) => c !== category));
+    toast.success("Catégorie de dépense supprimée");
+  };
+
+  const addIncomeCategory = () => {
+    if (newIncomeCategory.trim() && !incomeCategories.includes(newIncomeCategory.trim())) {
+      setIncomeCategories([...incomeCategories, newIncomeCategory.trim()]);
+      setNewIncomeCategory("");
+      toast.success("Catégorie de revenu ajoutée");
+    }
+  };
+
+  const removeIncomeCategory = (category: string) => {
+    setIncomeCategories(incomeCategories.filter((c) => c !== category));
+    toast.success("Catégorie de revenu supprimée");
   };
 
   const handleSignOut = async () => {
@@ -456,25 +480,68 @@ const Settings = () => {
             </div>
           )}
 
-          {activeTab === "categories" && (
+{activeTab === "categories" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Catégories de dépenses</h2>
+                <h2 className="text-lg font-semibold text-foreground">Catégories</h2>
                 <p className="text-sm text-muted-foreground">
-                  Personnalisez vos catégories de dépenses
+                  Personnalisez vos catégories de revenus et de dépenses
                 </p>
               </div>
 
+              {/* Income Categories */}
               <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary" />
+                  Catégories de revenus
+                </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {categories.map((category) => (
+                  {incomeCategories.map((category) => (
+                    <span
+                      key={category}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-sm font-medium"
+                    >
+                      {category}
+                      <button
+                        onClick={() => removeIncomeCategory(category)}
+                        className="text-primary/60 hover:text-destructive transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nouvelle catégorie de revenu..."
+                    value={newIncomeCategory}
+                    onChange={(e) => setNewIncomeCategory(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && addIncomeCategory()}
+                    className="max-w-xs"
+                  />
+                  <Button variant="outline" onClick={addIncomeCategory}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
+
+              {/* Expense Categories */}
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-destructive" />
+                  Catégories de dépenses
+                </h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {expenseCategories.map((category) => (
                     <span
                       key={category}
                       className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-foreground"
                     >
                       {category}
                       <button
-                        onClick={() => removeCategory(category)}
+                        onClick={() => removeExpenseCategory(category)}
                         className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -485,13 +552,13 @@ const Settings = () => {
 
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Nouvelle catégorie..."
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addCategory()}
+                    placeholder="Nouvelle catégorie de dépense..."
+                    value={newExpenseCategory}
+                    onChange={(e) => setNewExpenseCategory(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && addExpenseCategory()}
                     className="max-w-xs"
                   />
-                  <Button variant="outline" onClick={addCategory}>
+                  <Button variant="outline" onClick={addExpenseCategory}>
                     <Plus className="mr-2 h-4 w-4" />
                     Ajouter
                   </Button>
