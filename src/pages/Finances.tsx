@@ -161,6 +161,7 @@ const Finances = () => {
                   </tbody>
                 </table>
               )}
+              </div>
             </div>
           </TabsContent>
 
@@ -250,6 +251,7 @@ const Finances = () => {
                   </tbody>
                 </table>
               )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
