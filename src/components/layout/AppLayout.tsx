@@ -41,7 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 md:transform-none",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
-        <AppSidebar />
+        <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
       </div>
 
       {/* Main content */}
