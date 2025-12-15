@@ -5,25 +5,32 @@ import {
   Plus,
   ArrowDownLeft,
   ArrowUpRight,
-  Filter,
   Download,
   Trash2,
   Loader2,
   PiggyBank,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GuideTooltip } from "@/components/onboarding/GuideTooltip";
+import { FilterPopover, FilterState, PeriodFilter } from "@/components/finances/FilterPopover";
+import { exportToCSV, filterTransactionsByPeriod } from "@/utils/csvExport";
+import { toast } from "sonner";
 
 const Finances = () => {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showSavingsModal, setShowSavingsModal] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    period: "all",
+    type: "all",
+    category: "all",
+  });
 
   const { data: incomes = [], isLoading: loadingIncomes } = useTransactions("income");
   const { data: expenses = [], isLoading: loadingExpenses } = useTransactions("expense");
@@ -43,6 +50,69 @@ const Finances = () => {
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
+  // Get all unique categories
+  const allCategories = useMemo(() => {
+    const categories = new Set<string>();
+    [...incomes, ...expenses, ...savings].forEach((tx) => {
+      if (tx.category) categories.add(tx.category);
+    });
+    return Array.from(categories).sort();
+  }, [incomes, expenses, savings]);
+
+  // Apply filters to transactions
+  const filteredIncomes = useMemo(() => {
+    let filtered = incomes;
+    if (filters.type !== "all" && filters.type !== "income") return [];
+    filtered = filterTransactionsByPeriod(filtered, filters.period as PeriodFilter);
+    if (filters.category !== "all") {
+      filtered = filtered.filter((tx) => tx.category === filters.category);
+    }
+    return filtered;
+  }, [incomes, filters]);
+
+  const filteredExpenses = useMemo(() => {
+    let filtered = expenses;
+    if (filters.type !== "all" && filters.type !== "expense") return [];
+    filtered = filterTransactionsByPeriod(filtered, filters.period as PeriodFilter);
+    if (filters.category !== "all") {
+      filtered = filtered.filter((tx) => tx.category === filters.category);
+    }
+    return filtered;
+  }, [expenses, filters]);
+
+  const filteredSavings = useMemo(() => {
+    let filtered = savings;
+    if (filters.type !== "all" && filters.type !== "savings") return [];
+    filtered = filterTransactionsByPeriod(filtered, filters.period as PeriodFilter);
+    if (filters.category !== "all") {
+      filtered = filtered.filter((tx) => tx.category === filters.category);
+    }
+    return filtered;
+  }, [savings, filters]);
+
+  // Export handler
+  const handleExport = () => {
+    const allFiltered = [
+      ...filteredIncomes.map((tx) => ({ ...tx, type: "income" as const })),
+      ...filteredExpenses.map((tx) => ({ ...tx, type: "expense" as const })),
+      ...filteredSavings.map((tx) => ({ ...tx, type: "savings" as const })),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    if (allFiltered.length === 0) {
+      toast.error("Aucune transaction à exporter");
+      return;
+    }
+
+    exportToCSV({
+      transactions: allFiltered,
+      currencyCode: currencyConfig.code,
+      currencySymbol: currencyConfig.symbol,
+      filename: "moneya_transactions",
+    });
+
+    toast.success(`${allFiltered.length} transaction(s) exportée(s)`);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -55,16 +125,17 @@ const Finances = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <GuideTooltip content="Filtrez vos transactions par date, catégorie ou montant.">
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtrer
-              </Button>
+            <GuideTooltip content="Filtrez vos transactions par période, type ou catégorie.">
+              <FilterPopover
+                filters={filters}
+                onFiltersChange={setFilters}
+                categories={allCategories}
+              />
             </GuideTooltip>
-            <GuideTooltip content="Exportez toutes vos transactions au format CSV ou PDF.">
-              <Button variant="outline" size="sm">
+            <GuideTooltip content="Exportez les transactions filtrées au format CSV.">
+              <Button variant="outline" size="sm" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
-                Exporter
+                Exporter CSV
               </Button>
             </GuideTooltip>
           </div>
@@ -75,15 +146,15 @@ const Finances = () => {
           <TabsList className="mb-6 grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="income" className="gap-2">
               <ArrowDownLeft className="h-4 w-4" />
-              Revenus
+              Revenus ({filteredIncomes.length})
             </TabsTrigger>
             <TabsTrigger value="expenses" className="gap-2">
               <ArrowUpRight className="h-4 w-4" />
-              Dépenses
+              Dépenses ({filteredExpenses.length})
             </TabsTrigger>
             <TabsTrigger value="savings" className="gap-2">
               <PiggyBank className="h-4 w-4" />
-              Épargne
+              Épargne ({filteredSavings.length})
             </TabsTrigger>
           </TabsList>
 
@@ -103,14 +174,18 @@ const Finances = () => {
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : incomes.length === 0 ? (
+              ) : filteredIncomes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <ArrowDownLeft className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucun revenu enregistré</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowIncomeModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Ajouter votre premier revenu
-                  </Button>
+                  <p className="text-muted-foreground">
+                    {incomes.length === 0 ? "Aucun revenu enregistré" : "Aucun revenu correspondant aux filtres"}
+                  </p>
+                  {incomes.length === 0 && (
+                    <Button variant="outline" className="mt-4" onClick={() => setShowIncomeModal(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter votre premier revenu
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <table className="w-full min-w-[720px]">
@@ -134,7 +209,7 @@ const Finances = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {incomes.map((income) => (
+                    {filteredIncomes.map((income) => (
                       <tr
                         key={income.id}
                         className="transition-colors hover:bg-muted/30"
@@ -195,14 +270,18 @@ const Finances = () => {
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : expenses.length === 0 ? (
+              ) : filteredExpenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <ArrowUpRight className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucune dépense enregistrée</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowExpenseModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Ajouter votre première dépense
-                  </Button>
+                  <p className="text-muted-foreground">
+                    {expenses.length === 0 ? "Aucune dépense enregistrée" : "Aucune dépense correspondant aux filtres"}
+                  </p>
+                  {expenses.length === 0 && (
+                    <Button variant="outline" className="mt-4" onClick={() => setShowExpenseModal(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter votre première dépense
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <table className="w-full min-w-[720px]">
@@ -226,7 +305,7 @@ const Finances = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {expenses.map((expense) => (
+                    {filteredExpenses.map((expense) => (
                       <tr
                         key={expense.id}
                         className="transition-colors hover:bg-muted/30"
@@ -287,17 +366,23 @@ const Finances = () => {
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : savings.length === 0 ? (
+              ) : filteredSavings.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <PiggyBank className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucune épargne enregistrée</p>
-                  <p className="text-sm text-muted-foreground/70 mt-2 max-w-md">
-                    L'épargne vous permet de mettre de côté de l'argent pour vos projets futurs, urgences ou investissements.
+                  <p className="text-muted-foreground">
+                    {savings.length === 0 ? "Aucune épargne enregistrée" : "Aucune épargne correspondant aux filtres"}
                   </p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowSavingsModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Ajouter votre première épargne
-                  </Button>
+                  {savings.length === 0 && (
+                    <>
+                      <p className="text-sm text-muted-foreground/70 mt-2 max-w-md">
+                        L'épargne vous permet de mettre de côté de l'argent pour vos projets futurs, urgences ou investissements.
+                      </p>
+                      <Button variant="outline" className="mt-4" onClick={() => setShowSavingsModal(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter votre première épargne
+                      </Button>
+                    </>
+                  )}
                 </div>
               ) : (
                 <table className="w-full min-w-[720px]">
@@ -321,7 +406,7 @@ const Finances = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {savings.map((saving) => (
+                    {filteredSavings.map((saving) => (
                       <tr
                         key={saving.id}
                         className="transition-colors hover:bg-muted/30"
@@ -368,20 +453,21 @@ const Finances = () => {
         </Tabs>
       </div>
 
+      {/* Modals */}
       <TransactionModal
+        type="income"
         open={showIncomeModal}
         onOpenChange={setShowIncomeModal}
-        type="income"
       />
       <TransactionModal
+        type="expense"
         open={showExpenseModal}
         onOpenChange={setShowExpenseModal}
-        type="expense"
       />
       <TransactionModal
+        type="savings"
         open={showSavingsModal}
         onOpenChange={setShowSavingsModal}
-        type="savings"
       />
     </AppLayout>
   );
