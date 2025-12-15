@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Currency = "EUR" | "USD" | "XOF";
 
@@ -35,7 +36,6 @@ export const CURRENCIES: Record<Currency, CurrencyConfig> = {
   },
 };
 
-const API_KEY = "e41b0d1c48114ce4b8cea4040ac5f615";
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache
 
 interface ExchangeRates {
@@ -107,21 +107,18 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      const response = await fetch(
-        `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/EUR`
-      );
+      // Call Supabase Edge Function instead of external API directly
+      const { data, error: invokeError } = await supabase.functions.invoke('exchange-rates');
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Edge function error');
       }
 
-      const data = await response.json();
-
-      if (data.result === "success") {
+      if (data?.result === "success" && data?.rates) {
         const rates: ExchangeRates = {
           EUR: 1,
-          USD: data.conversion_rates.USD,
-          XOF: data.conversion_rates.XOF,
+          USD: data.rates.USD,
+          XOF: data.rates.XOF,
         };
 
         setExchangeRates(rates);
@@ -135,7 +132,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         };
         localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(cacheData));
       } else {
-        throw new Error(data["error-type"] || "Unknown API error");
+        throw new Error(data?.error || "Unknown API error");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erreur de connexion à l'API de taux de change";
