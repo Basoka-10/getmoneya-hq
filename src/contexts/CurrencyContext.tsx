@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Currency = "EUR" | "USD" | "XOF";
+export type Currency = string;
 
 export interface CurrencyConfig {
   code: Currency;
@@ -12,29 +12,26 @@ export interface CurrencyConfig {
   decimals: number;
 }
 
-export const CURRENCIES: Record<Currency, CurrencyConfig> = {
-  EUR: {
-    code: "EUR",
-    symbol: "€",
-    name: "Euro",
-    locale: "fr-FR",
-    decimals: 2,
-  },
-  USD: {
-    code: "USD",
-    symbol: "$",
-    name: "US Dollar",
-    locale: "en-US",
-    decimals: 2,
-  },
-  XOF: {
-    code: "XOF",
-    symbol: "FCFA",
-    name: "Franc CFA",
-    locale: "fr-FR",
-    decimals: 0,
-  },
+// All available currency configurations
+export const ALL_CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
+  EUR: { code: "EUR", symbol: "€", name: "Euro", locale: "fr-FR", decimals: 2 },
+  USD: { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US", decimals: 2 },
+  XOF: { code: "XOF", symbol: "FCFA", name: "Franc CFA (UEMOA)", locale: "fr-FR", decimals: 0 },
+  XAF: { code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)", locale: "fr-FR", decimals: 0 },
+  GBP: { code: "GBP", symbol: "£", name: "Livre Sterling", locale: "en-GB", decimals: 2 },
+  CHF: { code: "CHF", symbol: "CHF", name: "Franc Suisse", locale: "fr-CH", decimals: 2 },
+  CAD: { code: "CAD", symbol: "CA$", name: "Dollar Canadien", locale: "en-CA", decimals: 2 },
+  MAD: { code: "MAD", symbol: "DH", name: "Dirham Marocain", locale: "fr-MA", decimals: 2 },
+  TND: { code: "TND", symbol: "DT", name: "Dinar Tunisien", locale: "fr-TN", decimals: 3 },
+  DZD: { code: "DZD", symbol: "DA", name: "Dinar Algérien", locale: "fr-DZ", decimals: 2 },
+  NGN: { code: "NGN", symbol: "₦", name: "Naira Nigérian", locale: "en-NG", decimals: 2 },
+  GHS: { code: "GHS", symbol: "₵", name: "Cedi Ghanéen", locale: "en-GH", decimals: 2 },
+  KES: { code: "KES", symbol: "KSh", name: "Shilling Kenyan", locale: "en-KE", decimals: 2 },
+  ZAR: { code: "ZAR", symbol: "R", name: "Rand Sud-Africain", locale: "en-ZA", decimals: 2 },
 };
+
+// Legacy export for backward compatibility
+export const CURRENCIES = ALL_CURRENCY_CONFIGS;
 
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache
 
@@ -59,6 +56,7 @@ interface CurrencyContextType {
   isLoading: boolean;
   error: string | null;
   refreshRates: () => Promise<void>;
+  supportedCurrencies: string[];
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -67,11 +65,12 @@ const STORAGE_KEY = "moneya_currency";
 const RATES_CACHE_KEY = "moneya_exchange_rates";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
+  const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>(["EUR", "USD", "XOF"]);
   const [currency, setCurrencyState] = useState<Currency>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && (saved === "EUR" || saved === "USD" || saved === "XOF")) {
-        return saved as Currency;
+      if (saved) {
+        return saved;
       }
     }
     return "EUR";
@@ -81,7 +80,78 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currencyConfig = CURRENCIES[currency];
+  // Get currency config with fallback
+  const currencyConfig: CurrencyConfig = ALL_CURRENCY_CONFIGS[currency] || {
+    code: currency,
+    symbol: currency,
+    name: currency,
+    locale: "fr-FR",
+    decimals: 2,
+  };
+
+  // Fetch supported currencies from system_settings
+  const fetchSupportedCurrencies = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("system_settings")
+        .select("setting_value")
+        .eq("setting_key", "supported_currencies")
+        .single();
+
+      if (error) throw error;
+
+      if (data?.setting_value) {
+        const currencies = Array.isArray(data.setting_value) 
+          ? data.setting_value 
+          : JSON.parse(String(data.setting_value));
+        setSupportedCurrencies(currencies);
+
+        // If current currency is no longer supported, switch to EUR
+        if (!currencies.includes(currency)) {
+          setCurrencyState("EUR");
+          localStorage.setItem(STORAGE_KEY, "EUR");
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching supported currencies:", err);
+    }
+  }, [currency]);
+
+  // Subscribe to real-time changes in system_settings
+  useEffect(() => {
+    fetchSupportedCurrencies();
+
+    const channel = supabase
+      .channel("system-settings-currencies")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "system_settings",
+          filter: "setting_key=eq.supported_currencies",
+        },
+        (payload) => {
+          const newValue = payload.new.setting_value;
+          if (newValue) {
+            const currencies = Array.isArray(newValue) ? newValue : JSON.parse(String(newValue));
+            setSupportedCurrencies(currencies);
+            
+            // If current currency is no longer supported, switch to EUR
+            if (!currencies.includes(currency)) {
+              setCurrencyState("EUR");
+              localStorage.setItem(STORAGE_KEY, "EUR");
+              toast.info("Votre devise a été changée car elle n'est plus disponible");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSupportedCurrencies, currency]);
 
   // Fetch exchange rates from API
   const fetchExchangeRates = useCallback(async (forceRefresh = false) => {
@@ -107,7 +177,6 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      // Call Supabase Edge Function instead of external API directly
       const { data, error: invokeError } = await supabase.functions.invoke('exchange-rates');
 
       if (invokeError) {
@@ -115,12 +184,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       }
 
       if (data?.result === "success" && data?.rates) {
-        const rates: ExchangeRates = {
-          EUR: 1,
-          USD: data.rates.USD,
-          XOF: data.rates.XOF,
-        };
-
+        const rates: ExchangeRates = { EUR: 1, ...data.rates };
         setExchangeRates(rates);
         setError(null);
 
@@ -146,7 +210,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Fetch rates on mount and when needed
+  // Fetch rates on mount
   useEffect(() => {
     fetchExchangeRates();
   }, [fetchExchangeRates]);
@@ -156,17 +220,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, [fetchExchangeRates]);
 
   const setCurrency = (newCurrency: Currency) => {
-    setCurrencyState(newCurrency);
-    localStorage.setItem(STORAGE_KEY, newCurrency);
+    if (supportedCurrencies.includes(newCurrency)) {
+      setCurrencyState(newCurrency);
+      localStorage.setItem(STORAGE_KEY, newCurrency);
+    }
   };
 
   // Convert amount from EUR to current currency
   const convertFromEUR = useCallback((amountInEUR: number): number => {
     const rate = exchangeRates[currency] || 1;
     const converted = amountInEUR * rate;
-    const decimals = CURRENCIES[currency].decimals;
+    const decimals = currencyConfig.decimals;
     return Number(converted.toFixed(decimals));
-  }, [currency, exchangeRates]);
+  }, [currency, exchangeRates, currencyConfig.decimals]);
 
   // Convert amount from specified currency (or current) to EUR
   const convertToEUR = useCallback((amount: number, fromCurrency?: Currency): number => {
@@ -175,7 +241,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return Number((amount / rate).toFixed(2));
   }, [currency, exchangeRates]);
 
-  // Format amount without symbol (for charts, tables)
+  // Format amount without symbol
   const formatAmount = useCallback((amountInEUR: number): string => {
     const converted = convertFromEUR(amountInEUR);
     return converted.toLocaleString(currencyConfig.locale, {
@@ -212,6 +278,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         refreshRates,
+        supportedCurrencies,
       }}
     >
       {children}
