@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Currency = string;
 
@@ -48,7 +49,7 @@ interface CachedRates {
 interface CurrencyContextType {
   currency: Currency;
   currencyConfig: CurrencyConfig;
-  setCurrency: (currency: Currency) => void;
+  setCurrency: (currency: Currency) => Promise<void>;
   formatAmount: (amount: number) => string;
   formatAmountWithSymbol: (amount: number, showSign?: boolean) => string;
   convertFromEUR: (amountInEUR: number) => number;
@@ -61,24 +62,16 @@ interface CurrencyContextType {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-const STORAGE_KEY = "moneya_currency";
 const RATES_CACHE_KEY = "moneya_exchange_rates";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>(["EUR", "USD", "XOF"]);
-  const [currency, setCurrencyState] = useState<Currency>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return saved;
-      }
-    }
-    return "EUR";
-  });
-
+  const [currency, setCurrencyState] = useState<Currency>("EUR");
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ EUR: 1, USD: 1.08, XOF: 655.96 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Get currency config with fallback
   const currencyConfig: CurrencyConfig = ALL_CURRENCY_CONFIGS[currency] || {
@@ -88,6 +81,32 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     locale: "fr-FR",
     decimals: 2,
   };
+
+  // Fetch user's currency preference from database
+  const fetchUserCurrency = useCallback(async () => {
+    if (!user) {
+      setIsInitialized(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("currency_preference")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.currency_preference) {
+        setCurrencyState(data.currency_preference);
+      }
+    } catch (err) {
+      console.error("Error fetching user currency:", err);
+    } finally {
+      setIsInitialized(true);
+    }
+  }, [user]);
 
   // Fetch supported currencies from system_settings
   const fetchSupportedCurrencies = useCallback(async () => {
@@ -107,15 +126,14 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setSupportedCurrencies(currencies);
 
         // If current currency is no longer supported, switch to EUR
-        if (!currencies.includes(currency)) {
-          setCurrencyState("EUR");
-          localStorage.setItem(STORAGE_KEY, "EUR");
+        if (!currencies.includes(currency) && isInitialized) {
+          await setCurrency("EUR");
         }
       }
     } catch (err) {
       console.error("Error fetching supported currencies:", err);
     }
-  }, [currency]);
+  }, [currency, isInitialized]);
 
   // Subscribe to real-time changes in system_settings
   useEffect(() => {
@@ -139,8 +157,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
             
             // If current currency is no longer supported, switch to EUR
             if (!currencies.includes(currency)) {
-              setCurrencyState("EUR");
-              localStorage.setItem(STORAGE_KEY, "EUR");
+              setCurrency("EUR");
               toast.info("Votre devise a été changée car elle n'est plus disponible");
             }
           }
@@ -152,6 +169,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(channel);
     };
   }, [fetchSupportedCurrencies, currency]);
+
+  // Fetch user currency on auth change
+  useEffect(() => {
+    fetchUserCurrency();
+  }, [fetchUserCurrency]);
 
   // Fetch exchange rates from API
   const fetchExchangeRates = useCallback(async (forceRefresh = false) => {
@@ -219,12 +241,27 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     await fetchExchangeRates(true);
   }, [fetchExchangeRates]);
 
-  const setCurrency = (newCurrency: Currency) => {
-    if (supportedCurrencies.includes(newCurrency)) {
-      setCurrencyState(newCurrency);
-      localStorage.setItem(STORAGE_KEY, newCurrency);
+  // Update currency both locally and in database
+  const setCurrency = useCallback(async (newCurrency: Currency) => {
+    if (!supportedCurrencies.includes(newCurrency)) return;
+
+    setCurrencyState(newCurrency);
+
+    // Save to database if user is logged in
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ currency_preference: newCurrency })
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error saving currency preference:", err);
+        toast.error("Erreur lors de la sauvegarde de la devise");
+      }
     }
-  };
+  }, [user, supportedCurrencies]);
 
   // Convert amount from EUR to current currency
   const convertFromEUR = useCallback((amountInEUR: number): number => {

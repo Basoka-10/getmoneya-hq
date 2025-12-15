@@ -591,8 +591,8 @@ const Settings = () => {
                     <Label htmlFor="currency">Sélectionner une devise</Label>
                     <Select
                       value={currency}
-                      onValueChange={(value: string) => {
-                        setCurrency(value);
+                      onValueChange={async (value: string) => {
+                        await setCurrency(value);
                         toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[value]?.name || value}`);
                       }}
                     >
@@ -650,8 +650,8 @@ const Settings = () => {
                     return (
                       <button
                         key={code}
-                        onClick={() => {
-                          setCurrency(code);
+                        onClick={async () => {
+                          await setCurrency(code);
                           toast.success(`Devise changée en ${curr.name}`);
                         }}
                         className={cn(

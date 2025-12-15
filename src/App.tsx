@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
@@ -31,11 +32,12 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <CurrencyProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <CurrencyProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <InstallPrompt />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Landing />} />
@@ -123,8 +125,8 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
-        </AuthProvider>
-      </CurrencyProvider>
+        </CurrencyProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
