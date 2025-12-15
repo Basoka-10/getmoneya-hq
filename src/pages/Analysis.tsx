@@ -136,11 +136,11 @@ const Analysis = () => {
         {/* Charts Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Revenue Evolution Chart */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="mb-6 text-lg font-semibold text-card-foreground">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-card">
+            <h2 className="mb-4 sm:mb-6 text-base sm:text-lg font-semibold text-card-foreground">
               Évolution des revenus
             </h2>
-            <div className="h-72">
+            <div className="h-56 sm:h-72 -ml-2 sm:ml-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyData}>
                   <defs>
@@ -163,13 +163,15 @@ const Analysis = () => {
                   />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    interval="preserveStartEnd"
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
                     tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
+                    width={45}
                   />
                   <Tooltip
                     contentStyle={{
@@ -177,6 +179,7 @@ const Analysis = () => {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                       color: "hsl(var(--card-foreground))",
+                      fontSize: "12px",
                     }}
                     formatter={(value: number) => [
                       formatCurrency(value),
@@ -197,11 +200,11 @@ const Analysis = () => {
           </div>
 
           {/* Expenses Evolution Chart */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="mb-6 text-lg font-semibold text-card-foreground">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-card">
+            <h2 className="mb-4 sm:mb-6 text-base sm:text-lg font-semibold text-card-foreground">
               Évolution des dépenses
             </h2>
-            <div className="h-72">
+            <div className="h-56 sm:h-72 -ml-2 sm:ml-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyData}>
                   <defs>
@@ -230,13 +233,15 @@ const Analysis = () => {
                   />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    interval="preserveStartEnd"
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
                     tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
+                    width={45}
                   />
                   <Tooltip
                     contentStyle={{
@@ -244,6 +249,7 @@ const Analysis = () => {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                       color: "hsl(var(--card-foreground))",
+                      fontSize: "12px",
                     }}
                     formatter={(value: number) => [
                       formatCurrency(value),
@@ -265,54 +271,57 @@ const Analysis = () => {
         </div>
 
         {/* Expense Categories */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="mb-6 text-lg font-semibold text-card-foreground">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-card">
+          <h2 className="mb-4 sm:mb-6 text-base sm:text-lg font-semibold text-card-foreground">
             Répartition des dépenses par catégorie
           </h2>
-          <div className="h-64">
+          <div className="h-48 sm:h-64 overflow-x-auto moneya-scrollbar">
             {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} layout="vertical">
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                    horizontal={true}
-                    vertical={false}
-                  />
-                  <XAxis
-                    type="number"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
-                    tickFormatter={(value) => `${value} ${currencyConfig.symbol}`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
-                    width={100}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      color: "hsl(var(--card-foreground))",
-                    }}
-                    formatter={(value: number) => [
-                      formatCurrency(value),
-                      "Montant",
-                    ]}
-                  />
-                  <Bar
-                    dataKey="montant"
-                    fill="hsl(var(--primary))"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="min-w-[300px] h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryData} layout="vertical">
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="hsl(var(--border))"
+                      horizontal={true}
+                      vertical={false}
+                    />
+                    <XAxis
+                      type="number"
+                      tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                      axisLine={{ stroke: "hsl(var(--border))" }}
+                      tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : `${value}`}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                      axisLine={{ stroke: "hsl(var(--border))" }}
+                      width={70}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        color: "hsl(var(--card-foreground))",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Montant",
+                      ]}
+                    />
+                    <Bar
+                      dataKey="montant"
+                      fill="hsl(var(--primary))"
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 Aucune dépense enregistrée
               </div>
             )}

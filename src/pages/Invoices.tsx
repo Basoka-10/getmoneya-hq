@@ -250,92 +250,94 @@ const Invoices = () => {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-              {loadingInvoices ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : invoices.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucune facture créée</p>
-                  <Button variant="outline" className="mt-4" onClick={handleOpenNewInvoice}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Créer votre première facture
-                  </Button>
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Référence</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Client</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Statut</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Montant</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {invoices.map((invoice) => {
-                      const status = invoiceStatusStyles[invoice.status];
-                      return (
-                        <tr key={invoice.id} className="transition-colors hover:bg-muted/30">
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <span className="text-sm font-medium text-foreground">{invoice.invoice_number}</span>
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                            {invoice.clients?.name || "-"}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                            {formatDate(invoice.issue_date)}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", status.bg, status.text)}>
-                              {status.label}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-foreground">
-                            {formatCurrency(Number(invoice.amount))}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleDownloadInvoice(invoice)}>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Télécharger PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                {invoice.status === "draft" && (
-                                  <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "sent" })}>
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Marquer comme envoyée
+              <div className="w-full overflow-x-auto moneya-scrollbar">
+                {loadingInvoices ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : invoices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">Aucune facture créée</p>
+                    <Button variant="outline" className="mt-4" onClick={handleOpenNewInvoice}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Créer votre première facture
+                    </Button>
+                  </div>
+                ) : (
+                  <table className="w-full min-w-[640px]">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Référence</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Client</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Statut</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Montant</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {invoices.map((invoice) => {
+                        const status = invoiceStatusStyles[invoice.status];
+                        return (
+                          <tr key={invoice.id} className="transition-colors hover:bg-muted/30">
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4">
+                              <span className="text-sm font-medium text-foreground">{invoice.invoice_number}</span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-sm text-muted-foreground">
+                              {invoice.clients?.name || "-"}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-sm text-muted-foreground">
+                              {formatDate(invoice.issue_date)}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4">
+                              <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", status.bg, status.text)}>
+                                {status.label}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
+                              {formatCurrency(Number(invoice.amount))}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleDownloadInvoice(invoice)}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Télécharger PDF
                                   </DropdownMenuItem>
-                                )}
-                                {(invoice.status === "sent" || invoice.status === "overdue") && (
-                                  <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "paid" })}>
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Marquer comme payée
+                                  <DropdownMenuSeparator />
+                                  {invoice.status === "draft" && (
+                                    <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "sent" })}>
+                                      <Send className="mr-2 h-4 w-4" />
+                                      Marquer comme envoyée
+                                    </DropdownMenuItem>
+                                  )}
+                                  {(invoice.status === "sent" || invoice.status === "overdue") && (
+                                    <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "paid" })}>
+                                      <Check className="mr-2 h-4 w-4" />
+                                      Marquer comme payée
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-destructive" onClick={() => deleteInvoice.mutate(invoice.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Supprimer
                                   </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive" onClick={() => deleteInvoice.mutate(invoice.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
           </TabsContent>
 
@@ -348,96 +350,98 @@ const Invoices = () => {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-              {loadingQuotations ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : quotations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <FilePlus className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucun devis créé</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowQuotationModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Créer votre premier devis
-                  </Button>
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Référence</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Client</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Statut</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Montant</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {quotations.map((quotation) => {
-                      const status = quotationStatusStyles[quotation.status];
-                      return (
-                        <tr key={quotation.id} className="transition-colors hover:bg-muted/30">
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <span className="text-sm font-medium text-foreground">{quotation.quotation_number}</span>
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                            {quotation.clients?.name || "-"}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                            {formatDate(quotation.issue_date)}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", status.bg, status.text)}>
-                              {status.label}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-foreground">
-                            {formatCurrency(Number(quotation.amount))}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleDownloadQuotation(quotation)}>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Télécharger PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>
-                                  <ArrowRightLeft className="mr-2 h-4 w-4" />
-                                  Convertir en facture
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                {quotation.status === "draft" && (
-                                  <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "sent" })}>
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Marquer comme envoyé
+              <div className="w-full overflow-x-auto moneya-scrollbar">
+                {loadingQuotations ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : quotations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FilePlus className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">Aucun devis créé</p>
+                    <Button variant="outline" className="mt-4" onClick={() => setShowQuotationModal(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Créer votre premier devis
+                    </Button>
+                  </div>
+                ) : (
+                  <table className="w-full min-w-[640px]">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Référence</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Client</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Statut</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Montant</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {quotations.map((quotation) => {
+                        const status = quotationStatusStyles[quotation.status];
+                        return (
+                          <tr key={quotation.id} className="transition-colors hover:bg-muted/30">
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4">
+                              <span className="text-sm font-medium text-foreground">{quotation.quotation_number}</span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-sm text-muted-foreground">
+                              {quotation.clients?.name || "-"}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-sm text-muted-foreground">
+                              {formatDate(quotation.issue_date)}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4">
+                              <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", status.bg, status.text)}>
+                                {status.label}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
+                              {formatCurrency(Number(quotation.amount))}
+                            </td>
+                            <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleDownloadQuotation(quotation)}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Télécharger PDF
                                   </DropdownMenuItem>
-                                )}
-                                {quotation.status === "sent" && (
-                                  <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "accepted" })}>
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Marquer comme accepté
+                                  <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>
+                                    <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                    Convertir en facture
                                   </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive" onClick={() => deleteQuotation.mutate(quotation.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                                  <DropdownMenuSeparator />
+                                  {quotation.status === "draft" && (
+                                    <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "sent" })}>
+                                      <Send className="mr-2 h-4 w-4" />
+                                      Marquer comme envoyé
+                                    </DropdownMenuItem>
+                                  )}
+                                  {quotation.status === "sent" && (
+                                    <DropdownMenuItem onClick={() => updateQuotation.mutate({ id: quotation.id, status: "accepted" })}>
+                                      <Check className="mr-2 h-4 w-4" />
+                                      Marquer comme accepté
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-destructive" onClick={() => deleteQuotation.mutate(quotation.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Supprimer
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
