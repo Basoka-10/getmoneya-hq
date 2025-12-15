@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useCurrency, CURRENCIES, Currency } from "@/contexts/CurrencyContext";
+import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
 import {
   User,
   Building,
@@ -76,7 +76,7 @@ const Settings = () => {
   const [newIncomeCategory, setNewIncomeCategory] = useState("");
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates } = useCurrency();
+  const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
 
   // Profile state
   const [firstName, setFirstName] = useState("");
@@ -589,23 +589,26 @@ const Settings = () => {
                     <Label htmlFor="currency">Sélectionner une devise</Label>
                     <Select
                       value={currency}
-                      onValueChange={(value: Currency) => {
+                      onValueChange={(value: string) => {
                         setCurrency(value);
-                        toast.success(`Devise changée en ${CURRENCIES[value].name}`);
+                        toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[value]?.name || value}`);
                       }}
                     >
                       <SelectTrigger className="w-full max-w-xs">
                         <SelectValue placeholder="Sélectionner une devise" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.values(CURRENCIES).map((curr) => (
-                          <SelectItem key={curr.code} value={curr.code}>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{curr.symbol}</span>
-                              <span>{curr.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {supportedCurrencies.map((code) => {
+                          const curr = ALL_CURRENCY_CONFIGS[code];
+                          return curr ? (
+                            <SelectItem key={code} value={code}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{curr.symbol}</span>
+                                <span>{curr.name}</span>
+                              </div>
+                            </SelectItem>
+                          ) : null;
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -639,41 +642,45 @@ const Settings = () => {
                   Devises disponibles
                 </h3>
                 <div className="grid gap-3">
-                  {Object.values(CURRENCIES).map((curr) => (
-                    <button
-                      key={curr.code}
-                      onClick={() => {
-                        setCurrency(curr.code);
-                        toast.success(`Devise changée en ${curr.name}`);
-                      }}
-                      className={cn(
-                        "flex items-center justify-between p-4 rounded-lg border transition-all",
-                        currency === curr.code
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50 hover:bg-muted/30"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "h-10 w-10 rounded-lg flex items-center justify-center text-lg font-bold",
-                          currency === curr.code
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        )}>
-                          {curr.symbol}
+                  {supportedCurrencies.map((code) => {
+                    const curr = ALL_CURRENCY_CONFIGS[code];
+                    if (!curr) return null;
+                    return (
+                      <button
+                        key={code}
+                        onClick={() => {
+                          setCurrency(code);
+                          toast.success(`Devise changée en ${curr.name}`);
+                        }}
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-lg border transition-all",
+                          currency === code
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50 hover:bg-muted/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "h-10 w-10 rounded-lg flex items-center justify-center text-lg font-bold",
+                            currency === code
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
+                          )}>
+                            {curr.symbol}
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium text-foreground">{curr.name}</p>
+                            <p className="text-sm text-muted-foreground">{code}</p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="font-medium text-foreground">{curr.name}</p>
-                          <p className="text-sm text-muted-foreground">{curr.code}</p>
-                        </div>
-                      </div>
-                      {currency === curr.code && (
-                        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                        {currency === code && (
+                          <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                            <Check className="h-4 w-4 text-primary-foreground" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
