@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { toast } from "sonner";
 
 export type Currency = "EUR" | "USD" | "XOF";
 
@@ -7,6 +8,7 @@ export interface CurrencyConfig {
   symbol: string;
   name: string;
   locale: string;
+  decimals: number;
 }
 
 export const CURRENCIES: Record<Currency, CurrencyConfig> = {
@@ -15,27 +17,36 @@ export const CURRENCIES: Record<Currency, CurrencyConfig> = {
     symbol: "€",
     name: "Euro",
     locale: "fr-FR",
+    decimals: 2,
   },
   USD: {
     code: "USD",
     symbol: "$",
     name: "US Dollar",
     locale: "en-US",
+    decimals: 2,
   },
   XOF: {
     code: "XOF",
     symbol: "FCFA",
     name: "Franc CFA",
     locale: "fr-FR",
+    decimals: 0,
   },
 };
 
-// Approximate exchange rates (EUR as base)
-export const EXCHANGE_RATES: Record<Currency, number> = {
-  EUR: 1,
-  USD: 1.08,
-  XOF: 655.96,
-};
+const API_KEY = "e41b0d1c48114ce4b8cea4040ac5f615";
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache
+
+interface ExchangeRates {
+  [key: string]: number;
+}
+
+interface CachedRates {
+  rates: ExchangeRates;
+  timestamp: number;
+  baseCurrency: string;
+}
 
 interface CurrencyContextType {
   currency: Currency;
@@ -43,13 +54,17 @@ interface CurrencyContextType {
   setCurrency: (currency: Currency) => void;
   formatAmount: (amount: number) => string;
   formatAmountWithSymbol: (amount: number, showSign?: boolean) => string;
-  convertAmount: (amount: number, fromCurrency: Currency, toCurrency: Currency) => number;
-  getConvertedAmounts: (amount: number) => Record<Currency, number>;
+  convertFromEUR: (amountInEUR: number) => number;
+  convertToEUR: (amount: number, fromCurrency?: Currency) => number;
+  isLoading: boolean;
+  error: string | null;
+  refreshRates: () => Promise<void>;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 const STORAGE_KEY = "moneya_currency";
+const RATES_CACHE_KEY = "moneya_exchange_rates";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>(() => {
@@ -62,45 +77,130 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return "EUR";
   });
 
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ EUR: 1, USD: 1.08, XOF: 655.96 });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const currencyConfig = CURRENCIES[currency];
+
+  // Fetch exchange rates from API
+  const fetchExchangeRates = useCallback(async (forceRefresh = false) => {
+    // Check cache first
+    if (!forceRefresh) {
+      const cached = localStorage.getItem(RATES_CACHE_KEY);
+      if (cached) {
+        try {
+          const cachedData: CachedRates = JSON.parse(cached);
+          const isValid = Date.now() - cachedData.timestamp < CACHE_DURATION;
+          if (isValid && cachedData.baseCurrency === "EUR") {
+            setExchangeRates(cachedData.rates);
+            setError(null);
+            return;
+          }
+        } catch (e) {
+          console.error("Cache parse error:", e);
+        }
+      }
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/EUR`
+      );
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.result === "success") {
+        const rates: ExchangeRates = {
+          EUR: 1,
+          USD: data.conversion_rates.USD,
+          XOF: data.conversion_rates.XOF,
+        };
+
+        setExchangeRates(rates);
+        setError(null);
+
+        // Cache the rates
+        const cacheData: CachedRates = {
+          rates,
+          timestamp: Date.now(),
+          baseCurrency: "EUR",
+        };
+        localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(cacheData));
+      } else {
+        throw new Error(data["error-type"] || "Unknown API error");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Erreur de connexion à l'API de taux de change";
+      setError(errorMessage);
+      toast.error("Impossible de récupérer les taux de change actuels", {
+        description: "Utilisation des taux en cache",
+      });
+      console.error("Exchange rate fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch rates on mount and when needed
+  useEffect(() => {
+    fetchExchangeRates();
+  }, [fetchExchangeRates]);
+
+  const refreshRates = useCallback(async () => {
+    await fetchExchangeRates(true);
+  }, [fetchExchangeRates]);
 
   const setCurrency = (newCurrency: Currency) => {
     setCurrencyState(newCurrency);
     localStorage.setItem(STORAGE_KEY, newCurrency);
   };
 
+  // Convert amount from EUR to current currency
+  const convertFromEUR = useCallback((amountInEUR: number): number => {
+    const rate = exchangeRates[currency] || 1;
+    const converted = amountInEUR * rate;
+    const decimals = CURRENCIES[currency].decimals;
+    return Number(converted.toFixed(decimals));
+  }, [currency, exchangeRates]);
+
+  // Convert amount from specified currency (or current) to EUR
+  const convertToEUR = useCallback((amount: number, fromCurrency?: Currency): number => {
+    const sourceCurrency = fromCurrency || currency;
+    const rate = exchangeRates[sourceCurrency] || 1;
+    return Number((amount / rate).toFixed(2));
+  }, [currency, exchangeRates]);
+
   // Format amount without symbol (for charts, tables)
-  const formatAmount = (amount: number): string => {
-    return amount.toLocaleString(currencyConfig.locale);
-  };
+  const formatAmount = useCallback((amountInEUR: number): string => {
+    const converted = convertFromEUR(amountInEUR);
+    return converted.toLocaleString(currencyConfig.locale, {
+      minimumFractionDigits: currencyConfig.decimals,
+      maximumFractionDigits: currencyConfig.decimals,
+    });
+  }, [convertFromEUR, currencyConfig]);
 
   // Format amount with symbol
-  const formatAmountWithSymbol = (amount: number, showSign = false): string => {
-    const formattedNumber = amount.toLocaleString(currencyConfig.locale);
-    const sign = showSign && amount > 0 ? "+" : "";
+  const formatAmountWithSymbol = useCallback((amountInEUR: number, showSign = false): string => {
+    const converted = convertFromEUR(amountInEUR);
+    const formattedNumber = converted.toLocaleString(currencyConfig.locale, {
+      minimumFractionDigits: currencyConfig.decimals,
+      maximumFractionDigits: currencyConfig.decimals,
+    });
+    const sign = showSign && converted > 0 ? "+" : "";
     
     if (currency === "USD") {
       return `${sign}${currencyConfig.symbol}${formattedNumber}`;
     }
     return `${sign}${formattedNumber} ${currencyConfig.symbol}`;
-  };
-
-  // Convert amount from one currency to another
-  const convertAmount = (amount: number, fromCurrency: Currency, toCurrency: Currency): number => {
-    if (fromCurrency === toCurrency) return amount;
-    // Convert to EUR first, then to target currency
-    const amountInEur = amount / EXCHANGE_RATES[fromCurrency];
-    return amountInEur * EXCHANGE_RATES[toCurrency];
-  };
-
-  // Get amount converted to all currencies
-  const getConvertedAmounts = (amount: number): Record<Currency, number> => {
-    return {
-      EUR: convertAmount(amount, currency, "EUR"),
-      USD: convertAmount(amount, currency, "USD"),
-      XOF: convertAmount(amount, currency, "XOF"),
-    };
-  };
+  }, [currency, currencyConfig, convertFromEUR]);
 
   return (
     <CurrencyContext.Provider
@@ -110,8 +210,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrency,
         formatAmount,
         formatAmountWithSymbol,
-        convertAmount,
-        getConvertedAmounts,
+        convertFromEUR,
+        convertToEUR,
+        isLoading,
+        error,
+        refreshRates,
       }}
     >
       {children}
