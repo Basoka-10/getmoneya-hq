@@ -84,6 +84,7 @@ const Finances = () => {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+              <div className="w-full overflow-x-auto moneya-scrollbar">
               {loadingIncomes ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -98,22 +99,22 @@ const Finances = () => {
                   </Button>
                 </div>
               ) : (
-                <table className="w-full">
+                <table className="w-full min-w-[720px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Description
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Catégorie
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Date
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Montant
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
@@ -124,7 +125,7 @@ const Finances = () => {
                         key={income.id}
                         className="transition-colors hover:bg-muted/30"
                       >
-                        <td className="whitespace-nowrap px-6 py-4">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
                               <ArrowDownLeft className="h-4 w-4" />
@@ -134,18 +135,18 @@ const Finances = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
                           <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                             {income.category}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
                           {formatDate(income.date)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-success">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right text-sm font-semibold text-success">
                           +{formatCurrency(Number(income.amount))}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -172,6 +173,7 @@ const Finances = () => {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+              <div className="w-full overflow-x-auto moneya-scrollbar">
               {loadingExpenses ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -186,22 +188,22 @@ const Finances = () => {
                   </Button>
                 </div>
               ) : (
-                <table className="w-full">
+                <table className="w-full min-w-[720px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Description
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Catégorie
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Date
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Montant
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
@@ -212,7 +214,7 @@ const Finances = () => {
                         key={expense.id}
                         className="transition-colors hover:bg-muted/30"
                       >
-                        <td className="whitespace-nowrap px-6 py-4">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
                               <ArrowUpRight className="h-4 w-4" />
@@ -222,18 +224,18 @@ const Finances = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
                           <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                             {expense.category}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
                           {formatDate(expense.date)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-destructive">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right text-sm font-semibold text-destructive">
                           -{formatCurrency(Number(expense.amount))}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right">
                           <Button
                             variant="ghost"
                             size="icon"

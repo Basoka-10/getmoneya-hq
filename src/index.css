@@ -161,7 +161,7 @@
   .dark .shadow-card {
     box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
   }
-  
+
   .shadow-elevated {
     box-shadow: 0 10px 25px -5px hsl(0 0% 0% / 0.15), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
   }
@@ -170,6 +170,33 @@
     box-shadow: 0 10px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
   }
 
+  /* Scrollbar tuned for dark + light sidebars (fixes white bar on dark mode) */
+  .moneya-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--sidebar-border)) transparent;
+  }
+
+  .moneya-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .moneya-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .moneya-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--sidebar-border));
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  .moneya-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--sidebar-ring));
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }

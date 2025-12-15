@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useClients } from "@/hooks/useClients";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
 
 interface TransactionModalProps {
@@ -26,16 +27,20 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
 
   const createTransaction = useCreateTransaction();
   const { data: clients } = useClients();
+  const { currency, currencyConfig, convertAmount } = useCurrency();
 
   const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    const inputAmount = parseFloat(amount);
+    const amountEur = convertAmount(inputAmount, currency, "EUR");
+
     await createTransaction.mutateAsync({
       type,
       description,
-      amount: parseFloat(amount),
+      amount: amountEur,
       category,
       date,
       client_id: clientId || null,
@@ -71,7 +76,7 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Montant (€)</Label>
+            <Label htmlFor="amount">Montant ({currencyConfig.symbol})</Label>
             <Input
               id="amount"
               type="number"
