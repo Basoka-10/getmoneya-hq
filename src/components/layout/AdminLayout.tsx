@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Shield,
 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const adminNavItems = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -33,7 +34,7 @@ export default function AdminLayout() {
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" />
+          <img src={logo} alt="MONEYA" className="h-6 w-6 object-contain" />
           <span className="font-bold text-lg">Admin Panel</span>
         </div>
       </div>
@@ -82,7 +83,7 @@ export default function AdminLayout() {
       <header className="sticky top-0 z-50 lg:hidden border-b bg-background/95 backdrop-blur">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
+            <img src={logo} alt="MONEYA" className="h-6 w-6 object-contain" />
             <span className="font-bold">Admin</span>
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
