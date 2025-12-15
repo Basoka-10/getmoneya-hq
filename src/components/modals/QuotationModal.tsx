@@ -28,7 +28,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultValidUntil = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currency, currencyConfig, convertAmount } = useCurrency();
+  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -42,13 +42,18 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const { data: clients } = useClients();
 
   const formatSelectedMoney = (amountValue: number) => {
-    const formatted = amountValue.toLocaleString(currencyConfig.locale);
+    const formatted = amountValue.toLocaleString(currencyConfig.locale, {
+      minimumFractionDigits: currencyConfig.decimals,
+      maximumFractionDigits: currencyConfig.decimals,
+    });
     if (currencyConfig.code === "USD") return `${currencyConfig.symbol}${formatted}`;
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-  const toBaseEur = (amountValue: number) => convertAmount(amountValue, currency, "EUR");
-  const fromBaseEur = (amountValue: number) => convertAmount(amountValue, "EUR", currency);
+  // Convert from selected currency to EUR (for storage)
+  const toBaseEur = (amountValue: number) => convertToEUR(amountValue, currency);
+  // Convert from EUR to selected currency (for display)
+  const fromBaseEur = (amountValue: number) => convertFromEUR(amountValue);
 
   // Reset form when modal opens
   useEffect(() => {

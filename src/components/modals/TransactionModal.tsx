@@ -27,7 +27,7 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
 
   const createTransaction = useCreateTransaction();
   const { data: clients } = useClients();
-  const { currency, currencyConfig, convertAmount } = useCurrency();
+  const { currency, currencyConfig, convertToEUR } = useCurrency();
 
   const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
@@ -35,7 +35,8 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
     e.preventDefault();
 
     const inputAmount = parseFloat(amount);
-    const amountEur = convertAmount(inputAmount, currency, "EUR");
+    // Convert from user's currency to EUR for storage
+    const amountEur = convertToEUR(inputAmount, currency);
 
     await createTransaction.mutateAsync({
       type,
