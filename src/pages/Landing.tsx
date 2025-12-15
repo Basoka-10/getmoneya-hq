@@ -23,6 +23,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import logo from "@/assets/logo.png";
+import avatarEntrepreneur from "@/assets/avatar-entrepreneur.png";
+import avatarFreelance from "@/assets/avatar-freelance.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -110,12 +113,14 @@ const Landing = () => {
     {
       quote: "Grâce à MONEYA, je garde enfin mes chiffres sous contrôle.",
       author: "Entrepreneur",
-      rating: 5
+      rating: 5,
+      avatar: avatarEntrepreneur
     },
     {
       quote: "Organiser mes tâches et mes factures n'a jamais été aussi simple.",
       author: "Freelance",
-      rating: 5
+      rating: 5,
+      avatar: avatarFreelance
     }
   ];
 
@@ -145,9 +150,7 @@ const Landing = () => {
         <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">M</span>
-              </div>
+              <img src={logo} alt="MONEYA" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold">MONEYA</span>
             </div>
             <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
@@ -359,7 +362,10 @@ const Landing = () => {
                   ))}
                 </div>
                 <p className="text-white/80 mb-4 italic">"{testimonial.quote}"</p>
-                <p className="text-primary font-medium">— {testimonial.author}</p>
+                <div className="flex items-center gap-3">
+                  <img src={testimonial.avatar} alt={testimonial.author} className="w-10 h-10 rounded-full object-cover" />
+                  <p className="text-primary font-medium">— {testimonial.author}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -443,9 +449,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">M</span>
-              </div>
+              <img src={logo} alt="MONEYA" className="w-8 h-8 object-contain" />
               <span className="text-lg font-bold">MONEYA</span>
             </div>
             

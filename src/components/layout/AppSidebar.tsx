@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsOwner } from "@/hooks/useAdmin";
+import logo from "@/assets/logo.png";
 
 const navigation = [
   { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
@@ -58,9 +59,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-            <span className="text-lg font-bold text-primary-foreground">M</span>
-          </div>
+          <img src={logo} alt="MONEYA" className="h-9 w-9 object-contain" />
           {!collapsed && (
             <span className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
               MONEYA
