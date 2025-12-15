@@ -21,7 +21,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
-  { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
+  { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
   { name: "Finances", href: "/finances", icon: Wallet },
   { name: "Analyse", href: "/analysis", icon: BarChart3 },
   { name: "Clients", href: "/clients", icon: Users },
@@ -54,7 +54,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     >
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
             <span className="text-lg font-bold text-primary-foreground">M</span>
           </div>
