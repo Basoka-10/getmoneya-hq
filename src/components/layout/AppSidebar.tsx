@@ -31,7 +31,11 @@ const navigation = [
   { name: "Paramètres", href: "/settings", icon: Settings },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -76,6 +80,7 @@ export function AppSidebar() {
             <Link
               key={item.name}
               to={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
