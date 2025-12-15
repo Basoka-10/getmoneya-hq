@@ -60,7 +60,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary">GET MONEYA</h1>
+          <h1 className="text-3xl font-bold text-primary">MONEYA</h1>
           <p className="mt-2 text-muted-foreground">
             {isLogin ? "Connectez-vous à votre compte" : "Créez votre compte"}
           </p>

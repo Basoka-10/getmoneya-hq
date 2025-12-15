@@ -42,10 +42,10 @@ const Dashboard = () => {
       <div className="space-y-8 animate-fade-in">
         {/* Welcome Header */}
         <div className="text-center py-4">
-          <h1 className="text-3xl font-bold text-foreground">
-            Bienvenue sur <span className="text-primary">GET MONEYA</span> 👋
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Bienvenue sur <span className="text-primary">MONEYA</span> 👋
           </h1>
-          <p className="mt-2 text-muted-foreground text-lg">
+          <p className="mt-2 text-muted-foreground text-base md:text-lg">
             Votre tableau de bord financier
           </p>
         </div>

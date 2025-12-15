@@ -30,17 +30,26 @@ export const CURRENCIES: Record<Currency, CurrencyConfig> = {
   },
 };
 
+// Approximate exchange rates (EUR as base)
+export const EXCHANGE_RATES: Record<Currency, number> = {
+  EUR: 1,
+  USD: 1.08,
+  XOF: 655.96,
+};
+
 interface CurrencyContextType {
   currency: Currency;
   currencyConfig: CurrencyConfig;
   setCurrency: (currency: Currency) => void;
   formatAmount: (amount: number) => string;
   formatAmountWithSymbol: (amount: number, showSign?: boolean) => string;
+  convertAmount: (amount: number, fromCurrency: Currency, toCurrency: Currency) => number;
+  getConvertedAmounts: (amount: number) => Record<Currency, number>;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-const STORAGE_KEY = "getmoneya_currency";
+const STORAGE_KEY = "moneya_currency";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>(() => {
@@ -76,6 +85,23 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return `${sign}${formattedNumber} ${currencyConfig.symbol}`;
   };
 
+  // Convert amount from one currency to another
+  const convertAmount = (amount: number, fromCurrency: Currency, toCurrency: Currency): number => {
+    if (fromCurrency === toCurrency) return amount;
+    // Convert to EUR first, then to target currency
+    const amountInEur = amount / EXCHANGE_RATES[fromCurrency];
+    return amountInEur * EXCHANGE_RATES[toCurrency];
+  };
+
+  // Get amount converted to all currencies
+  const getConvertedAmounts = (amount: number): Record<Currency, number> => {
+    return {
+      EUR: convertAmount(amount, currency, "EUR"),
+      USD: convertAmount(amount, currency, "USD"),
+      XOF: convertAmount(amount, currency, "XOF"),
+    };
+  };
+
   return (
     <CurrencyContext.Provider
       value={{
@@ -84,6 +110,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrency,
         formatAmount,
         formatAmountWithSymbol,
+        convertAmount,
+        getConvertedAmounts,
       }}
     >
       {children}
