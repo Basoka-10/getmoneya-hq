@@ -30,8 +30,8 @@ const Landing = () => {
   const benefits = [
     {
       icon: LayoutDashboard,
-      title: "Suivez vos revenus et dépenses",
-      description: "Sans effort, visualisez où va votre argent."
+      title: "Suivez vos revenus, dépenses et épargnes",
+      description: "Sans effort, visualisez où va votre argent et épargnez intelligemment."
     },
     {
       icon: CheckSquare,

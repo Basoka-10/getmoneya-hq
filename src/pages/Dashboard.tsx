@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FinancialHealth } from "@/components/dashboard/FinancialHealth";
-import { Wallet, TrendingUp, TrendingDown, Users, ArrowRight, Loader2 } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, Users, ArrowRight, Loader2, PiggyBank, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTransactionStats, useTransactions } from "@/hooks/useTransactions";
 import { useClients } from "@/hooks/useClients";
@@ -11,6 +11,11 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Clock, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { GuideTooltip } from "@/components/onboarding/GuideTooltip";
+
+const HIDE_AMOUNTS_KEY = "moneya_hide_amounts";
 
 const Dashboard = () => {
   const { data: stats, isLoading: loadingStats } = useTransactionStats();
@@ -19,6 +24,14 @@ const Dashboard = () => {
   const { data: tasks = [] } = useTasks();
   const toggleTask = useToggleTask();
   const { formatAmount, currencyConfig } = useCurrency();
+
+  const [hideAmounts, setHideAmounts] = useState(() => {
+    return localStorage.getItem(HIDE_AMOUNTS_KEY) === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem(HIDE_AMOUNTS_KEY, String(hideAmounts));
+  }, [hideAmounts]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const todayTasks = tasks.filter((t) => t.due_date === today).slice(0, 4);
@@ -30,6 +43,7 @@ const Dashboard = () => {
   };
 
   const formatCurrency = (amount: number) => {
+    if (hideAmounts) return "••••••";
     const formatted = formatAmount(amount);
     if (currencyConfig.code === "USD") {
       return `${currencyConfig.symbol}${formatted}`;
@@ -37,62 +51,112 @@ const Dashboard = () => {
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
+  const formatHiddenAmount = (amount: number) => {
+    if (hideAmounts) return "••••";
+    return formatAmount(amount);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8 animate-fade-in">
         {/* Welcome Header */}
-        <div className="text-center py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Bienvenue sur <span className="text-primary">MONEYA</span> 👋
-          </h1>
-          <p className="mt-2 text-muted-foreground text-base md:text-lg">
-            Votre tableau de bord financier
-          </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Bienvenue sur <span className="text-primary">MONEYA</span> 👋
+            </h1>
+            <p className="mt-2 text-muted-foreground text-base md:text-lg">
+              Votre tableau de bord financier
+            </p>
+          </div>
+          <GuideTooltip content="Masquez vos montants pour plus de confidentialité lorsque vous êtes en public.">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setHideAmounts(!hideAmounts)}
+              className="gap-2"
+            >
+              {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              {hideAmounts ? "Afficher" : "Masquer"}
+            </Button>
+          </GuideTooltip>
         </div>
 
         {/* Top Stats */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="flex items-center gap-2 text-muted-foreground mb-4">
-              <Wallet className="h-5 w-5 text-primary" />
-              <p className="text-sm font-medium">Solde actuel</p>
+        <div className="grid gap-4 md:grid-cols-3">
+          <GuideTooltip content="Votre solde actuel = Revenus - Dépenses - Épargne. C'est l'argent disponible.">
+            <div className="rounded-xl border border-border bg-card p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                <Wallet className="h-5 w-5 text-primary" />
+                <p className="text-sm font-medium">Solde actuel</p>
+              </div>
+              {loadingStats ? (
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              ) : (
+                <p className="text-4xl md:text-5xl font-bold tracking-tight text-card-foreground">
+                  {formatHiddenAmount(stats?.balance || 0)}
+                  {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
+                </p>
+              )}
             </div>
-            {loadingStats ? (
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            ) : (
-              <p className="text-5xl font-bold tracking-tight text-card-foreground">
-                {formatAmount(stats?.balance || 0)}
-                <span className="text-2xl ml-1">{currencyConfig.symbol}</span>
-              </p>
-            )}
-          </div>
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="flex items-center gap-2 text-muted-foreground mb-4">
-              <Users className="h-5 w-5 text-primary" />
-              <p className="text-sm font-medium">Clients actifs</p>
+          </GuideTooltip>
+          
+          <GuideTooltip content="Total de vos épargnes. Cliquez sur Finances pour gérer vos économies.">
+            <div className="rounded-xl border border-border bg-card p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                <PiggyBank className="h-5 w-5 text-primary" />
+                <p className="text-sm font-medium">Épargne totale</p>
+              </div>
+              {loadingStats ? (
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              ) : (
+                <p className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
+                  {formatHiddenAmount(stats?.totalSavings || 0)}
+                  {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
+                </p>
+              )}
             </div>
-            <p className="text-5xl font-bold tracking-tight text-card-foreground">{activeClients}</p>
-          </div>
+          </GuideTooltip>
+
+          <GuideTooltip content="Nombre de clients avec le statut 'actif'. Gérez vos clients dans la section Clients.">
+            <div className="rounded-xl border border-border bg-card p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                <Users className="h-5 w-5 text-primary" />
+                <p className="text-sm font-medium">Clients actifs</p>
+              </div>
+              <p className="text-4xl md:text-5xl font-bold tracking-tight text-card-foreground">{activeClients}</p>
+            </div>
+          </GuideTooltip>
         </div>
 
         {/* Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            title="Revenus totaux"
-            value={formatCurrency(stats?.totalIncome || 0)}
-            icon={TrendingUp}
-            iconColor="success"
-          />
-          <StatCard
-            title="Dépenses totales"
-            value={formatCurrency(stats?.totalExpenses || 0)}
-            icon={TrendingDown}
-            iconColor="warning"
-          />
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Santé financière</h3>
-            <FinancialHealth percentageSpent={stats?.percentageSpent || 0} />
-          </div>
+          <GuideTooltip content="Somme de tous vos revenus enregistrés.">
+            <div className="w-full">
+              <StatCard
+                title="Revenus totaux"
+                value={formatCurrency(stats?.totalIncome || 0)}
+                icon={TrendingUp}
+                iconColor="success"
+              />
+            </div>
+          </GuideTooltip>
+          <GuideTooltip content="Somme de toutes vos dépenses enregistrées.">
+            <div className="w-full">
+              <StatCard
+                title="Dépenses totales"
+                value={formatCurrency(stats?.totalExpenses || 0)}
+                icon={TrendingDown}
+                iconColor="warning"
+              />
+            </div>
+          </GuideTooltip>
+          <GuideTooltip content="Pourcentage de vos revenus dépensés. Moins de 70% = bonne santé financière.">
+            <div className="rounded-xl border border-border bg-card p-6 w-full">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Santé financière</h3>
+              <FinancialHealth percentageSpent={stats?.percentageSpent || 0} />
+            </div>
+          </GuideTooltip>
         </div>
 
         {/* Main Content Grid */}
@@ -136,15 +200,27 @@ const Dashboard = () => {
               <div className="space-y-2">
                 {recentTransactions.map((t) => (
                   <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                    <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", t.type === "income" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
-                      {t.type === "income" ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                    <div className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-lg",
+                      t.type === "income" ? "bg-success/10 text-success" : 
+                      t.type === "expense" ? "bg-destructive/10 text-destructive" : 
+                      "bg-primary/10 text-primary"
+                    )}>
+                      {t.type === "income" ? <ArrowDownLeft className="h-4 w-4" /> : 
+                       t.type === "expense" ? <ArrowUpRight className="h-4 w-4" /> : 
+                       <PiggyBank className="h-4 w-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{t.description}</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(t.date), "d MMM", { locale: fr })}</p>
                     </div>
-                    <span className={cn("text-sm font-semibold", t.type === "income" ? "text-success" : "text-destructive")}>
-                      {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      t.type === "income" ? "text-success" : 
+                      t.type === "expense" ? "text-destructive" : 
+                      "text-primary"
+                    )}>
+                      {t.type === "income" ? "+" : t.type === "expense" ? "-" : ""}{formatCurrency(Number(t.amount))}
                     </span>
                   </div>
                 ))}

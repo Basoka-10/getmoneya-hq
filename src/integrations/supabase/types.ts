@@ -502,7 +502,7 @@ export type Database = {
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
       quotation_status: "draft" | "sent" | "accepted" | "rejected" | "expired"
       task_priority: "low" | "medium" | "high"
-      transaction_type: "income" | "expense"
+      transaction_type: "income" | "expense" | "savings"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -636,7 +636,7 @@ export const Constants = {
       invoice_status: ["draft", "sent", "paid", "overdue", "cancelled"],
       quotation_status: ["draft", "sent", "accepted", "rejected", "expired"],
       task_priority: ["low", "medium", "high"],
-      transaction_type: ["income", "expense"],
+      transaction_type: ["income", "expense", "savings"],
     },
   },
 } as const
