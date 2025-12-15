@@ -12,36 +12,58 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('EXCHANGE_RATE_API_KEY');
+    const appId = Deno.env.get('OPEN_EXCHANGE_RATES_APP_ID');
     
-    if (!apiKey) {
-      console.error('EXCHANGE_RATE_API_KEY not configured');
-      throw new Error('Exchange rate API key not configured');
+    if (!appId) {
+      console.error('OPEN_EXCHANGE_RATES_APP_ID not configured');
+      throw new Error('Open Exchange Rates App ID not configured');
     }
 
-    console.log('Fetching exchange rates from ExchangeRate API...');
+    console.log('Fetching exchange rates from Open Exchange Rates API...');
     
+    // Open Exchange Rates uses USD as base currency (free plan)
     const response = await fetch(
-      `https://v6.exchangerate-api.com/v6/${apiKey}/latest/EUR`
+      `https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR,USD,XOF`
     );
 
     if (!response.ok) {
-      console.error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} - ${errorText}`);
       throw new Error(`API Error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Exchange rates fetched successfully');
+    console.log('Open Exchange Rates response:', JSON.stringify(data));
 
-    // Return only the rates we need
+    if (!data.rates) {
+      throw new Error('Invalid API response: missing rates');
+    }
+
+    // Open Exchange Rates returns rates with USD as base
+    // We need to convert to EUR as base for our app
+    const usdToEur = data.rates.EUR;
+    const usdToXof = data.rates.XOF;
+
+    if (!usdToEur || !usdToXof) {
+      throw new Error('Missing required exchange rates in response');
+    }
+
+    // Convert rates to EUR as base currency
+    // If 1 USD = X EUR, then 1 EUR = 1/X USD
+    const eurToUsd = 1 / usdToEur;
+    const eurToXof = usdToXof / usdToEur;
+
     const rates = {
-      result: data.result,
+      result: 'success',
+      base: 'EUR',
       rates: {
         EUR: 1,
-        USD: data.conversion_rates?.USD,
-        XOF: data.conversion_rates?.XOF,
+        USD: Number(eurToUsd.toFixed(6)),
+        XOF: Number(eurToXof.toFixed(2)),
       }
     };
+
+    console.log('Converted rates (EUR base):', JSON.stringify(rates));
 
     return new Response(JSON.stringify(rates), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
