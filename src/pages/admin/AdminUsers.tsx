@@ -17,7 +17,7 @@ export default function AdminUsers() {
 
   const filteredUsers = users?.filter(
     (user) =>
-      user.email?.toLowerCase().includes(search.toLowerCase()) ||
+      user.private_data?.email?.toLowerCase().includes(search.toLowerCase()) ||
       user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
       user.company_name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -87,7 +87,7 @@ export default function AdminUsers() {
                         <TableCell className="font-medium">
                           {user.full_name || "Non renseigné"}
                         </TableCell>
-                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.private_data?.email || "-"}</TableCell>
                         <TableCell>{user.company_name || "-"}</TableCell>
                         <TableCell>
                           {isOwner ? (

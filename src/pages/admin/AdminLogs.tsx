@@ -95,7 +95,7 @@ export default function AdminLogs() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {log.profiles?.email || log.profiles?.full_name || "Système"}
+                          {log.profiles?.full_name || "Système"}
                         </TableCell>
                         <TableCell>
                           {log.entity_type ? (
