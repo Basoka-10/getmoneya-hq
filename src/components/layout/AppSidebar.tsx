@@ -14,11 +14,13 @@ import {
   Zap,
   Crown,
   CalendarDays,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsOwner } from "@/hooks/useAdmin";
 
 const navigation = [
   { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
@@ -40,6 +42,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { data: isOwner } = useIsOwner();
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
   const userName = user?.email?.split("@")[0] || "Utilisateur";
@@ -96,6 +99,23 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             </Link>
           );
         })}
+        
+        {/* Admin Link for Owners */}
+        {isOwner && (
+          <Link
+            to="/admin"
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 mt-4 border-t border-sidebar-border pt-4",
+              location.pathname.startsWith("/admin")
+                ? "bg-orange-500/10 text-orange-500 shadow-sm"
+                : "text-orange-500/80 hover:bg-orange-500/10 hover:text-orange-500"
+            )}
+          >
+            <Shield className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span>Admin Panel</span>}
+          </Link>
+        )}
       </nav>
 
       {/* Bottom Section */}
@@ -169,7 +189,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
               <p className="text-sm font-medium text-foreground truncate">{userName}</p>
               <div className="flex items-center gap-1.5">
                 <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-muted text-muted-foreground">
-                  Gratuit
+                  {isOwner ? "Owner" : "Gratuit"}
                 </span>
               </div>
             </div>

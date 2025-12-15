@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
@@ -18,6 +19,12 @@ import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminLimits from "./pages/admin/AdminLimits";
+import AdminLogs from "./pages/admin/AdminLogs";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +104,21 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                {/* Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminLayout />
+                    </AdminRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="limits" element={<AdminLimits />} />
+                  <Route path="logs" element={<AdminLogs />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
