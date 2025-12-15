@@ -211,36 +211,38 @@ const Tasks = () => {
               </div>
 
               {/* Week Days */}
-              <div className="grid grid-cols-7 gap-2 mb-6">
-                {weekDays.map((day) => (
-                  <button
-                    key={day.dateStr}
-                    onClick={() => setSelectedDay(day.date)}
-                    className={cn(
-                      "flex flex-col items-center gap-1 rounded-lg p-3 transition-all",
-                      day.isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : day.isToday
-                        ? "bg-accent text-accent-foreground"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    <span className="text-xs font-medium capitalize">{day.day}</span>
-                    <span className="text-lg font-semibold">{day.dayNum}</span>
-                    {day.tasks.length > 0 && (
-                      <span
-                        className={cn(
-                          "text-xs",
-                          day.isSelected
-                            ? "text-primary-foreground/80"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {day.tasks.length} tâche{day.tasks.length > 1 ? "s" : ""}
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="overflow-x-auto moneya-scrollbar -mx-2 px-2 pb-2">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-4 sm:mb-6 min-w-[320px]">
+                  {weekDays.map((day) => (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => setSelectedDay(day.date)}
+                      className={cn(
+                        "flex flex-col items-center gap-0.5 sm:gap-1 rounded-lg p-1.5 sm:p-3 transition-all",
+                        day.isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : day.isToday
+                          ? "bg-accent text-accent-foreground"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <span className="text-[10px] sm:text-xs font-medium capitalize">{day.day}</span>
+                      <span className="text-sm sm:text-lg font-semibold">{day.dayNum}</span>
+                      {day.tasks.length > 0 && (
+                        <span
+                          className={cn(
+                            "text-[9px] sm:text-xs",
+                            day.isSelected
+                              ? "text-primary-foreground/80"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {day.tasks.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Selected Day Tasks */}

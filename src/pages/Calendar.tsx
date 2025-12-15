@@ -176,40 +176,43 @@ const Calendar = () => {
         </div>
 
         {/* Calendar Controls */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={goToPrev}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={goToToday}>
-              Aujourd'hui
-            </Button>
-            <Button variant="outline" size="icon" onClick={goToNext}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <h2 className="ml-4 text-lg font-semibold text-foreground capitalize">
-              {viewMode === "month" && format(currentDate, "MMMM yyyy", { locale: fr })}
-              {viewMode === "week" && `Semaine du ${format(dateRange.start, "d MMMM", { locale: fr })}`}
-              {viewMode === "day" && format(currentDate, "EEEE d MMMM yyyy", { locale: fr })}
-            </h2>
-          </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="outline" size="icon" onClick={goToPrev} className="h-8 w-8 sm:h-9 sm:w-9">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" onClick={goToToday} size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
+                Aujourd'hui
+              </Button>
+              <Button variant="outline" size="icon" onClick={goToNext} className="h-8 w-8 sm:h-9 sm:w-9">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
 
-          <div className="flex rounded-lg border border-border bg-muted/50 p-1">
-            {(["day", "week", "month"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                  viewMode === mode
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {mode === "day" ? "Jour" : mode === "week" ? "Semaine" : "Mois"}
-              </button>
-            ))}
+            <div className="flex rounded-lg border border-border bg-muted/50 p-0.5 sm:p-1">
+              {(["day", "week", "month"] as ViewMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={cn(
+                    "px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors",
+                    viewMode === mode
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {mode === "day" ? "Jour" : mode === "week" ? "Sem." : "Mois"}
+                </button>
+              ))}
+            </div>
           </div>
+          
+          <h2 className="text-base sm:text-lg font-semibold text-foreground capitalize text-center sm:text-left">
+            {viewMode === "month" && format(currentDate, "MMMM yyyy", { locale: fr })}
+            {viewMode === "week" && `Semaine du ${format(dateRange.start, "d MMMM", { locale: fr })}`}
+            {viewMode === "day" && format(currentDate, "EEEE d MMMM yyyy", { locale: fr })}
+          </h2>
         </div>
 
         {/* Month View */}
@@ -217,12 +220,13 @@ const Calendar = () => {
           <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
             {/* Days of week header */}
             <div className="grid grid-cols-7 border-b border-border bg-muted/50">
-              {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+              {["L", "M", "M", "J", "V", "S", "D"].map((day, i) => (
                 <div
-                  key={day}
-                  className="px-2 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                  key={i}
+                  className="px-1 py-2 sm:px-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground"
                 >
-                  {day}
+                  <span className="sm:hidden">{day}</span>
+                  <span className="hidden sm:inline">{["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"][i]}</span>
                 </div>
               ))}
             </div>
@@ -239,13 +243,13 @@ const Calendar = () => {
                     key={index}
                     onClick={() => handleDayClick(day)}
                     className={cn(
-                      "min-h-[100px] border-b border-r border-border p-2 cursor-pointer transition-colors hover:bg-muted/30",
+                      "min-h-[60px] sm:min-h-[100px] border-b border-r border-border p-1 sm:p-2 cursor-pointer transition-colors hover:bg-muted/30",
                       !isCurrentMonth && "bg-muted/20"
                     )}
                   >
                     <div
                       className={cn(
-                        "mb-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium",
+                        "mb-0.5 sm:mb-1 flex h-5 w-5 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm font-medium",
                         isCurrentDay && "bg-primary text-primary-foreground",
                         !isCurrentDay && !isCurrentMonth && "text-muted-foreground",
                         !isCurrentDay && isCurrentMonth && "text-foreground"
@@ -253,21 +257,22 @@ const Calendar = () => {
                     >
                       {format(day, "d")}
                     </div>
-                    <div className="space-y-1">
-                      {dayEvents.slice(0, 3).map((event) => (
+                    <div className="space-y-0.5 sm:space-y-1">
+                      {dayEvents.slice(0, window.innerWidth < 640 ? 1 : 3).map((event) => (
                         <div
                           key={event.id}
                           className={cn(
-                            "truncate rounded px-1.5 py-0.5 text-xs font-medium",
+                            "truncate rounded px-1 py-0.5 text-[9px] sm:text-xs font-medium",
                             getColorClass(event.color)
                           )}
                         >
-                          {event.title}
+                          <span className="hidden sm:inline">{event.title}</span>
+                          <span className="sm:hidden">•</span>
                         </div>
                       ))}
-                      {dayEvents.length > 3 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{dayEvents.length - 3} autres
+                      {dayEvents.length > (window.innerWidth < 640 ? 1 : 3) && (
+                        <div className="text-[9px] sm:text-xs text-muted-foreground">
+                          +{dayEvents.length - (window.innerWidth < 640 ? 1 : 3)}
                         </div>
                       )}
                     </div>
@@ -281,54 +286,56 @@ const Calendar = () => {
         {/* Week View */}
         {viewMode === "week" && (
           <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-            <div className="grid grid-cols-7 divide-x divide-border">
-              {Array.from({ length: 7 }).map((_, i) => {
-                const day = addDays(dateRange.start, i);
-                const dayEvents = getEventsForDay(day);
-                const isCurrentDay = isToday(day);
+            <div className="overflow-x-auto moneya-scrollbar">
+              <div className="grid grid-cols-7 divide-x divide-border min-w-[500px]">
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const day = addDays(dateRange.start, i);
+                  const dayEvents = getEventsForDay(day);
+                  const isCurrentDay = isToday(day);
 
-                return (
-                  <div key={i} className="min-h-[400px]">
-                    <div
-                      className={cn(
-                        "border-b border-border p-3 text-center",
-                        isCurrentDay && "bg-primary/10"
-                      )}
-                    >
-                      <div className="text-xs text-muted-foreground uppercase">
-                        {format(day, "EEE", { locale: fr })}
-                      </div>
+                  return (
+                    <div key={i} className="min-h-[250px] sm:min-h-[400px]">
                       <div
                         className={cn(
-                          "mt-1 text-lg font-semibold",
-                          isCurrentDay ? "text-primary" : "text-foreground"
+                          "border-b border-border p-2 sm:p-3 text-center",
+                          isCurrentDay && "bg-primary/10"
                         )}
                       >
-                        {format(day, "d")}
-                      </div>
-                    </div>
-                    <div
-                      className="p-2 space-y-1 cursor-pointer hover:bg-muted/30 min-h-[350px]"
-                      onClick={() => handleDayClick(day)}
-                    >
-                      {dayEvents.map((event) => (
+                        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase">
+                          {format(day, "EEE", { locale: fr })}
+                        </div>
                         <div
-                          key={event.id}
                           className={cn(
-                            "rounded px-2 py-1 text-xs font-medium",
-                            getColorClass(event.color)
+                            "mt-0.5 sm:mt-1 text-sm sm:text-lg font-semibold",
+                            isCurrentDay ? "text-primary" : "text-foreground"
                           )}
                         >
-                          <div className="truncate">{event.title}</div>
-                          <div className="text-[10px] opacity-80">
-                            {safeParseDate(event.start_date) ? format(safeParseDate(event.start_date)!, "HH:mm") : "--:--"}
-                          </div>
+                          {format(day, "d")}
                         </div>
-                      ))}
+                      </div>
+                      <div
+                        className="p-1.5 sm:p-2 space-y-1 cursor-pointer hover:bg-muted/30 min-h-[200px] sm:min-h-[350px]"
+                        onClick={() => handleDayClick(day)}
+                      >
+                        {dayEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className={cn(
+                              "rounded px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium",
+                              getColorClass(event.color)
+                            )}
+                          >
+                            <div className="truncate">{event.title}</div>
+                            <div className="text-[9px] sm:text-[10px] opacity-80">
+                              {safeParseDate(event.start_date) ? format(safeParseDate(event.start_date)!, "HH:mm") : "--:--"}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
