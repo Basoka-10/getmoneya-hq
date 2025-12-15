@@ -231,46 +231,67 @@ export type Database = {
       }
       profiles: {
         Row: {
-          address: string | null
           avatar_url: string | null
           company_logo: string | null
           company_name: string | null
           created_at: string
           currency_preference: string | null
-          email: string | null
           full_name: string | null
           id: string
           is_suspended: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_logo?: string | null
+          company_name?: string | null
+          created_at?: string
+          currency_preference?: string | null
+          full_name?: string | null
+          id?: string
+          is_suspended?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company_logo?: string | null
+          company_name?: string | null
+          created_at?: string
+          currency_preference?: string | null
+          full_name?: string | null
+          id?: string
+          is_suspended?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles_private: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
           phone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
-          avatar_url?: string | null
-          company_logo?: string | null
-          company_name?: string | null
           created_at?: string
-          currency_preference?: string | null
           email?: string | null
-          full_name?: string | null
           id?: string
-          is_suspended?: boolean
           phone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
-          avatar_url?: string | null
-          company_logo?: string | null
-          company_name?: string | null
           created_at?: string
-          currency_preference?: string | null
           email?: string | null
-          full_name?: string | null
           id?: string
-          is_suspended?: boolean
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -495,7 +516,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_owner: { Args: { _user_id: string }; Returns: boolean }
+      is_owner:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       is_user_suspended: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

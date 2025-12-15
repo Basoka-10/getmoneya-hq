@@ -7,11 +7,21 @@ export interface Profile {
   id: string;
   user_id: string;
   full_name: string | null;
-  email: string | null;
   avatar_url: string | null;
   company_name: string | null;
-  phone: string | null;
+  company_logo: string | null;
   is_suspended: boolean;
+  currency_preference: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfilePrivate {
+  id: string;
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -52,7 +62,7 @@ export interface SystemSetting {
   updated_at: string;
 }
 
-// Check if current user is owner
+// Check if current user is owner (using parameterless function)
 export function useIsOwner() {
   const { user } = useAuth();
   
@@ -61,9 +71,8 @@ export function useIsOwner() {
     queryFn: async () => {
       if (!user) return false;
       
-      const { data, error } = await supabase.rpc("is_owner", {
-        _user_id: user.id,
-      });
+      // Call the parameterless is_owner() function
+      const { data, error } = await supabase.rpc("is_owner");
       
       if (error) {
         console.error("Error checking owner status:", error);
@@ -76,7 +85,7 @@ export function useIsOwner() {
   });
 }
 
-// Fetch all users with profiles
+// Fetch all users with profiles (admin only - can access profiles_private)
 export function useAllUsers() {
   return useQuery({
     queryKey: ["admin-users"],
@@ -84,7 +93,8 @@ export function useAllUsers() {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50); // Pagination limit to prevent enumeration
       
       if (profilesError) throw profilesError;
       
@@ -94,8 +104,19 @@ export function useAllUsers() {
       
       if (rolesError) throw rolesError;
       
+      // For admin, also fetch private data (will only work if user is owner via backend function)
+      const { data: privateProfiles } = await supabase
+        .from("profiles_private")
+        .select("user_id, email, phone, address");
+      
+      const privateMap = new Map(
+        (privateProfiles || []).map((p) => [p.user_id, p])
+      );
+      
       return (profiles as Profile[]).map((profile) => ({
         ...profile,
+        // Add private data if available (only for owner viewing their own users in admin)
+        private_data: privateMap.get(profile.user_id) || null,
         user_roles: (roles as UserRole[]).filter((r) => r.user_id === profile.user_id),
       }));
     },
@@ -154,12 +175,13 @@ export function useActivityLogs() {
       
       if (logsError) throw logsError;
       
+      // Get public profile data
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, email");
+        .select("user_id, full_name");
       
       const profileMap = new Map(
-        (profiles || []).map((p) => [p.user_id, { full_name: p.full_name, email: p.email }])
+        (profiles || []).map((p) => [p.user_id, { full_name: p.full_name }])
       );
       
       return (logs as ActivityLog[]).map((log) => ({
@@ -170,7 +192,7 @@ export function useActivityLogs() {
   });
 }
 
-// Log activity
+// Log activity - user_id is now auto-set by trigger
 export function useLogActivity() {
   return useMutation({
     mutationFn: async (log: {
@@ -179,12 +201,10 @@ export function useLogActivity() {
       entity_id?: string;
       details?: Record<string, unknown>;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      // user_id is automatically set by the database trigger
       const { error } = await supabase
         .from("activity_logs")
         .insert([{
-          user_id: user?.id || null,
           action: log.action,
           entity_type: log.entity_type || null,
           entity_id: log.entity_id || null,
