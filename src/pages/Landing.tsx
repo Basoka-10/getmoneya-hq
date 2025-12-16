@@ -413,12 +413,10 @@ const Landing = () => {
           {/* Trust Avatars */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div 
-                  key={i} 
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/50 to-primary border-2 border-[#0a0a0a]"
-                />
-              ))}
+              <img src={avatarEntrepreneur} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarFreelance} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarEntrepreneur} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarFreelance} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
             </div>
             <div className="flex items-center gap-1 ml-2">
               {[1, 2, 3, 4, 5].map((i) => (
