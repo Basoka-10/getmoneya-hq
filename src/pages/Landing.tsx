@@ -24,8 +24,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import logo from "@/assets/logo.png";
-import avatarEntrepreneur from "@/assets/avatar-entrepreneur.png";
-import avatarFreelance from "@/assets/avatar-freelance.png";
+import avatarTestimonial1 from '@/assets/avatar-testimonial-1.png';
+import avatarTestimonial2 from '@/assets/avatar-testimonial-2.png';
+import avatarTestimonial3 from '@/assets/avatar-testimonial-3.png';
+import avatarTestimonial4 from '@/assets/avatar-testimonial-4.png';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -114,13 +116,13 @@ const Landing = () => {
       quote: "Grâce à MONEYA, je garde enfin mes chiffres sous contrôle.",
       author: "Entrepreneur",
       rating: 5,
-      avatar: avatarEntrepreneur
+      avatar: avatarTestimonial1
     },
     {
       quote: "Organiser mes tâches et mes factures n'a jamais été aussi simple.",
       author: "Freelance",
       rating: 5,
-      avatar: avatarFreelance
+      avatar: avatarTestimonial2
     }
   ];
 
@@ -413,10 +415,10 @@ const Landing = () => {
           {/* Trust Avatars */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="flex -space-x-2">
-              <img src={avatarEntrepreneur} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarFreelance} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarEntrepreneur} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarFreelance} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial1} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial2} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial3} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial4} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
             </div>
             <div className="flex items-center gap-1 ml-2">
               {[1, 2, 3, 4, 5].map((i) => (
