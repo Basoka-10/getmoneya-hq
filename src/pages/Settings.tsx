@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
 import { useGuideMode } from "@/components/onboarding/GuideTooltip";
+import { useOnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useCategories } from "@/hooks/useCategories";
 import {
   User,
@@ -31,6 +32,7 @@ import {
   Image,
   Coins,
   Check,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -59,6 +61,7 @@ const Settings = () => {
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
   const { guideEnabled, setGuideEnabled } = useGuideMode();
+  const { resetTour } = useOnboardingTour();
   const {
     expenseCategories,
     incomeCategories,
@@ -743,8 +746,23 @@ const Settings = () => {
                 </p>
               </div>
 
-              {/* Guide Mode */}
+              {/* Tutoriel */}
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 shadow-card">
+                <h3 className="text-base font-semibold text-card-foreground mb-4 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  Tutoriel de l'application
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Découvrez toutes les fonctionnalités de MONEYA avec notre guide interactif étape par étape.
+                </p>
+                <Button onClick={resetTour} variant="outline" className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Revoir le tutoriel
+                </Button>
+              </div>
+
+              {/* Guide Mode */}
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
                 <h3 className="text-base font-semibold text-card-foreground mb-4">
                   Mode Guide
                 </h3>
