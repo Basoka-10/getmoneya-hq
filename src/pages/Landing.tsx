@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard,
   Users, 
@@ -16,7 +18,6 @@ import {
   CreditCard,
   Settings
 } from "lucide-react";
-import { useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -31,6 +32,14 @@ import avatarTestimonial4 from '@/assets/avatar-testimonial-4.png';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const benefits = [
     {
