@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-
-const EXPENSE_CATEGORIES_KEY = "moneya_expense_categories";
-const INCOME_CATEGORIES_KEY = "moneya_income_categories";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const defaultExpenseCategories = [
   "Outils",
@@ -22,93 +22,167 @@ const defaultIncomeCategories = [
   "Autre revenu",
 ];
 
+interface UserCategory {
+  id: string;
+  user_id: string;
+  category_type: "income" | "expense";
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useCategories() {
-  const [expenseCategories, setExpenseCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem(EXPENSE_CATEGORIES_KEY);
-    return stored ? JSON.parse(stored) : defaultExpenseCategories;
-  });
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const [incomeCategories, setIncomeCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem(INCOME_CATEGORIES_KEY);
-    return stored ? JSON.parse(stored) : defaultIncomeCategories;
-  });
-
-  // Persist expense categories
-  useEffect(() => {
-    localStorage.setItem(EXPENSE_CATEGORIES_KEY, JSON.stringify(expenseCategories));
-    // Dispatch custom event for cross-component sync
-    window.dispatchEvent(new CustomEvent("categories-updated"));
-  }, [expenseCategories]);
-
-  // Persist income categories
-  useEffect(() => {
-    localStorage.setItem(INCOME_CATEGORIES_KEY, JSON.stringify(incomeCategories));
-    window.dispatchEvent(new CustomEvent("categories-updated"));
-  }, [incomeCategories]);
-
-  // Listen for updates from other components
-  useEffect(() => {
-    const handleUpdate = () => {
-      const storedExpense = localStorage.getItem(EXPENSE_CATEGORIES_KEY);
-      const storedIncome = localStorage.getItem(INCOME_CATEGORIES_KEY);
+  // Fetch categories from Supabase
+  const { data: dbCategories = [], isLoading } = useQuery({
+    queryKey: ["user-categories", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
       
-      if (storedExpense) {
-        const parsed = JSON.parse(storedExpense);
-        setExpenseCategories(prev => 
-          JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev
-        );
+      const { data, error } = await supabase
+        .from("user_categories")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("name");
+
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return [];
       }
-      if (storedIncome) {
-        const parsed = JSON.parse(storedIncome);
-        setIncomeCategories(prev => 
-          JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev
-        );
+
+      return data as UserCategory[];
+    },
+    enabled: !!user,
+  });
+
+  // Initialize default categories if user has none
+  useEffect(() => {
+    const initializeDefaults = async () => {
+      if (!user || isLoading || dbCategories.length > 0) return;
+
+      // Check if we've already initialized for this user
+      const initializedKey = `categories_initialized_${user.id}`;
+      if (localStorage.getItem(initializedKey)) return;
+
+      // Insert default categories
+      const defaultCategories = [
+        ...defaultIncomeCategories.map(name => ({
+          user_id: user.id,
+          category_type: "income" as const,
+          name,
+        })),
+        ...defaultExpenseCategories.map(name => ({
+          user_id: user.id,
+          category_type: "expense" as const,
+          name,
+        })),
+      ];
+
+      const { error } = await supabase
+        .from("user_categories")
+        .insert(defaultCategories);
+
+      if (!error) {
+        localStorage.setItem(initializedKey, "true");
+        queryClient.invalidateQueries({ queryKey: ["user-categories"] });
       }
     };
 
-    window.addEventListener("categories-updated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
-    
-    return () => {
-      window.removeEventListener("categories-updated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
-  }, []);
+    initializeDefaults();
+  }, [user, isLoading, dbCategories.length, queryClient]);
+
+  // Add category mutation
+  const addCategoryMutation = useMutation({
+    mutationFn: async ({ name, type }: { name: string; type: "income" | "expense" }) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("user_categories")
+        .insert({
+          user_id: user.id,
+          category_type: type,
+          name: name.trim(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-categories"] });
+    },
+  });
+
+  // Remove category mutation
+  const removeCategoryMutation = useMutation({
+    mutationFn: async ({ name, type }: { name: string; type: "income" | "expense" }) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await supabase
+        .from("user_categories")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("category_type", type)
+        .eq("name", name);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-categories"] });
+    },
+  });
+
+  // Derived categories lists
+  const expenseCategories = dbCategories
+    .filter(c => c.category_type === "expense")
+    .map(c => c.name);
+
+  const incomeCategories = dbCategories
+    .filter(c => c.category_type === "income")
+    .map(c => c.name);
+
+  // Fallback to defaults if not logged in
+  const finalExpenseCategories = user ? expenseCategories : defaultExpenseCategories;
+  const finalIncomeCategories = user ? incomeCategories : defaultIncomeCategories;
 
   const addExpenseCategory = useCallback((category: string) => {
-    if (category.trim() && !expenseCategories.includes(category.trim())) {
-      setExpenseCategories(prev => [...prev, category.trim()]);
-      return true;
+    if (!category.trim() || finalExpenseCategories.includes(category.trim())) {
+      return false;
     }
-    return false;
-  }, [expenseCategories]);
+    addCategoryMutation.mutate({ name: category, type: "expense" });
+    return true;
+  }, [finalExpenseCategories, addCategoryMutation]);
 
   const removeExpenseCategory = useCallback((category: string) => {
-    setExpenseCategories(prev => prev.filter(c => c !== category));
-  }, []);
+    removeCategoryMutation.mutate({ name: category, type: "expense" });
+  }, [removeCategoryMutation]);
 
   const addIncomeCategory = useCallback((category: string) => {
-    if (category.trim() && !incomeCategories.includes(category.trim())) {
-      setIncomeCategories(prev => [...prev, category.trim()]);
-      return true;
+    if (!category.trim() || finalIncomeCategories.includes(category.trim())) {
+      return false;
     }
-    return false;
-  }, [incomeCategories]);
+    addCategoryMutation.mutate({ name: category, type: "income" });
+    return true;
+  }, [finalIncomeCategories, addCategoryMutation]);
 
   const removeIncomeCategory = useCallback((category: string) => {
-    setIncomeCategories(prev => prev.filter(c => c !== category));
-  }, []);
+    removeCategoryMutation.mutate({ name: category, type: "income" });
+  }, [removeCategoryMutation]);
 
   // All categories combined for filters
-  const allCategories = [...new Set([...expenseCategories, ...incomeCategories])].sort();
+  const allCategories = [...new Set([...finalExpenseCategories, ...finalIncomeCategories])].sort();
 
   return {
-    expenseCategories,
-    incomeCategories,
+    expenseCategories: finalExpenseCategories,
+    incomeCategories: finalIncomeCategories,
     allCategories,
     addExpenseCategory,
     removeExpenseCategory,
     addIncomeCategory,
     removeIncomeCategory,
+    isLoading,
   };
 }
