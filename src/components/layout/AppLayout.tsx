@@ -2,6 +2,7 @@ import { AppSidebar } from "./AppSidebar";
 import { ReactNode, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DesktopInstallButton } from "@/components/pwa/DesktopInstallButton";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -12,6 +13,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Desktop top bar with install button */}
+      <div className="hidden md:flex fixed top-0 left-64 right-0 z-40 h-14 items-center justify-end border-b border-border bg-background px-6">
+        <DesktopInstallButton />
+      </div>
+
       {/* Mobile menu button */}
       <div className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
         <div className="flex items-center gap-3">
@@ -47,7 +53,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Main content */}
       <main className={cn(
         "min-h-screen transition-all duration-300",
-        "pt-14 md:pt-0", // Account for mobile header
+        "pt-14", // Account for header on both mobile and desktop
         "md:ml-64" // Sidebar width on desktop
       )}>
         <div className="p-4 md:p-6 lg:p-8">{children}</div>
