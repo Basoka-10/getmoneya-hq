@@ -1,33 +1,107 @@
 import { useState, useEffect } from "react";
-import { X, Download, Share, Plus, MoreVertical, Smartphone, Monitor } from "lucide-react";
+import { X, Download, Share, Plus, MoreVertical, ChevronRight, Check, Smartphone, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { Progress } from "@/components/ui/progress";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+interface Step {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
 export function InstallPrompt() {
+  const { user } = useAuth();
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [deviceType, setDeviceType] = useState<"ios" | "android" | "desktop">("desktop");
   const [isInstalled, setIsInstalled] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const getSteps = (): Step[] => {
+    if (deviceType === "ios") {
+      return [
+        {
+          title: "Ouvrir Safari",
+          description: "Assurez-vous d'utiliser Safari, le navigateur par défaut d'Apple.",
+          icon: <Smartphone className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Appuyer sur Partager",
+          description: "En bas de l'écran, appuyez sur le bouton de partage.",
+          icon: <Share className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Ajouter à l'écran d'accueil",
+          description: "Faites défiler et appuyez sur \"Sur l'écran d'accueil\".",
+          icon: <Plus className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Confirmer l'installation",
+          description: "Appuyez sur \"Ajouter\" pour installer MONEYA sur votre appareil.",
+          icon: <Check className="h-8 w-8 text-primary" />,
+        },
+      ];
+    } else if (deviceType === "android") {
+      return [
+        {
+          title: "Ouvrir le menu",
+          description: "Appuyez sur les trois points en haut à droite de votre navigateur.",
+          icon: <MoreVertical className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Installer l'application",
+          description: "Sélectionnez \"Installer l'application\" ou \"Ajouter à l'écran d'accueil\".",
+          icon: <Download className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Confirmer l'installation",
+          description: "Appuyez sur \"Installer\" pour ajouter MONEYA à votre téléphone.",
+          icon: <Check className="h-8 w-8 text-primary" />,
+        },
+      ];
+    } else {
+      return [
+        {
+          title: "Rechercher l'icône d'installation",
+          description: "Dans la barre d'adresse, cherchez l'icône d'installation (généralement à droite).",
+          icon: <Monitor className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Cliquer sur Installer",
+          description: "Cliquez sur l'icône ou le bouton \"Installer\" qui apparaît.",
+          icon: <Download className="h-8 w-8 text-primary" />,
+        },
+        {
+          title: "Confirmer l'installation",
+          description: "Confirmez l'installation pour ajouter MONEYA à votre ordinateur.",
+          icon: <Check className="h-8 w-8 text-primary" />,
+        },
+      ];
+    }
+  };
+
+  const steps = getSteps();
 
   useEffect(() => {
+    // Only show for logged-in users
+    if (!user) return;
+
     // Check if already installed
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsInstalled(true);
       return;
     }
 
-    // Check if user has dismissed the prompt before
-    const dismissed = localStorage.getItem("moneya_install_dismissed");
-    if (dismissed) {
-      const dismissedDate = new Date(dismissed);
-      const daysSinceDismiss = (Date.now() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismiss < 7) return; // Don't show for 7 days after dismissal
-    }
+    // Check if user has completed the install guide
+    const completed = localStorage.getItem("moneya_install_completed");
+    if (completed) return;
 
     // Detect device type
     const userAgent = navigator.userAgent.toLowerCase();
@@ -36,19 +110,19 @@ export function InstallPrompt() {
 
     if (isIOS) {
       setDeviceType("ios");
-      // Show prompt for iOS after a delay
-      setTimeout(() => setShowPrompt(true), 3000);
     } else if (isAndroid) {
       setDeviceType("android");
     } else {
       setDeviceType("desktop");
     }
 
+    // Show prompt after a delay
+    setTimeout(() => setShowPrompt(true), 2000);
+
     // Listen for the beforeinstallprompt event
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setTimeout(() => setShowPrompt(true), 3000);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -57,12 +131,13 @@ export function InstallPrompt() {
     window.addEventListener("appinstalled", () => {
       setIsInstalled(true);
       setShowPrompt(false);
+      localStorage.setItem("moneya_install_completed", "true");
     });
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
     };
-  }, []);
+  }, [user]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -70,101 +145,157 @@ export function InstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
         setShowPrompt(false);
+        localStorage.setItem("moneya_install_completed", "true");
       }
       setDeferredPrompt(null);
     }
   };
 
-  const handleDismiss = () => {
-    localStorage.setItem("moneya_install_dismissed", new Date().toISOString());
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete();
+    }
+  };
+
+  const handleComplete = () => {
+    localStorage.setItem("moneya_install_completed", "true");
     setShowPrompt(false);
   };
 
-  if (isInstalled || !showPrompt) return null;
+  const handleDismiss = () => {
+    localStorage.setItem("moneya_install_completed", "true");
+    setShowPrompt(false);
+  };
+
+  if (isInstalled || !showPrompt || !user) return null;
+
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
+  // If we have deferredPrompt on Android/Desktop, show direct install button
+  if (deferredPrompt && deviceType !== "ios") {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+        <Card className="w-full max-w-md border-primary/20 bg-card shadow-2xl">
+          <CardHeader className="text-center pb-2">
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleDismiss}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/logo.png" 
+                alt="MONEYA" 
+                className="h-20 w-20 object-contain"
+              />
+            </div>
+            <CardTitle className="text-xl">Installer MONEYA</CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              Installez l'application pour accéder à MONEYA rapidement depuis votre appareil.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={handleInstall} className="w-full gap-2" size="lg">
+              <Download className="h-5 w-5" />
+              Installer maintenant
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-muted-foreground"
+              onClick={handleDismiss}
+            >
+              Plus tard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:max-w-sm animate-slide-up">
-      <Card className="border-primary/20 bg-card shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      <Card className="w-full max-w-md border-primary/20 bg-card shadow-2xl">
         <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              {deviceType === "ios" ? (
-                <Smartphone className="h-5 w-5 text-primary" />
-              ) : deviceType === "android" ? (
-                <Smartphone className="h-5 w-5 text-primary" />
-              ) : (
-                <Monitor className="h-5 w-5 text-primary" />
-              )}
-              <CardTitle className="text-base">Installer MONEYA</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/logo.png" 
+                alt="MONEYA" 
+                className="h-10 w-10 object-contain"
+              />
+              <CardTitle className="text-lg">Installer MONEYA</CardTitle>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 -mt-1 -mr-2"
+              className="h-8 w-8"
               onClick={handleDismiss}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <CardDescription className="text-sm">
-            Pour une meilleure expérience, installez l'app sur votre appareil.
-          </CardDescription>
+          <Progress value={progress} className="mt-4" />
+          <p className="text-xs text-muted-foreground mt-2">
+            Étape {currentStep + 1} sur {steps.length}
+          </p>
         </CardHeader>
-        <CardContent className="pt-2">
-          {deviceType === "ios" ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Sur Safari, appuyez sur :
-              </p>
-              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                  <Share className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Partager</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                  <Plus className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Ajouter à l'écran d'accueil</span>
+        <CardContent className="space-y-6">
+          <div className="text-center py-6">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 rounded-full bg-primary/10">
+                {steps[currentStep].icon}
               </div>
             </div>
-          ) : deviceType === "android" && !deferredPrompt ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Appuyez sur le menu du navigateur :
-              </p>
-              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                  <MoreVertical className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Menu</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                  <Download className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Installer l'application</span>
-              </div>
-            </div>
-          ) : deferredPrompt ? (
-            <Button onClick={handleInstall} className="w-full gap-2">
-              <Download className="h-4 w-4" />
-              Installer l'application
+            <h3 className="text-lg font-semibold mb-2">
+              {steps[currentStep].title}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {steps[currentStep].description}
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            {currentStep > 0 && (
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setCurrentStep(currentStep - 1)}
+              >
+                Précédent
+              </Button>
+            )}
+            <Button 
+              className="flex-1 gap-2"
+              onClick={handleNext}
+            >
+              {currentStep < steps.length - 1 ? (
+                <>
+                  Suivant
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Terminé
+                </>
+              )}
             </Button>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Cliquez sur l'icône d'installation dans la barre d'adresse de votre navigateur.
-              </p>
-              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                  <Download className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Installer</span>
-              </div>
-            </div>
-          )}
+          </div>
+
+          <Button 
+            variant="ghost" 
+            className="w-full text-muted-foreground text-sm"
+            onClick={handleDismiss}
+          >
+            Ne plus afficher
+          </Button>
         </CardContent>
       </Card>
     </div>
