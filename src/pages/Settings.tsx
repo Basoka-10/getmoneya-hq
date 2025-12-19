@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
 import { useGuideMode } from "@/components/onboarding/GuideTooltip";
+import { useCategories } from "@/hooks/useCategories";
 import {
   User,
   Building,
@@ -50,35 +51,22 @@ const settingsTabs = [
   { id: "security", name: "Sécurité", icon: Shield },
 ];
 
-const defaultExpenseCategories = [
-  "Outils",
-  "Infrastructure",
-  "Formation",
-  "Marketing",
-  "Banque",
-  "Transport",
-  "Repas",
-];
-
-const defaultIncomeCategories = [
-  "Vente de services",
-  "Vente de produits",
-  "Consulting",
-  "Commission",
-  "Subvention",
-  "Autre revenu",
-];
-
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
-  const [expenseCategories, setExpenseCategories] = useState(defaultExpenseCategories);
   const [newExpenseCategory, setNewExpenseCategory] = useState("");
-  const [incomeCategories, setIncomeCategories] = useState(defaultIncomeCategories);
   const [newIncomeCategory, setNewIncomeCategory] = useState("");
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
   const { guideEnabled, setGuideEnabled } = useGuideMode();
+  const {
+    expenseCategories,
+    incomeCategories,
+    addExpenseCategory: addExpenseCat,
+    removeExpenseCategory,
+    addIncomeCategory: addIncomeCat,
+    removeIncomeCategory,
+  } = useCategories();
 
   // Profile state
   const [firstName, setFirstName] = useState("");
@@ -97,28 +85,26 @@ const Settings = () => {
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const addExpenseCategory = () => {
-    if (newExpenseCategory.trim() && !expenseCategories.includes(newExpenseCategory.trim())) {
-      setExpenseCategories([...expenseCategories, newExpenseCategory.trim()]);
+    if (addExpenseCat(newExpenseCategory)) {
       setNewExpenseCategory("");
       toast.success("Catégorie de dépense ajoutée");
     }
   };
 
-  const removeExpenseCategory = (category: string) => {
-    setExpenseCategories(expenseCategories.filter((c) => c !== category));
+  const handleRemoveExpenseCategory = (category: string) => {
+    removeExpenseCategory(category);
     toast.success("Catégorie de dépense supprimée");
   };
 
   const addIncomeCategory = () => {
-    if (newIncomeCategory.trim() && !incomeCategories.includes(newIncomeCategory.trim())) {
-      setIncomeCategories([...incomeCategories, newIncomeCategory.trim()]);
+    if (addIncomeCat(newIncomeCategory)) {
       setNewIncomeCategory("");
       toast.success("Catégorie de revenu ajoutée");
     }
   };
 
-  const removeIncomeCategory = (category: string) => {
-    setIncomeCategories(incomeCategories.filter((c) => c !== category));
+  const handleRemoveIncomeCategory = (category: string) => {
+    removeIncomeCategory(category);
     toast.success("Catégorie de revenu supprimée");
   };
 
@@ -505,7 +491,7 @@ const Settings = () => {
                     >
                       {category}
                       <button
-                        onClick={() => removeIncomeCategory(category)}
+                        onClick={() => handleRemoveIncomeCategory(category)}
                         className="text-primary/60 hover:text-destructive transition-colors"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -543,7 +529,7 @@ const Settings = () => {
                     >
                       {category}
                       <button
-                        onClick={() => removeExpenseCategory(category)}
+                        onClick={() => handleRemoveExpenseCategory(category)}
                         className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X className="h-3.5 w-3.5" />

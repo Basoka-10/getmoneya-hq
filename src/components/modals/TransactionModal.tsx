@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useClients } from "@/hooks/useClients";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCategories } from "@/hooks/useCategories";
 import { format } from "date-fns";
 
 interface TransactionModalProps {
@@ -15,8 +16,6 @@ interface TransactionModalProps {
   type: "income" | "expense" | "savings";
 }
 
-const INCOME_CATEGORIES = ["Service", "Conseil", "Produit", "Commission", "Autre"];
-const EXPENSE_CATEGORIES = ["Outils", "Infrastructure", "Formation", "Marketing", "Banque", "Transport", "Autre"];
 const SAVINGS_CATEGORIES = ["Urgence", "Investissement", "Projet", "Retraite", "Autre"];
 
 export function TransactionModal({ open, onOpenChange, type }: TransactionModalProps) {
@@ -29,8 +28,13 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
   const createTransaction = useCreateTransaction();
   const { data: clients } = useClients();
   const { currency, currencyConfig, convertToEUR } = useCurrency();
+  const { incomeCategories, expenseCategories } = useCategories();
 
-  const categories = type === "income" ? INCOME_CATEGORIES : type === "expense" ? EXPENSE_CATEGORIES : SAVINGS_CATEGORIES;
+  const categories = type === "income" 
+    ? incomeCategories 
+    : type === "expense" 
+      ? expenseCategories 
+      : SAVINGS_CATEGORIES;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
