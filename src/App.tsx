@@ -9,6 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
@@ -38,6 +39,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <InstallPrompt />
+            <OnboardingTour />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Landing />} />
