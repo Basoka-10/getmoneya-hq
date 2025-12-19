@@ -1,4 +1,4 @@
 project_id = "fisjgmjnezcchxnhihxc"
 
 [functions.exchange-rates]
-verify_jwt = true
+verify_jwt = false
