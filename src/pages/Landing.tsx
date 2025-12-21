@@ -138,8 +138,8 @@ const Landing = () => {
 
   const faqs = [
     {
-      question: "Est-ce vraiment gratuit ?",
-      answer: "Oui — 100 % gratuit pendant la phase de lancement."
+      question: "Quelle est la différence entre les offres ?",
+      answer: "L'offre Gratuite permet de découvrir MONEYA avec 3 clients et 10 factures/devis. Pro (7€/mois) débloque 20 clients, 40 factures et exports. Business (17€/mois) offre tout en illimité."
     },
     {
       question: "Puis-je importer mes données ?",
@@ -187,7 +187,7 @@ const Landing = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-            <span className="text-white/80 text-sm">100% gratuit pendant la phase de lancement</span>
+            <span className="text-white/80 text-sm">Offre Gratuite disponible • Plans Pro et Business</span>
           </div>
           
           {/* Main Title */}
@@ -204,7 +204,7 @@ const Landing = () => {
           </h1>
           
           <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-2xl mx-auto">
-            Clients, finances, tâches, devis et factures au même endroit — 100 % gratuit en phase de lancement.
+            Clients, finances, tâches, devis et factures au même endroit — commencez gratuitement.
           </p>
           
           {/* CTA Button */}
@@ -259,7 +259,7 @@ const Landing = () => {
           </div>
           
           <p className="text-center text-primary mt-10 text-lg">
-            Tout est GRATUIT pour l'instant — aucune carte requise.
+            Commencez gratuitement — aucune carte requise.
           </p>
         </div>
       </section>
@@ -435,11 +435,18 @@ const Landing = () => {
               <img src={avatarTestimonial4} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
             </div>
             <div className="flex items-center gap-1 ml-2">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {[1, 2, 3, 4].map((i) => (
                 <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" />
               ))}
+              {/* Demi-étoile pour 4.5 */}
+              <div className="relative h-4 w-4">
+                <Star className="absolute h-4 w-4 text-yellow-500" />
+                <div className="absolute overflow-hidden w-1/2 h-full">
+                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                </div>
+              </div>
             </div>
-            <span className="text-white/60 text-sm ml-1">Recommandé par les entrepreneurs</span>
+            <span className="text-white/60 text-sm ml-1">4.5/5 — Recommandé par les entrepreneurs</span>
           </div>
           
           <Button 

@@ -325,11 +325,11 @@ export default function AdminSettings() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Version</p>
-              <p className="text-lg font-semibold">1.0.0 BETA</p>
+              <p className="text-lg font-semibold">1.0.0</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Paiements</p>
-              <p className="text-lg font-semibold text-yellow-600">Désactivés</p>
+              <p className="text-lg font-semibold text-green-600">PayPlug Actif</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Base de données</p>

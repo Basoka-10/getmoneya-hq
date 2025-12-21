@@ -152,26 +152,26 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           )}
         </div>
 
-        {/* Beta Info Card */}
+        {/* Plan Info Card */}
         {!collapsed && (
           <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 space-y-2">
             <div className="flex items-center gap-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20">
                 <Zap className="h-3.5 w-3.5 text-primary" />
               </div>
-              <span className="text-xs font-semibold text-primary">Plan gratuit</span>
+              <span className="text-xs font-semibold text-primary">Plan Gratuit</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Accès gratuit pendant la phase de lancement
+              Passez à Pro pour débloquer plus de fonctionnalités
             </p>
           </div>
         )}
 
-        {/* Beta Testers Button */}
+        {/* Upgrade Button */}
         {!collapsed && (
           <Button className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200">
             <Crown className="h-4 w-4 mr-2" />
-            BETA TESTEURS
+            Passer à Pro
           </Button>
         )}
 
@@ -188,7 +188,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
               <p className="text-sm font-medium text-foreground truncate">{userName}</p>
               <div className="flex items-center gap-1.5">
                 <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-muted text-muted-foreground">
-                  {isOwner ? "Owner" : "Gratuit"}
+                  {isOwner ? "Owner" : "Plan Gratuit"}
                 </span>
               </div>
             </div>
