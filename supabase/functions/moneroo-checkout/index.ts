@@ -32,10 +32,10 @@ serve(async (req) => {
       throw new Error("Paramètres manquants: plan, userId, userEmail requis");
     }
 
-    // Determine amount based on plan (in EUR cents)
+    // Determine amount based on plan (in EUR - Moneroo expects amount in main currency unit, not cents)
     const amounts: Record<string, number> = {
-      pro: 700, // 7€
-      business: 1700, // 17€
+      pro: 7, // 7€
+      business: 17, // 17€
     };
 
     const amount = amounts[plan];
@@ -43,7 +43,7 @@ serve(async (req) => {
       throw new Error("Plan invalide");
     }
 
-    console.log(`Creating Moneroo payment for plan: ${plan}, user: ${userEmail}, amount: ${amount}`);
+    console.log(`Creating Moneroo payment for plan: ${plan}, user: ${userEmail}, amount: ${amount} EUR`);
 
     // Get the base URL for redirects
     const origin = req.headers.get("origin") || "https://fisjgmjnezcchxnhihxc.lovableproject.com";
@@ -90,7 +90,7 @@ serve(async (req) => {
     const { error: insertError } = await supabase.from("payments").insert({
       user_id: userId,
       moneroo_payment_id: monerooData.data?.id || "unknown",
-      amount: amount / 100,
+      amount: amount,
       currency: "EUR",
       status: "pending",
       plan: plan,

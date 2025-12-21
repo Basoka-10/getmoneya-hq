@@ -187,7 +187,7 @@ const Landing = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-            <span className="text-white/80 text-sm">Offre Gratuite disponible • Plans Pro et Business</span>
+            <span className="text-white/80 text-sm">Le seul outil au monde où tout y est</span>
           </div>
           
           {/* Main Title */}
