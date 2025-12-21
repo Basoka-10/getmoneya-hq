@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface TourStep {
   title: string;
@@ -131,6 +132,8 @@ export function OnboardingTour() {
   const { user } = useAuth();
   const [showTour, setShowTour] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -144,17 +147,39 @@ export function OnboardingTour() {
   }, [user]);
 
   const handleNext = () => {
+    if (isAnimating) return;
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setIsAnimating(true);
+      setDirection('next');
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+        setIsAnimating(false);
+      }, 200);
     } else {
       handleComplete();
     }
   };
 
   const handlePrevious = () => {
+    if (isAnimating) return;
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setIsAnimating(true);
+      setDirection('prev');
+      setTimeout(() => {
+        setCurrentStep(currentStep - 1);
+        setIsAnimating(false);
+      }, 200);
     }
+  };
+
+  const handleDotClick = (index: number) => {
+    if (isAnimating || index === currentStep) return;
+    setIsAnimating(true);
+    setDirection(index > currentStep ? 'next' : 'prev');
+    setTimeout(() => {
+      setCurrentStep(index);
+      setIsAnimating(false);
+    }, 200);
   };
 
   const handleComplete = () => {
@@ -174,7 +199,7 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-md p-4">
-      <Card className="w-full max-w-lg border-primary/20 bg-card shadow-2xl animate-scale-in">
+      <Card className="w-full max-w-lg border-primary/20 bg-card shadow-2xl animate-scale-in overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-muted-foreground">
@@ -189,35 +214,54 @@ export function OnboardingTour() {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2 transition-all duration-300" />
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Icon and Title */}
-          <div className="text-center py-4">
-            <div className="flex justify-center mb-4">
-              <div className="p-5 rounded-2xl bg-primary/10 animate-pulse-slow">
-                {step.icon}
-              </div>
-            </div>
-            <CardTitle className="text-2xl mb-3">{step.title}</CardTitle>
-            <p className="text-muted-foreground">{step.description}</p>
-          </div>
-
-          {/* Features List */}
-          <div className="space-y-3">
-            {step.features.map((feature, index) => (
-              <div 
-                key={index}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                  {index + 1}
+          {/* Animated Content Container */}
+          <div 
+            className={cn(
+              "transition-all duration-300 ease-out",
+              isAnimating && direction === 'next' && "opacity-0 translate-x-8",
+              isAnimating && direction === 'prev' && "opacity-0 -translate-x-8",
+              !isAnimating && "opacity-100 translate-x-0"
+            )}
+          >
+            {/* Icon and Title */}
+            <div className="text-center py-4">
+              <div className="flex justify-center mb-4">
+                <div className={cn(
+                  "p-5 rounded-2xl bg-primary/10 transition-transform duration-500",
+                  !isAnimating && "animate-[pulse_3s_ease-in-out_infinite]"
+                )}>
+                  {step.icon}
                 </div>
-                <span className="text-sm font-medium">{feature}</span>
               </div>
-            ))}
+              <CardTitle className="text-2xl mb-3">{step.title}</CardTitle>
+              <p className="text-muted-foreground">{step.description}</p>
+            </div>
+
+            {/* Features List */}
+            <div className="space-y-3">
+              {step.features.map((feature, index) => (
+                <div 
+                  key={`${currentStep}-${index}`}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg bg-muted/50",
+                    "transition-all duration-300 ease-out",
+                    "opacity-0 translate-y-2"
+                  )}
+                  style={{ 
+                    animation: !isAnimating ? `slideUp 0.4s ease-out ${index * 80}ms forwards` : 'none'
+                  }}
+                >
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                    {index + 1}
+                  </div>
+                  <span className="text-sm font-medium">{feature}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Navigation Dots */}
@@ -225,12 +269,13 @@ export function OnboardingTour() {
             {tourSteps.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentStep(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                onClick={() => handleDotClick(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300 ease-out",
                   index === currentStep 
                     ? "w-6 bg-primary" 
-                    : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                }`}
+                    : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50 hover:scale-125"
+                )}
               />
             ))}
           </div>
@@ -240,16 +285,18 @@ export function OnboardingTour() {
             {currentStep > 0 && (
               <Button 
                 variant="outline" 
-                className="flex-1"
+                className="flex-1 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 onClick={handlePrevious}
+                disabled={isAnimating}
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Précédent
               </Button>
             )}
             <Button 
-              className="flex-1"
+              className="flex-1 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               onClick={handleNext}
+              disabled={isAnimating}
             >
               {currentStep < tourSteps.length - 1 ? (
                 <>
@@ -269,7 +316,7 @@ export function OnboardingTour() {
           {currentStep < tourSteps.length - 1 && (
             <Button 
               variant="ghost" 
-              className="w-full text-muted-foreground text-sm"
+              className="w-full text-muted-foreground text-sm transition-opacity hover:opacity-80"
               onClick={handleSkip}
             >
               Passer le tutoriel
@@ -277,6 +324,20 @@ export function OnboardingTour() {
           )}
         </CardContent>
       </Card>
+
+      {/* Global Keyframes Style */}
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

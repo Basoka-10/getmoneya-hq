@@ -33,6 +33,7 @@ import {
   Coins,
   Check,
   BookOpen,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ import {
 const settingsTabs = [
   { id: "profile", name: "Profil", icon: User },
   { id: "business", name: "Entreprise", icon: Building },
+  { id: "subscription", name: "Abonnement", icon: Crown },
   { id: "currency", name: "Devise", icon: Coins },
   { id: "categories", name: "Catégories", icon: Wallet },
   { id: "notifications", name: "Notifications", icon: Bell },
@@ -467,6 +469,112 @@ const Settings = () => {
                   </div>
                 </div>
                 <Button className="mt-4" onClick={handleSaveBusiness}>Enregistrer</Button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "subscription" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Abonnement</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gérez votre forfait et accédez à plus de fonctionnalités
+                </p>
+              </div>
+
+              {/* Current Plan */}
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 shadow-card">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20">
+                      <Crown className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Plan Gratuit</h3>
+                      <p className="text-sm text-muted-foreground">Actuellement actif</p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
+                    Beta
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                  <div className="text-center p-3 rounded-lg bg-card border border-border">
+                    <p className="text-2xl font-bold text-foreground">3</p>
+                    <p className="text-xs text-muted-foreground">Clients max</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-card border border-border">
+                    <p className="text-2xl font-bold text-foreground">10</p>
+                    <p className="text-xs text-muted-foreground">Factures</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-card border border-border">
+                    <p className="text-2xl font-bold text-foreground">10</p>
+                    <p className="text-xs text-muted-foreground">Devis</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-card border border-border">
+                    <p className="text-2xl font-bold text-foreground">10</p>
+                    <p className="text-xs text-muted-foreground">Tâches/sem</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upgrade Options */}
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Pro Plan */}
+                <div className="rounded-xl border-2 border-primary bg-card p-6 shadow-card relative">
+                  <span className="absolute -top-3 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                    Populaire
+                  </span>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Crown className="h-6 w-6 text-primary" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Pro</h3>
+                      <p className="text-2xl font-bold text-primary">7€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                    </div>
+                  </div>
+                  <ul className="space-y-2 text-sm mb-4">
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> 20 clients
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> 40 factures & devis
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> Tâches illimitées
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> Export PDF/CSV
+                    </li>
+                  </ul>
+                  <Button className="w-full">Passer à Pro</Button>
+                </div>
+
+                {/* Business Plan */}
+                <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Building className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Business</h3>
+                      <p className="text-2xl font-bold text-foreground">9,99€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                    </div>
+                  </div>
+                  <ul className="space-y-2 text-sm mb-4">
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> 100 clients
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> 200 factures & devis
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> Analytics avancés
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <Check className="h-4 w-4 text-primary" /> Historique 1 an
+                    </li>
+                  </ul>
+                  <Button variant="outline" className="w-full">Choisir Business</Button>
+                </div>
               </div>
             </div>
           )}
