@@ -40,8 +40,8 @@ const App = () => (
             <Toaster />
             <Sonner />
             <InstallPrompt />
-            <OnboardingTour />
             <BrowserRouter>
+              <OnboardingTour />
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
