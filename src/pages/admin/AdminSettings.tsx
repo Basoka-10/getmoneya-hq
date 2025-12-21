@@ -26,11 +26,13 @@ const settingLabels: Record<string, string> = {
 const ALL_CURRENCIES: Record<string, { symbol: string; name: string }> = {
   EUR: { symbol: "€", name: "Euro" },
   USD: { symbol: "$", name: "US Dollar" },
-  XOF: { symbol: "FCFA", name: "Franc CFA (UEMOA)" },
-  XAF: { symbol: "FCFA", name: "Franc CFA (CEMAC)" },
   GBP: { symbol: "£", name: "Livre Sterling" },
   CHF: { symbol: "CHF", name: "Franc Suisse" },
   CAD: { symbol: "CA$", name: "Dollar Canadien" },
+  // African currencies
+  XOF: { symbol: "FCFA", name: "Franc CFA (UEMOA)" },
+  XAF: { symbol: "FCFA", name: "Franc CFA (CEMAC)" },
+  GNF: { symbol: "GNF", name: "Franc Guinéen" },
   MAD: { symbol: "DH", name: "Dirham Marocain" },
   TND: { symbol: "DT", name: "Dinar Tunisien" },
   DZD: { symbol: "DA", name: "Dinar Algérien" },
@@ -38,6 +40,24 @@ const ALL_CURRENCIES: Record<string, { symbol: string; name: string }> = {
   GHS: { symbol: "₵", name: "Cedi Ghanéen" },
   KES: { symbol: "KSh", name: "Shilling Kenyan" },
   ZAR: { symbol: "R", name: "Rand Sud-Africain" },
+  RWF: { symbol: "FRw", name: "Franc Rwandais" },
+  UGX: { symbol: "USh", name: "Shilling Ougandais" },
+  TZS: { symbol: "TSh", name: "Shilling Tanzanien" },
+  ETB: { symbol: "Br", name: "Birr Éthiopien" },
+  EGP: { symbol: "E£", name: "Livre Égyptienne" },
+  MUR: { symbol: "Rs", name: "Roupie Mauricienne" },
+  BWP: { symbol: "P", name: "Pula Botswanais" },
+  MWK: { symbol: "MK", name: "Kwacha Malawien" },
+  ZMW: { symbol: "ZK", name: "Kwacha Zambien" },
+  AOA: { symbol: "Kz", name: "Kwanza Angolais" },
+  MZN: { symbol: "MT", name: "Metical Mozambicain" },
+  CVE: { symbol: "$", name: "Escudo Cap-Verdien" },
+  GMD: { symbol: "D", name: "Dalasi Gambien" },
+  SLL: { symbol: "Le", name: "Leone Sierra-Léonais" },
+  LRD: { symbol: "L$", name: "Dollar Libérien" },
+  SDG: { symbol: "SDG", name: "Livre Soudanaise" },
+  LYD: { symbol: "LD", name: "Dinar Libyen" },
+  MRU: { symbol: "UM", name: "Ouguiya Mauritanien" },
 };
 
 export default function AdminSettings() {
@@ -303,9 +323,12 @@ export default function AdminSettings() {
                   </Select>
                 </div>
 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Les modifications s'appliquent immédiatement à tous les utilisateurs. Les taux de change sont mis à jour via l'API Open Exchange Rates.
+                    <strong>Devises activées:</strong> Les modifications s'appliquent immédiatement à tous les utilisateurs.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Devise par défaut:</strong> S'applique uniquement aux nouveaux utilisateurs. Les utilisateurs existants conservent leur propre préférence.
                   </p>
                 </div>
               </>
