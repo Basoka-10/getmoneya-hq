@@ -158,6 +158,48 @@ const Settings = () => {
     toast.success("Informations entreprise enregistrées");
   };
 
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+
+  const handleCheckout = async (plan: "pro" | "business") => {
+    if (!user?.email) {
+      toast.error("Veuillez vous connecter pour souscrire");
+      return;
+    }
+
+    setIsCheckoutLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/payplug-checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+        },
+        body: JSON.stringify({
+          plan,
+          userEmail: user.email,
+          userName: firstName && lastName ? `${firstName} ${lastName}` : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la création du paiement");
+      }
+
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        throw new Error("URL de paiement non reçue");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error(error instanceof Error ? error.message : "Erreur lors du paiement");
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
+
   const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
   const memberSince = user?.created_at 
     ? new Date(user.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
@@ -302,7 +344,7 @@ const Settings = () => {
                         <span className="text-xs text-muted-foreground">Plan</span>
                         <Zap className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="text-sm font-semibold text-primary">Beta gratuit</p>
+                      <p className="text-sm font-semibold text-primary">Plan Gratuit</p>
                     </div>
                     
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -495,7 +537,7 @@ const Settings = () => {
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
-                    Beta
+                    Actif
                   </span>
                 </div>
                 
@@ -547,7 +589,9 @@ const Settings = () => {
                       <Check className="h-4 w-4 text-primary" /> Export PDF/CSV
                     </li>
                   </ul>
-                  <Button className="w-full">Passer à Pro</Button>
+                  <Button className="w-full" onClick={() => handleCheckout("pro")} disabled={isCheckoutLoading}>
+                    {isCheckoutLoading ? "Chargement..." : "Passer à Pro"}
+                  </Button>
                 </div>
 
                 {/* Business Plan */}
@@ -556,24 +600,26 @@ const Settings = () => {
                     <Building className="h-6 w-6 text-muted-foreground" />
                     <div>
                       <h3 className="text-lg font-semibold text-foreground">Business</h3>
-                      <p className="text-2xl font-bold text-foreground">9,99€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                      <p className="text-2xl font-bold text-foreground">17€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
                     </div>
                   </div>
                   <ul className="space-y-2 text-sm mb-4">
                     <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> 100 clients
+                      <Check className="h-4 w-4 text-primary" /> Clients illimités
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> 200 factures & devis
+                      <Check className="h-4 w-4 text-primary" /> Factures & devis illimités
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
                       <Check className="h-4 w-4 text-primary" /> Analytics avancés
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Historique 1 an
+                      <Check className="h-4 w-4 text-primary" /> Priorité performance
                     </li>
                   </ul>
-                  <Button variant="outline" className="w-full">Choisir Business</Button>
+                  <Button variant="outline" className="w-full" onClick={() => handleCheckout("business")} disabled={isCheckoutLoading}>
+                    {isCheckoutLoading ? "Chargement..." : "Choisir Business"}
+                  </Button>
                 </div>
               </div>
             </div>

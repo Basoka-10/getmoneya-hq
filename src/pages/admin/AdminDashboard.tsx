@@ -298,7 +298,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Mode</span>
             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
-              BETA GRATUIT
+              PRODUCTION
             </Badge>
           </div>
           <div className="flex items-center justify-between">
