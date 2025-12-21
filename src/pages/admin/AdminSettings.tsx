@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useSystemSettings, useUpdateSystemSetting } from "@/hooks/useAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Settings, Globe, Shield, Wrench, DollarSign, Plus, X } from "lucide-react";
+import { Settings, Globe, Wrench, DollarSign, Plus, X, RefreshCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const settingIcons: Record<string, React.ElementType> = {
   supported_currencies: DollarSign,
@@ -65,6 +66,12 @@ export default function AdminSettings() {
   const updateSetting = useUpdateSystemSetting();
   const [selectedCurrencyToAdd, setSelectedCurrencyToAdd] = useState<string>("");
 
+  // Exchange rates preview
+  const [rates, setRates] = useState<Record<string, number> | null>(null);
+  const [ratesUpdatedAt, setRatesUpdatedAt] = useState<number | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+
   const handleToggle = (id: string, currentValue: unknown) => {
     const boolValue = currentValue === true || currentValue === "true";
     updateSetting.mutate({ id, setting_value: !boolValue });
@@ -96,7 +103,7 @@ export default function AdminSettings() {
 
   const handleAddCurrency = async () => {
     if (!selectedCurrencyToAdd) return;
-    
+
     const currentCurrencies = getSupportedCurrencies();
     if (currentCurrencies.includes(selectedCurrencyToAdd)) {
       toast.error("Cette devise est déjà activée");
@@ -107,7 +114,7 @@ export default function AdminSettings() {
     if (!currencySetting) return;
 
     const newCurrencies = [...currentCurrencies, selectedCurrencyToAdd];
-    
+
     updateSetting.mutate(
       { id: currencySetting.id, setting_value: newCurrencies },
       {
@@ -141,7 +148,7 @@ export default function AdminSettings() {
     if (!currencySetting) return;
 
     const newCurrencies = currentCurrencies.filter((c) => c !== currencyToRemove);
-    
+
     updateSetting.mutate(
       { id: currencySetting.id, setting_value: newCurrencies },
       {
@@ -176,9 +183,41 @@ export default function AdminSettings() {
 
   const supportedCurrencies = getSupportedCurrencies();
   const defaultCurrency = getDefaultCurrency();
-  const availableCurrenciesToAdd = Object.keys(ALL_CURRENCIES).filter(
-    (c) => !supportedCurrencies.includes(c)
-  );
+  const availableCurrenciesToAdd = Object.keys(ALL_CURRENCIES).filter((c) => !supportedCurrencies.includes(c));
+
+  const currenciesForRates = useMemo(() => {
+    return Array.from(new Set(["EUR", ...supportedCurrencies]));
+  }, [supportedCurrencies]);
+
+  const fetchRates = async () => {
+    setRatesLoading(true);
+    setRatesError(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("exchange-rates");
+      if (error) throw error;
+
+      if (data?.result !== "success" || !data?.rates) {
+        throw new Error(data?.error || "Impossible de récupérer les taux");
+      }
+
+      setRates(data.rates as Record<string, number>);
+      setRatesUpdatedAt(Date.now());
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur inconnue";
+      setRatesError(msg);
+      toast.error("Erreur lors de la récupération des taux de change", { description: msg });
+    } finally {
+      setRatesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoading) {
+      void fetchRates();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   return (
     <div className="space-y-6">
@@ -212,7 +251,7 @@ export default function AdminSettings() {
                   .map((setting) => {
                     const Icon = settingIcons[setting.setting_key] || Settings;
                     const isEnabled = setting.setting_value === true || setting.setting_value === "true";
-                    
+
                     return (
                       <div key={setting.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -257,9 +296,9 @@ export default function AdminSettings() {
                   <Label className="text-sm text-muted-foreground mb-3 block">Devises actives</Label>
                   <div className="flex flex-wrap gap-2">
                     {supportedCurrencies.map((currency: string) => (
-                      <Badge 
-                        key={currency} 
-                        variant={currency === defaultCurrency ? "default" : "secondary"} 
+                      <Badge
+                        key={currency}
+                        variant={currency === defaultCurrency ? "default" : "secondary"}
                         className="text-sm flex items-center gap-1 pr-1"
                       >
                         <span>{ALL_CURRENCIES[currency]?.symbol || currency}</span>
@@ -295,11 +334,7 @@ export default function AdminSettings() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button 
-                        onClick={handleAddCurrency} 
-                        disabled={!selectedCurrencyToAdd || updateSetting.isPending}
-                        size="icon"
-                      >
+                      <Button onClick={handleAddCurrency} disabled={!selectedCurrencyToAdd || updateSetting.isPending} size="icon">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -328,10 +363,73 @@ export default function AdminSettings() {
                     <strong>Devises activées:</strong> Les modifications s'appliquent immédiatement à tous les utilisateurs.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    <strong>Devise par défaut:</strong> S'applique uniquement aux nouveaux utilisateurs. Les utilisateurs existants conservent leur propre préférence.
+                    <strong>Devise par défaut:</strong> S'applique uniquement aux nouveaux utilisateurs. Les utilisateurs existants conservent
+                    leur propre préférence.
                   </p>
                 </div>
               </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Exchange rates preview */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Taux de change actuels
+              </span>
+              <Button variant="outline" size="sm" onClick={fetchRates} disabled={ratesLoading}>
+                <RefreshCw className={ratesLoading ? "h-4 w-4 mr-2 animate-spin" : "h-4 w-4 mr-2"} />
+                Actualiser
+              </Button>
+            </CardTitle>
+            <CardDescription>Base: 1 EUR — aperçu des taux via la fonction <code>exchange-rates</code></CardDescription>
+          </CardHeader>
+          <CardContent>
+            {ratesLoading && !rates ? (
+              <Skeleton className="h-40 w-full" />
+            ) : ratesError ? (
+              <div className="text-sm text-destructive">{ratesError}</div>
+            ) : rates ? (
+              <>
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    {ratesUpdatedAt ? `Dernière mise à jour: ${new Date(ratesUpdatedAt).toLocaleString("fr-FR")}` : ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground">1 EUR → X Devise</p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 max-h-72 overflow-auto pr-1">
+                  {currenciesForRates.map((code) => {
+                    const rate = code === "EUR" ? 1 : rates?.[code];
+                    const label = ALL_CURRENCIES[code]?.name || code;
+                    const symbol = ALL_CURRENCIES[code]?.symbol || code;
+
+                    return (
+                      <div key={code} className="rounded-lg border border-border bg-card/50 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {symbol} · {code}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="shrink-0">
+                            {rate ? rate.toLocaleString("fr-FR") : "—"}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          1 EUR = {rate ? rate.toLocaleString("fr-FR") : "—"} {code}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Aucun taux disponible pour le moment.</p>
             )}
           </CardContent>
         </Card>
