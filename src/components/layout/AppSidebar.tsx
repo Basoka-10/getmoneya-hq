@@ -15,12 +15,15 @@ import {
   Crown,
   CalendarDays,
   Shield,
+  Star,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsOwner } from "@/hooks/useAdmin";
+import { useSubscription } from "@/hooks/useSubscription";
 import logo from "@/assets/logo.png";
 
 const navigation = [
@@ -44,9 +47,33 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { data: isOwner } = useIsOwner();
+  const { currentPlan: plan } = useSubscription();
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
   const userName = user?.email?.split("@")[0] || "Utilisateur";
+
+  const getPlanDisplay = () => {
+    switch (plan) {
+      case "business":
+        return { name: "Plan Business", icon: Crown, color: "text-purple-500" };
+      case "pro":
+        return { name: "Plan Pro", icon: Star, color: "text-amber-500" };
+      default:
+        return { name: "Plan Gratuit", icon: Zap, color: "text-primary" };
+    }
+  };
+
+  const planDisplay = getPlanDisplay();
+
+  const handleUpgradeClick = () => {
+    if (plan === "business") {
+      // Open WhatsApp for custom plans
+      window.open("https://wa.me/33745385548", "_blank");
+    } else {
+      // Navigate to settings for upgrade
+      window.location.href = "/settings";
+    }
+  };
 
   return (
     <aside
@@ -154,25 +181,52 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
         {/* Plan Info Card */}
         {!collapsed && (
-          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 space-y-2">
+          <div className={cn(
+            "rounded-xl border p-4 space-y-2",
+            plan === "business" 
+              ? "bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20" 
+              : plan === "pro"
+              ? "bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20"
+              : "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20"
+          )}>
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20">
-                <Zap className="h-3.5 w-3.5 text-primary" />
+              <div className={cn(
+                "flex h-6 w-6 items-center justify-center rounded-lg",
+                plan === "business" ? "bg-purple-500/20" : plan === "pro" ? "bg-amber-500/20" : "bg-primary/20"
+              )}>
+                <planDisplay.icon className={cn("h-3.5 w-3.5", planDisplay.color)} />
               </div>
-              <span className="text-xs font-semibold text-primary">Plan Gratuit</span>
+              <span className={cn("text-xs font-semibold", planDisplay.color)}>{planDisplay.name}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Passez à Pro pour débloquer plus de fonctionnalités
+              {plan === "business" 
+                ? "Profitez de toutes les fonctionnalités" 
+                : plan === "pro"
+                ? "Passez à Business pour un accès illimité"
+                : "Passez à Pro pour débloquer plus de fonctionnalités"}
             </p>
           </div>
         )}
 
-        {/* Upgrade Button */}
+        {/* Upgrade Button - Hide for Business plan or show Custom */}
         {!collapsed && (
-          <Button className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200">
-            <Crown className="h-4 w-4 mr-2" />
-            Passer à Pro
-          </Button>
+          plan === "business" ? (
+            <Button 
+              onClick={handleUpgradeClick}
+              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-purple-500/20 transition-all duration-200"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Custom
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleUpgradeClick}
+              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
+            >
+              <Crown className="h-4 w-4 mr-2" />
+              {plan === "pro" ? "Passer à Business" : "Passer à Pro"}
+            </Button>
+          )
         )}
 
         {/* User */}
@@ -187,8 +241,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{userName}</p>
               <div className="flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-muted text-muted-foreground">
-                  {isOwner ? "Owner" : "Plan Gratuit"}
+                <span className={cn(
+                  "px-1.5 py-0.5 text-[10px] font-medium rounded",
+                  isOwner 
+                    ? "bg-orange-500/10 text-orange-500"
+                    : plan === "business"
+                    ? "bg-purple-500/10 text-purple-500"
+                    : plan === "pro"
+                    ? "bg-amber-500/10 text-amber-500"
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {isOwner ? "Owner" : planDisplay.name}
                 </span>
               </div>
             </div>
