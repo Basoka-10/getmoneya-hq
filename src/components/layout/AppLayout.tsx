@@ -3,6 +3,7 @@ import { ReactNode, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DesktopInstallButton } from "@/components/pwa/DesktopInstallButton";
+import logo from "@/assets/logo.png";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -21,9 +22,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile menu button */}
       <div className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80">
-            <span className="text-sm font-bold text-primary-foreground">M</span>
-          </div>
+          <img src={logo} alt="MONEYA" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">MONEYA</span>
         </div>
         <button
