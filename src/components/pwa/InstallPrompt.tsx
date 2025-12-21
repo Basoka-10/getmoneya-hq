@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Download, Share, Plus, MoreVertical, ChevronRight, Check, Smartphone, Monitor } from "lucide-react";
+import { X, Download, Share, Plus, MoreVertical, ChevronRight, Check, Smartphone, Monitor, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,30 +16,76 @@ interface Step {
   icon: React.ReactNode;
 }
 
+type BrowserType = "safari" | "chrome" | "other";
+type DeviceType = "ios" | "android" | "desktop";
+
+// Detect browser type
+const detectBrowser = (): BrowserType => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  
+  // Check for Safari (but not Chrome on iOS which includes Safari in UA)
+  if (/safari/.test(userAgent) && !/chrome/.test(userAgent) && !/crios/.test(userAgent)) {
+    return "safari";
+  }
+  
+  // Check for Chrome (including Chrome on iOS - CriOS)
+  if (/chrome/.test(userAgent) || /crios/.test(userAgent)) {
+    return "chrome";
+  }
+  
+  return "other";
+};
+
+// Detect device type
+const detectDevice = (): DeviceType => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(userAgent)) return "ios";
+  if (/android/.test(userAgent)) return "android";
+  return "desktop";
+};
+
 export function InstallPrompt() {
   const { user } = useAuth();
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [deviceType, setDeviceType] = useState<"ios" | "android" | "desktop">("desktop");
+  const [deviceType, setDeviceType] = useState<DeviceType>("desktop");
+  const [browserType, setBrowserType] = useState<BrowserType>("other");
   const [isInstalled, setIsInstalled] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [autoInstallAttempted, setAutoInstallAttempted] = useState(false);
 
   const getSteps = (): Step[] => {
     if (deviceType === "ios") {
+      // Safari on iOS
+      if (browserType === "safari") {
+        return [
+          {
+            title: "Appuyer sur Partager",
+            description: "En bas de l'écran Safari, appuyez sur le bouton de partage (carré avec flèche).",
+            icon: <Share className="h-8 w-8 text-primary" />,
+          },
+          {
+            title: "Ajouter à l'écran d'accueil",
+            description: "Faites défiler et appuyez sur \"Sur l'écran d'accueil\".",
+            icon: <Plus className="h-8 w-8 text-primary" />,
+          },
+          {
+            title: "Confirmer l'installation",
+            description: "Appuyez sur \"Ajouter\" pour installer MONEYA sur votre appareil.",
+            icon: <Check className="h-8 w-8 text-primary" />,
+          },
+        ];
+      }
+      // Chrome or other browser on iOS
       return [
         {
-          title: "Ouvrir Safari",
-          description: "Assurez-vous d'utiliser Safari, le navigateur par défaut d'Apple.",
-          icon: <Smartphone className="h-8 w-8 text-primary" />,
-        },
-        {
-          title: "Appuyer sur Partager",
-          description: "En bas de l'écran, appuyez sur le bouton de partage.",
-          icon: <Share className="h-8 w-8 text-primary" />,
+          title: "Ouvrir le menu",
+          description: "Appuyez sur les trois points (...) en bas ou en haut à droite de votre navigateur.",
+          icon: <MoreVertical className="h-8 w-8 text-primary" />,
         },
         {
           title: "Ajouter à l'écran d'accueil",
-          description: "Faites défiler et appuyez sur \"Sur l'écran d'accueil\".",
+          description: "Sélectionnez \"Ajouter à l'écran d'accueil\" ou \"Add to Home Screen\".",
           icon: <Plus className="h-8 w-8 text-primary" />,
         },
         {
@@ -67,15 +113,30 @@ export function InstallPrompt() {
         },
       ];
     } else {
+      // Desktop instructions based on browser
+      if (browserType === "chrome") {
+        return [
+          {
+            title: "Cliquer sur l'icône d'installation",
+            description: "Dans la barre d'adresse Chrome, cliquez sur l'icône d'installation à droite.",
+            icon: <Download className="h-8 w-8 text-primary" />,
+          },
+          {
+            title: "Confirmer l'installation",
+            description: "Cliquez sur \"Installer\" dans la fenêtre qui apparaît.",
+            icon: <Check className="h-8 w-8 text-primary" />,
+          },
+        ];
+      }
       return [
         {
-          title: "Rechercher l'icône d'installation",
-          description: "Dans la barre d'adresse, cherchez l'icône d'installation (généralement à droite).",
-          icon: <Monitor className="h-8 w-8 text-primary" />,
+          title: "Ouvrir le menu du navigateur",
+          description: "Cliquez sur le menu (trois points ou lignes) en haut à droite.",
+          icon: <Globe className="h-8 w-8 text-primary" />,
         },
         {
-          title: "Cliquer sur Installer",
-          description: "Cliquez sur l'icône ou le bouton \"Installer\" qui apparaît.",
+          title: "Installer l'application",
+          description: "Cherchez \"Installer MONEYA\" ou \"Ajouter au bureau\".",
           icon: <Download className="h-8 w-8 text-primary" />,
         },
         {
@@ -88,6 +149,29 @@ export function InstallPrompt() {
   };
 
   const steps = getSteps();
+
+  // Auto-trigger install when deferredPrompt is available
+  useEffect(() => {
+    if (deferredPrompt && !autoInstallAttempted && user) {
+      setAutoInstallAttempted(true);
+      // Auto-trigger install prompt
+      const autoInstall = async () => {
+        try {
+          await deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === "accepted") {
+            localStorage.setItem("moneya_install_completed", "true");
+            setShowPrompt(false);
+          }
+          setDeferredPrompt(null);
+        } catch (error) {
+          console.log("Auto-install failed, will show manual prompt");
+        }
+      };
+      // Small delay to ensure UI is ready
+      setTimeout(autoInstall, 1000);
+    }
+  }, [deferredPrompt, autoInstallAttempted, user]);
 
   useEffect(() => {
     // Only show for logged-in users
@@ -103,18 +187,9 @@ export function InstallPrompt() {
     const completed = localStorage.getItem("moneya_install_completed");
     if (completed) return;
 
-    // Detect device type
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    const isAndroid = /android/.test(userAgent);
-
-    if (isIOS) {
-      setDeviceType("ios");
-    } else if (isAndroid) {
-      setDeviceType("android");
-    } else {
-      setDeviceType("desktop");
-    }
+    // Detect device and browser type
+    setDeviceType(detectDevice());
+    setBrowserType(detectBrowser());
 
     // Show prompt after a delay
     setTimeout(() => setShowPrompt(true), 2000);
@@ -244,6 +319,11 @@ export function InstallPrompt() {
           <Progress value={progress} className="mt-4" />
           <p className="text-xs text-muted-foreground mt-2">
             Étape {currentStep + 1} sur {steps.length}
+            {deviceType === "ios" && (
+              <span className="ml-2">
+                ({browserType === "safari" ? "Safari" : browserType === "chrome" ? "Chrome" : "Navigateur"})
+              </span>
+            )}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
