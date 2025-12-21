@@ -24,6 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PricingSection } from "@/components/pricing/PricingSection";
 import logo from "@/assets/logo.png";
 import avatarTestimonial1 from '@/assets/avatar-testimonial-1.png';
 import avatarTestimonial2 from '@/assets/avatar-testimonial-2.png';
@@ -166,6 +167,7 @@ const Landing = () => {
             </div>
             <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
               <a href="#fonctionnalites" className="hover:text-white transition-colors">Fonctionnalités</a>
+              <a href="#tarifs" className="hover:text-white transition-colors">Tarifs</a>
               <a href="#comment" className="hover:text-white transition-colors">Comment ça marche</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
             </div>
@@ -327,7 +329,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Security Section */}
+      {/* Pricing Section */}
+      <section id="tarifs">
+        <PricingSection onSelectPlan={() => navigate("/auth")} variant="landing" />
+      </section>
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
