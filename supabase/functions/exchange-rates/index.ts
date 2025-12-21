@@ -24,8 +24,9 @@ serve(async (req) => {
     console.log('Fetching exchange rates from Open Exchange Rates API...');
     
     // Open Exchange Rates uses USD as base currency (free plan)
+    // Include GNF (Guinean Franc)
     const response = await fetch(
-      `https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR,USD,XOF`
+      `https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR,USD,XOF,GNF`
     );
 
     if (!response.ok) {
@@ -45,6 +46,7 @@ serve(async (req) => {
     // We need to convert to EUR as base for our app
     const usdToEur = data.rates.EUR;
     const usdToXof = data.rates.XOF;
+    const usdToGnf = data.rates.GNF;
 
     if (!usdToEur || !usdToXof) {
       throw new Error('Missing required exchange rates in response');
@@ -54,6 +56,7 @@ serve(async (req) => {
     // If 1 USD = X EUR, then 1 EUR = 1/X USD
     const eurToUsd = 1 / usdToEur;
     const eurToXof = usdToXof / usdToEur;
+    const eurToGnf = usdToGnf ? usdToGnf / usdToEur : 9200; // Fallback rate for GNF
 
     const rates = {
       result: 'success',
@@ -62,6 +65,7 @@ serve(async (req) => {
         EUR: 1,
         USD: Number(eurToUsd.toFixed(6)),
         XOF: Number(eurToXof.toFixed(2)),
+        GNF: Number(eurToGnf.toFixed(0)),
       }
     };
 

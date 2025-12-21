@@ -19,6 +19,7 @@ export const ALL_CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   USD: { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US", decimals: 2 },
   XOF: { code: "XOF", symbol: "FCFA", name: "Franc CFA (UEMOA)", locale: "fr-FR", decimals: 0 },
   XAF: { code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)", locale: "fr-FR", decimals: 0 },
+  GNF: { code: "GNF", symbol: "GNF", name: "Franc Guinéen", locale: "fr-GN", decimals: 0 },
   GBP: { code: "GBP", symbol: "£", name: "Livre Sterling", locale: "en-GB", decimals: 2 },
   CHF: { code: "CHF", symbol: "CHF", name: "Franc Suisse", locale: "fr-CH", decimals: 2 },
   CAD: { code: "CAD", symbol: "CA$", name: "Dollar Canadien", locale: "en-CA", decimals: 2 },
@@ -66,9 +67,9 @@ const RATES_CACHE_KEY = "moneya_exchange_rates";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>(["EUR", "USD", "XOF"]);
+  const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>(["EUR", "USD", "XOF", "GNF"]);
   const [currency, setCurrencyState] = useState<Currency>("EUR");
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ EUR: 1, USD: 1.08, XOF: 655.96 });
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ EUR: 1, USD: 1.08, XOF: 655.96, GNF: 9200 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -174,6 +175,35 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchUserCurrency();
   }, [fetchUserCurrency]);
+
+  // Subscribe to real-time currency preference changes from profiles table
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`profile-currency-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newCurrency = payload.new.currency_preference;
+          if (newCurrency && newCurrency !== currency) {
+            setCurrencyState(newCurrency);
+            toast.info(`Devise synchronisée: ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, currency]);
 
   // Fetch exchange rates from API
   const fetchExchangeRates = useCallback(async (forceRefresh = false) => {
