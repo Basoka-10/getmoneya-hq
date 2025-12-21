@@ -6,9 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAllUsers, useToggleUserSuspension } from "@/hooks/useAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, UserX, UserCheck, Shield } from "lucide-react";
+import { Search, UserX, UserCheck, Shield, Crown, Star } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+
+const planBadges: Record<string, { label: string; variant: "default" | "secondary" | "outline"; icon?: React.ElementType }> = {
+  free: { label: "Gratuit", variant: "outline" },
+  pro: { label: "Pro", variant: "secondary", icon: Star },
+  business: { label: "Business", variant: "default", icon: Crown },
+};
 
 export default function AdminUsers() {
   const { data: users, isLoading } = useAllUsers();
@@ -56,6 +62,7 @@ export default function AdminUsers() {
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Entreprise</TableHead>
+                  <TableHead>Plan</TableHead>
                   <TableHead>Rôle</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Inscrit le</TableHead>
@@ -66,7 +73,7 @@ export default function AdminUsers() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 7 }).map((_, j) => (
+                      {Array.from({ length: 8 }).map((_, j) => (
                         <TableCell key={j}>
                           <Skeleton className="h-5 w-full" />
                         </TableCell>
@@ -75,13 +82,17 @@ export default function AdminUsers() {
                   ))
                 ) : filteredUsers?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Aucun utilisateur trouvé
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers?.map((user) => {
                     const isOwner = user.user_roles?.some((r) => r.role === "owner");
+                    const plan = isOwner ? "business" : (user.subscription_plan || "free");
+                    const planInfo = planBadges[plan] || planBadges.free;
+                    const PlanIcon = planInfo.icon;
+                    
                     return (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">
@@ -89,6 +100,12 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell>{user.private_data?.email || "-"}</TableCell>
                         <TableCell>{user.company_name || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant={planInfo.variant} className="gap-1">
+                            {PlanIcon && <PlanIcon className="h-3 w-3" />}
+                            {planInfo.label}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           {isOwner ? (
                             <Badge variant="default" className="gap-1">
