@@ -14,14 +14,12 @@ const settingIcons: Record<string, React.ElementType> = {
   supported_currencies: DollarSign,
   default_currency: Globe,
   maintenance_mode: Wrench,
-  beta_mode: Shield,
 };
 
 const settingLabels: Record<string, string> = {
   supported_currencies: "Devises supportées",
   default_currency: "Devise par défaut",
   maintenance_mode: "Mode maintenance",
-  beta_mode: "Mode beta",
 };
 
 // All available currencies that can be enabled
@@ -181,7 +179,7 @@ export default function AdminSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             {isLoading ? (
-              Array.from({ length: 2 }).map((_, i) => (
+              Array.from({ length: 1 }).map((_, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-6 w-12" />
@@ -190,7 +188,7 @@ export default function AdminSettings() {
             ) : (
               <>
                 {settings
-                  ?.filter((s) => s.setting_key === "beta_mode" || s.setting_key === "maintenance_mode")
+                  ?.filter((s) => s.setting_key === "maintenance_mode")
                   .map((setting) => {
                     const Icon = settingIcons[setting.setting_key] || Settings;
                     const isEnabled = setting.setting_value === true || setting.setting_value === "true";
@@ -329,7 +327,7 @@ export default function AdminSettings() {
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Paiements</p>
-              <p className="text-lg font-semibold text-green-600">PayPlug Actif</p>
+              <p className="text-lg font-semibold text-green-600">Moneroo Actif</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Base de données</p>

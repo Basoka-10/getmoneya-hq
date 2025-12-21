@@ -21,17 +21,43 @@ interface Subscription {
 export const useSubscription = () => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSubscription = async () => {
     if (!user?.id) {
       setSubscription(null);
+      setIsOwner(false);
       setIsLoading(false);
       return;
     }
 
     try {
+      // Check if user is owner (admin) - they get business plan automatically
+      const { data: ownerData } = await supabase.rpc("is_owner");
+      const userIsOwner = ownerData === true;
+      setIsOwner(userIsOwner);
+
+      // If owner, they automatically have business plan
+      if (userIsOwner) {
+        setSubscription({
+          id: "owner",
+          user_id: user.id,
+          plan: "business",
+          status: "active",
+          payment_id: null,
+          amount: null,
+          currency: null,
+          started_at: new Date().toISOString(),
+          expires_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("subscriptions")
         .select("*")
@@ -67,20 +93,21 @@ export const useSubscription = () => {
   }, [user?.id]);
 
   const currentPlan: SubscriptionPlan = subscription?.plan || "free";
-  const isActive = subscription?.status === "active";
+  const isActive = subscription?.status === "active" || isOwner;
   const isPro = currentPlan === "pro" && isActive;
-  const isBusiness = currentPlan === "business" && isActive;
+  const isBusiness = (currentPlan === "business" && isActive) || isOwner;
   const isPaid = isPro || isBusiness;
 
   return {
     subscription,
-    currentPlan,
+    currentPlan: isOwner ? "business" : currentPlan,
     isActive,
     isPro,
     isBusiness,
     isPaid,
     isLoading,
     error,
+    isOwner,
     refetch: fetchSubscription,
   };
 };

@@ -109,16 +109,43 @@ export function useAllUsers() {
         .from("profiles_private")
         .select("user_id, email, phone, address");
       
+      // Fetch subscriptions to know each user's plan
+      const { data: subscriptions } = await supabase
+        .from("subscriptions")
+        .select("user_id, plan, status, expires_at");
+      
       const privateMap = new Map(
         (privateProfiles || []).map((p) => [p.user_id, p])
       );
       
-      return (profiles as Profile[]).map((profile) => ({
-        ...profile,
-        // Add private data if available (only for owner viewing their own users in admin)
-        private_data: privateMap.get(profile.user_id) || null,
-        user_roles: (roles as UserRole[]).filter((r) => r.user_id === profile.user_id),
-      }));
+      const subscriptionMap = new Map(
+        (subscriptions || []).map((s) => [s.user_id, s])
+      );
+      
+      return (profiles as Profile[]).map((profile) => {
+        const subscription = subscriptionMap.get(profile.user_id);
+        let currentPlan = "free";
+        
+        if (subscription) {
+          // Check if subscription is expired
+          if (subscription.expires_at) {
+            const expiryDate = new Date(subscription.expires_at);
+            if (expiryDate >= new Date() && subscription.status === "active") {
+              currentPlan = subscription.plan;
+            }
+          } else if (subscription.status === "active") {
+            currentPlan = subscription.plan;
+          }
+        }
+        
+        return {
+          ...profile,
+          // Add private data if available (only for owner viewing their own users in admin)
+          private_data: privateMap.get(profile.user_id) || null,
+          user_roles: (roles as UserRole[]).filter((r) => r.user_id === profile.user_id),
+          subscription_plan: currentPlan,
+        };
+      });
     },
   });
 }
