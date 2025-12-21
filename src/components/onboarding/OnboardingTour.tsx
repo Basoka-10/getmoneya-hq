@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -17,7 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 
 interface TourStep {
   title: string;
@@ -130,21 +132,36 @@ const tourSteps: TourStep[] = [
 
 export function OnboardingTour() {
   const { user } = useAuth();
+  const { data: profile } = useUserProfile();
+  const location = useLocation();
   const [showTour, setShowTour] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !profile) return;
 
-    // Check if user has completed the tour
-    const completed = localStorage.getItem("moneya_tour_completed");
-    if (!completed) {
-      // Show tour after a short delay
+    // Don't show on landing page
+    if (location.pathname === '/') return;
+
+    // Check if user has already completed the tour
+    const completed = localStorage.getItem(`moneya_tour_completed_${user.id}`);
+    if (completed) return;
+
+    // Check if this is a new account (created within the last 5 minutes)
+    const createdAt = new Date(profile.created_at);
+    const now = new Date();
+    const diffMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+    
+    // Only show tour for accounts created within last 5 minutes (new users)
+    if (diffMinutes <= 5) {
       setTimeout(() => setShowTour(true), 1500);
+    } else {
+      // Mark as completed for existing users who haven't seen it
+      localStorage.setItem(`moneya_tour_completed_${user.id}`, "true");
     }
-  }, [user]);
+  }, [user, profile, location.pathname]);
 
   const handleNext = () => {
     if (isAnimating) return;
@@ -183,12 +200,16 @@ export function OnboardingTour() {
   };
 
   const handleComplete = () => {
-    localStorage.setItem("moneya_tour_completed", "true");
+    if (user) {
+      localStorage.setItem(`moneya_tour_completed_${user.id}`, "true");
+    }
     setShowTour(false);
   };
 
   const handleSkip = () => {
-    localStorage.setItem("moneya_tour_completed", "true");
+    if (user) {
+      localStorage.setItem(`moneya_tour_completed_${user.id}`, "true");
+    }
     setShowTour(false);
   };
 
@@ -344,8 +365,12 @@ export function OnboardingTour() {
 
 // Hook to manually trigger the tour
 export function useOnboardingTour() {
+  const { user } = useAuth();
+  
   const resetTour = () => {
-    localStorage.removeItem("moneya_tour_completed");
+    if (user) {
+      localStorage.removeItem(`moneya_tour_completed_${user.id}`);
+    }
     window.location.reload();
   };
 

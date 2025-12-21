@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeAdminStats } from "@/hooks/useRealtimeAdminStats";
-import { Users, FileText, Receipt, RefreshCw, Clock, Building2 } from "lucide-react";
+import { Users, FileText, Receipt, RefreshCw, Clock, Building2, Star, Crown, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +108,55 @@ export default function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Users by Plan */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-primary" />
+            Utilisateurs par plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                <div className="p-3 rounded-full bg-gray-500/10">
+                  <Users className="h-6 w-6 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Plan Gratuit</p>
+                  <p className="text-3xl font-bold">{stats.usersByPlan.free}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                <div className="p-3 rounded-full bg-amber-500/10">
+                  <Star className="h-6 w-6 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Plan Pro</p>
+                  <p className="text-3xl font-bold">{stats.usersByPlan.pro}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                <div className="p-3 rounded-full bg-purple-500/10">
+                  <Crown className="h-6 w-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Plan Business</p>
+                  <p className="text-3xl font-bold">{stats.usersByPlan.business}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Latest Users */}
       <Card>

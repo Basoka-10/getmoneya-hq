@@ -6,6 +6,11 @@ interface RealtimeStats {
   totalUsers: number;
   totalQuotations: number;
   totalInvoices: number;
+  usersByPlan: {
+    free: number;
+    pro: number;
+    business: number;
+  };
 }
 
 interface LatestUser {
@@ -40,6 +45,11 @@ export function useRealtimeAdminStats() {
     totalUsers: 0,
     totalQuotations: 0,
     totalInvoices: 0,
+    usersByPlan: {
+      free: 0,
+      pro: 0,
+      business: 0,
+    },
   });
   const [latestUsers, setLatestUsers] = useState<LatestUser[]>([]);
   const [latestQuotations, setLatestQuotations] = useState<LatestQuotation[]>([]);
@@ -51,16 +61,31 @@ export function useRealtimeAdminStats() {
     setIsLoading(true);
     try {
       // Fetch counts
-      const [usersCount, quotationsCount, invoicesCount] = await Promise.all([
+      const [usersCount, quotationsCount, invoicesCount, subscriptionsData] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("quotations").select("id", { count: "exact", head: true }),
         supabase.from("invoices").select("id", { count: "exact", head: true }),
+        supabase.from("subscriptions").select("plan, status"),
       ]);
 
+      // Count users by plan
+      const activeSubscriptions = subscriptionsData.data?.filter(s => s.status === 'active') || [];
+      const planCounts = {
+        free: activeSubscriptions.filter(s => s.plan === 'free').length,
+        pro: activeSubscriptions.filter(s => s.plan === 'pro').length,
+        business: activeSubscriptions.filter(s => s.plan === 'business').length,
+      };
+
+      // Users without subscription are on free plan
+      const usersWithSubscription = activeSubscriptions.length;
+      const totalUsersCount = usersCount.count || 0;
+      planCounts.free = totalUsersCount - planCounts.pro - planCounts.business;
+
       setStats({
-        totalUsers: usersCount.count || 0,
+        totalUsers: totalUsersCount,
         totalQuotations: quotationsCount.count || 0,
         totalInvoices: invoicesCount.count || 0,
+        usersByPlan: planCounts,
       });
 
       // Fetch latest users
