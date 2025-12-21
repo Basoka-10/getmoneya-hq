@@ -11,6 +11,8 @@ import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
 import { useGuideMode } from "@/components/onboarding/GuideTooltip";
 import { useOnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useCategories } from "@/hooks/useCategories";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
 import {
   User,
   Building,
@@ -34,6 +36,8 @@ import {
   Check,
   BookOpen,
   Crown,
+  Loader2,
+  Infinity,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -64,6 +68,7 @@ const Settings = () => {
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
   const { guideEnabled, setGuideEnabled } = useGuideMode();
   const { resetTour } = useOnboardingTour();
+  const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
   const {
     expenseCategories,
     incomeCategories,
@@ -161,34 +166,34 @@ const Settings = () => {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const handleCheckout = async (plan: "pro" | "business") => {
-    if (!user?.email) {
+    if (!user?.id || !user?.email) {
       toast.error("Veuillez vous connecter pour souscrire");
       return;
     }
 
     setIsCheckoutLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/payplug-checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke("moneroo-checkout", {
+        body: {
           plan,
+          userId: user.id,
           userEmail: user.email,
           userName: firstName && lastName ? `${firstName} ${lastName}` : undefined,
-        }),
+        },
       });
 
-      const data = await response.json();
+      if (response.error) {
+        throw new Error(response.error.message || "Erreur lors de la création du paiement");
+      }
 
-      if (!response.ok) {
+      const data = response.data;
+
+      if (!data.success) {
         throw new Error(data.error || "Erreur lors de la création du paiement");
       }
 
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
       } else {
         throw new Error("URL de paiement non reçue");
       }
@@ -344,7 +349,9 @@ const Settings = () => {
                         <span className="text-xs text-muted-foreground">Plan</span>
                         <Zap className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="text-sm font-semibold text-primary">Plan Gratuit</p>
+                      <p className="text-sm font-semibold text-primary">
+                        {subscriptionLoading ? "..." : `Plan ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}`}
+                      </p>
                     </div>
                     
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -525,103 +532,188 @@ const Settings = () => {
               </div>
 
               {/* Current Plan */}
-              <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 shadow-card">
+              <div className={cn(
+                "rounded-xl border p-6 shadow-card",
+                isPaid ? "border-primary/50 bg-primary/5" : "border-primary/30 bg-primary/5"
+              )}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20">
-                      <Crown className="h-6 w-6 text-primary" />
+                    <div className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-xl",
+                      isPaid ? "bg-primary/30" : "bg-primary/20"
+                    )}>
+                      <Crown className={cn("h-6 w-6", isPaid ? "text-primary" : "text-primary")} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">Plan Gratuit</h3>
-                      <p className="text-sm text-muted-foreground">Actuellement actif</p>
+                      {subscriptionLoading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-muted-foreground">Chargement...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <h3 className="text-lg font-semibold text-foreground">
+                            Plan {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {isPaid && subscription?.expires_at 
+                              ? `Expire le ${new Date(subscription.expires_at).toLocaleDateString("fr-FR")}`
+                              : "Actuellement actif"
+                            }
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
-                    Actif
+                  <span className={cn(
+                    "px-3 py-1 rounded-full text-sm font-medium",
+                    isPaid ? "bg-green-500/20 text-green-500" : "bg-primary/20 text-primary"
+                  )}>
+                    {isPaid ? "Premium" : "Gratuit"}
                   </span>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
                   <div className="text-center p-3 rounded-lg bg-card border border-border">
-                    <p className="text-2xl font-bold text-foreground">3</p>
+                    {currentPlan === "business" ? (
+                      <Infinity className="h-6 w-6 mx-auto text-primary" />
+                    ) : (
+                      <p className="text-2xl font-bold text-foreground">{currentPlan === "pro" ? "20" : "3"}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">Clients max</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-card border border-border">
-                    <p className="text-2xl font-bold text-foreground">10</p>
+                    {currentPlan === "business" ? (
+                      <Infinity className="h-6 w-6 mx-auto text-primary" />
+                    ) : (
+                      <p className="text-2xl font-bold text-foreground">{currentPlan === "pro" ? "40" : "10"}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">Factures</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-card border border-border">
-                    <p className="text-2xl font-bold text-foreground">10</p>
+                    {currentPlan === "business" ? (
+                      <Infinity className="h-6 w-6 mx-auto text-primary" />
+                    ) : (
+                      <p className="text-2xl font-bold text-foreground">{currentPlan === "pro" ? "40" : "10"}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">Devis</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-card border border-border">
-                    <p className="text-2xl font-bold text-foreground">10</p>
+                    {currentPlan === "free" ? (
+                      <p className="text-2xl font-bold text-foreground">10</p>
+                    ) : (
+                      <Infinity className="h-6 w-6 mx-auto text-primary" />
+                    )}
                     <p className="text-xs text-muted-foreground">Tâches/sem</p>
                   </div>
                 </div>
               </div>
 
-              {/* Upgrade Options */}
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Pro Plan */}
-                <div className="rounded-xl border-2 border-primary bg-card p-6 shadow-card relative">
-                  <span className="absolute -top-3 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                    Populaire
-                  </span>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Crown className="h-6 w-6 text-primary" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">Pro</h3>
-                      <p className="text-2xl font-bold text-primary">7€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+              {/* Show upgrade options only if not on that plan */}
+              {currentPlan !== "business" && (
+                <div className={cn("grid gap-4", currentPlan === "free" ? "md:grid-cols-2" : "md:grid-cols-1")}>
+                  {/* Pro Plan - only show if on free */}
+                  {currentPlan === "free" && (
+                    <div className="rounded-xl border-2 border-primary bg-card p-6 shadow-card relative">
+                      <span className="absolute -top-3 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                        Populaire
+                      </span>
+                      <div className="flex items-center gap-3 mb-4">
+                        <Crown className="h-6 w-6 text-primary" />
+                        <div>
+                          <h3 className="text-lg font-semibold text-foreground">Pro</h3>
+                          <p className="text-2xl font-bold text-primary">7€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                        </div>
+                      </div>
+                      <ul className="space-y-2 text-sm mb-4">
+                        <li className="flex items-center gap-2 text-foreground">
+                          <Check className="h-4 w-4 text-primary" /> 20 clients
+                        </li>
+                        <li className="flex items-center gap-2 text-foreground">
+                          <Check className="h-4 w-4 text-primary" /> 40 factures & devis
+                        </li>
+                        <li className="flex items-center gap-2 text-foreground">
+                          <Check className="h-4 w-4 text-primary" /> Tâches illimitées
+                        </li>
+                        <li className="flex items-center gap-2 text-foreground">
+                          <Check className="h-4 w-4 text-primary" /> Export PDF/CSV
+                        </li>
+                      </ul>
+                      <Button className="w-full" onClick={() => handleCheckout("pro")} disabled={isCheckoutLoading}>
+                        {isCheckoutLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Chargement...
+                          </>
+                        ) : (
+                          "Passer à Pro"
+                        )}
+                      </Button>
                     </div>
-                  </div>
-                  <ul className="space-y-2 text-sm mb-4">
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> 20 clients
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> 40 factures & devis
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Tâches illimitées
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Export PDF/CSV
-                    </li>
-                  </ul>
-                  <Button className="w-full" onClick={() => handleCheckout("pro")} disabled={isCheckoutLoading}>
-                    {isCheckoutLoading ? "Chargement..." : "Passer à Pro"}
-                  </Button>
-                </div>
+                  )}
 
-                {/* Business Plan */}
-                <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Building className="h-6 w-6 text-muted-foreground" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">Business</h3>
-                      <p className="text-2xl font-bold text-foreground">17€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                  {/* Business Plan - show if on free or pro */}
+                  <div className={cn(
+                    "rounded-xl border bg-card p-6 shadow-card",
+                    currentPlan === "pro" ? "border-2 border-primary" : "border-border"
+                  )}>
+                    {currentPlan === "pro" && (
+                      <span className="absolute -top-3 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                        Upgrade
+                      </span>
+                    )}
+                    <div className="flex items-center gap-3 mb-4">
+                      <Building className={cn("h-6 w-6", currentPlan === "pro" ? "text-primary" : "text-muted-foreground")} />
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">Business</h3>
+                        <p className="text-2xl font-bold text-foreground">17€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                      </div>
                     </div>
+                    <ul className="space-y-2 text-sm mb-4">
+                      <li className="flex items-center gap-2 text-foreground">
+                        <Check className="h-4 w-4 text-primary" /> Clients illimités
+                      </li>
+                      <li className="flex items-center gap-2 text-foreground">
+                        <Check className="h-4 w-4 text-primary" /> Factures & devis illimités
+                      </li>
+                      <li className="flex items-center gap-2 text-foreground">
+                        <Check className="h-4 w-4 text-primary" /> Analytics avancés
+                      </li>
+                      <li className="flex items-center gap-2 text-foreground">
+                        <Check className="h-4 w-4 text-primary" /> Priorité performance
+                      </li>
+                    </ul>
+                    <Button 
+                      variant={currentPlan === "pro" ? "default" : "outline"} 
+                      className="w-full" 
+                      onClick={() => handleCheckout("business")} 
+                      disabled={isCheckoutLoading}
+                    >
+                      {isCheckoutLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Chargement...
+                        </>
+                      ) : (
+                        currentPlan === "pro" ? "Passer à Business" : "Choisir Business"
+                      )}
+                    </Button>
                   </div>
-                  <ul className="space-y-2 text-sm mb-4">
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Clients illimités
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Factures & devis illimités
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Analytics avancés
-                    </li>
-                    <li className="flex items-center gap-2 text-foreground">
-                      <Check className="h-4 w-4 text-primary" /> Priorité performance
-                    </li>
-                  </ul>
-                  <Button variant="outline" className="w-full" onClick={() => handleCheckout("business")} disabled={isCheckoutLoading}>
-                    {isCheckoutLoading ? "Chargement..." : "Choisir Business"}
-                  </Button>
                 </div>
-              </div>
+              )}
+
+              {/* Already on Business */}
+              {currentPlan === "business" && (
+                <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-6 text-center">
+                  <Check className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Vous avez le plan Business
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Profitez de toutes les fonctionnalités sans limites !
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

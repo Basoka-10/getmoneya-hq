@@ -21,6 +21,7 @@ import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -108,6 +109,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
                 {/* Admin Routes */}
                 <Route
                   path="/admin"
