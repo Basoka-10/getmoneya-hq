@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useGuideMode } from "@/components/onboarding/GuideTooltip";
 import { useOnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useCategories } from "@/hooks/useCategories";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import {
   User,
@@ -78,6 +79,12 @@ const Settings = () => {
     removeIncomeCategory,
   } = useCategories();
 
+  // Profile hooks with real-time sync
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const { data: profilePrivate, isLoading: profilePrivateLoading } = useUserProfilePrivate();
+  const updateProfile = useUpdateProfile();
+  const updateProfilePrivate = useUpdateProfilePrivate();
+
   // Profile state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -93,6 +100,29 @@ const Settings = () => {
   const [activity, setActivity] = useState("");
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Load profile data when it changes (real-time sync)
+  useEffect(() => {
+    if (profile) {
+      const nameParts = profile.full_name?.split(" ") || [];
+      setFirstName(nameParts[0] || "");
+      setLastName(nameParts.slice(1).join(" ") || "");
+      setProfilePhoto(profile.avatar_url);
+      setCompanyName(profile.company_name || "");
+      setCompanyLogo(profile.company_logo);
+      setSiret(profile.siret || "");
+      setTva(profile.tva_number || "");
+      setActivity(profile.activity_sector || "");
+    }
+  }, [profile]);
+
+  // Load private profile data when it changes (real-time sync)
+  useEffect(() => {
+    if (profilePrivate) {
+      setPhone(profilePrivate.phone || "");
+      setAddress(profilePrivate.address || "");
+    }
+  }, [profilePrivate]);
 
   const addExpenseCategory = () => {
     if (addExpenseCat(newExpenseCategory)) {
@@ -155,12 +185,28 @@ const Settings = () => {
     }
   };
 
-  const handleSaveProfile = () => {
-    toast.success("Profil enregistré");
+  const handleSaveProfile = async () => {
+    const fullName = `${firstName} ${lastName}`.trim();
+    await updateProfile.mutateAsync({
+      full_name: fullName || null,
+      avatar_url: profilePhoto,
+    });
+    await updateProfilePrivate.mutateAsync({
+      phone: phone || null,
+    });
   };
 
-  const handleSaveBusiness = () => {
-    toast.success("Informations entreprise enregistrées");
+  const handleSaveBusiness = async () => {
+    await updateProfile.mutateAsync({
+      company_name: companyName || null,
+      company_logo: companyLogo,
+      siret: siret || null,
+      tva_number: tva || null,
+      activity_sector: activity || null,
+    });
+    await updateProfilePrivate.mutateAsync({
+      address: address || null,
+    });
   };
 
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
