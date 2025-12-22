@@ -28,7 +28,13 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultValidUntil = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currencyConfig } = useCurrency();
+  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
+
+  const convertToCurrent = (amount: number, fromCurrencyCode?: string | null) => {
+    const from = fromCurrencyCode || currency;
+    if (from === currency) return amount;
+    return convertFromEUR(convertToEUR(amount, from));
+  };
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -80,7 +86,13 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         setNotes(quotation.notes || "");
         const parsedItems = parseItems(quotation.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
-        setItems(safeItems.map((it) => ({ ...it, unit_price: Number(it.unit_price) || 0 })));
+        const sourceCurrency = quotation.currency_code || currency;
+        setItems(
+          safeItems.map((it) => ({
+            ...it,
+            unit_price: convertToCurrent(Number(it.unit_price) || 0, sourceCurrency),
+          }))
+        );
       } else {
         setQuotationNumber(`D-${format(new Date(), "yyyy")}-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`);
         setClientId("");
@@ -134,6 +146,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         valid_until: validUntil,
         items: itemsToSave,
         notes: notes || null,
+        currency_code: currency,
       });
     } else {
       await createQuotation.mutateAsync({
@@ -144,6 +157,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         valid_until: validUntil,
         items: itemsToSave,
         notes: notes || null,
+        currency_code: currency,
       });
     }
 
@@ -253,7 +267,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
+                      step={currencyConfig.decimals === 0 ? "1" : "0.01"}
                       placeholder="Prix"
                       value={item.unit_price}
                       onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
