@@ -68,14 +68,16 @@ export function generatePDF(data: DocumentData): jsPDF {
     // Determine decimals based on currency (FCFA, GNF have 0 decimals)
     const noDecimalCurrencies = ["FCFA", "GNF", "XOF", "XAF", "RWF", "UGX", "TZS", "SLL"];
     const decimals = noDecimalCurrencies.includes(currencySymbol) ? 0 : 2;
-    
-    // Use Intl.NumberFormat for consistent formatting across all environments
-    const formatter = new Intl.NumberFormat(currencyLocale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-      useGrouping: true,
-    });
-    const formatted = formatter.format(amount);
+
+    // Important: avoid non-breaking spaces in PDFs (they can render as "/")
+    const formatted = amount
+      .toLocaleString(currencyLocale, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+        useGrouping: false,
+      })
+      .replace(/[\u202F\u00A0]/g, " ");
+
     if (currencySymbol === "$") {
       return `${currencySymbol}${formatted}`;
     }
@@ -217,10 +219,13 @@ export function generatePDF(data: DocumentData): jsPDF {
     head: [["Description", "Quantité", "Prix unitaire", "Total"]],
     body: tableBody,
     margin: { left: margin, right: margin },
+    tableWidth: contentWidth,
     styles: {
       fontSize: 9,
-      cellPadding: 6,
+      cellPadding: 5,
       textColor: textDark,
+      overflow: "linebreak",
+      valign: "middle",
     },
     headStyles: {
       fillColor: primaryColor,
@@ -229,10 +234,10 @@ export function generatePDF(data: DocumentData): jsPDF {
       halign: "left",
     },
     columnStyles: {
-      0: { cellWidth: "auto" },
-      1: { cellWidth: 25, halign: "center" },
-      2: { cellWidth: 35, halign: "right" },
-      3: { cellWidth: 35, halign: "right" },
+      0: { cellWidth: Math.max(70, contentWidth - 22 - 40 - 40) },
+      1: { cellWidth: 22, halign: "center" },
+      2: { cellWidth: 40, halign: "right" },
+      3: { cellWidth: 40, halign: "right" },
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],

@@ -19,7 +19,7 @@ import { useState } from "react";
 import { useInvoices, useDeleteInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
 import { useQuotations, useDeleteQuotation, useUpdateQuotation, Quotation } from "@/hooks/useQuotations";
 import { useClients } from "@/hooks/useClients";
-import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { QuotationModal } from "@/components/modals/QuotationModal";
 import { downloadPDF } from "@/utils/pdfGenerator";
@@ -74,26 +74,31 @@ const Invoices = () => {
   const deleteQuotation = useDeleteQuotation();
   const updateInvoice = useUpdateInvoice();
   const updateQuotation = useUpdateQuotation();
-  const { formatAmount, currencyConfig } = useCurrency();
+  const { currency, currencyConfig, formatAmount, convertToEUR, convertFromEUR } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
   };
 
-  // Format currency using user's current currency preference (single source of truth)
-  const formatCurrency = (amount: number) => {
-    const noDecimalCurrencies = ["XOF", "XAF", "GNF", "RWF", "UGX", "TZS", "SLL"];
-    const decimals = noDecimalCurrencies.includes(currencyConfig.code) ? 0 : currencyConfig.decimals;
-    
-    const formatted = amount.toLocaleString(currencyConfig.locale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-    
+  const toEur = (amount: number, fromCurrencyCode?: string | null) => {
+    const from = fromCurrencyCode || currency;
+    return convertToEUR(amount, from);
+  };
+
+  const formatMoneyFromEur = (amountEur: number) => {
+    const formatted = formatAmount(amountEur);
     if (currencyConfig.code === "USD") {
       return `${currencyConfig.symbol}${formatted}`;
     }
     return `${formatted} ${currencyConfig.symbol}`;
+  };
+
+  const formatCurrency = (amount: number, fromCurrencyCode?: string | null) => {
+    return formatMoneyFromEur(toEur(amount, fromCurrencyCode));
+  };
+
+  const convertNumberToCurrent = (amount: number, fromCurrencyCode?: string | null) => {
+    return convertFromEUR(toEur(amount, fromCurrencyCode));
   };
 
   const getClientById = (clientId: string | null) => {
@@ -116,14 +121,26 @@ const Invoices = () => {
     return [];
   };
 
-  // Download invoice as PDF - always use user's current currency
+  // Download invoice as PDF - convert amounts to user's current currency
   const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
-    const invoiceItems = parseItems(invoice.items).map((item) => ({
+    const sourceCurrency = invoice.currency_code || currency;
+
+    const invoiceItemsRaw = parseItems(invoice.items).map((item) => ({
       ...item,
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
+
+    const convertedItems = invoiceItemsRaw.map((item) => ({
+      ...item,
+      unit_price: convertNumberToCurrent(item.unit_price || 0, sourceCurrency),
+    }));
+
+    const itemsTotal = convertedItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
+    const amountForPdf = convertedItems.length
+      ? itemsTotal
+      : convertNumberToCurrent(Number(invoice.amount) || 0, sourceCurrency);
 
     const success = downloadPDF({
       type: "invoice",
@@ -133,13 +150,13 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: invoice.issue_date,
       dueDate: invoice.due_date,
-      items: invoiceItems,
+      items: convertedItems,
       notes: invoice.notes || undefined,
-      amount: Number(invoice.amount) || 0,
+      amount: amountForPdf,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
-    
+
     if (success) {
       toast.success("Facture téléchargée");
     } else {
@@ -147,14 +164,26 @@ const Invoices = () => {
     }
   };
 
-  // Download quotation as PDF - always use user's current currency
+  // Download quotation as PDF - convert amounts to user's current currency
   const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
-    const quotationItems = parseItems(quotation.items).map((item) => ({
+    const sourceCurrency = quotation.currency_code || currency;
+
+    const quotationItemsRaw = parseItems(quotation.items).map((item) => ({
       ...item,
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
+
+    const convertedItems = quotationItemsRaw.map((item) => ({
+      ...item,
+      unit_price: convertNumberToCurrent(item.unit_price || 0, sourceCurrency),
+    }));
+
+    const itemsTotal = convertedItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
+    const amountForPdf = convertedItems.length
+      ? itemsTotal
+      : convertNumberToCurrent(Number(quotation.amount) || 0, sourceCurrency);
 
     const success = downloadPDF({
       type: "quotation",
@@ -164,13 +193,13 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: quotation.issue_date,
       validUntil: quotation.valid_until,
-      items: quotationItems,
+      items: convertedItems,
       notes: quotation.notes || undefined,
-      amount: Number(quotation.amount) || 0,
+      amount: amountForPdf,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
-    
+
     if (success) {
       toast.success("Devis téléchargé");
     } else {
@@ -195,6 +224,19 @@ const Invoices = () => {
   const pendingQuotations = quotations.filter((q) => q.status === "sent");
   const unpaidInvoices = invoices.filter((i) => i.status === "sent" || i.status === "overdue");
   const paidInvoices = invoices.filter((i) => i.status === "paid");
+
+  const pendingQuotationsTotalEur = pendingQuotations.reduce(
+    (acc, q) => acc + toEur(Number(q.amount) || 0, q.currency_code),
+    0
+  );
+  const unpaidInvoicesTotalEur = unpaidInvoices.reduce(
+    (acc, i) => acc + toEur(Number(i.amount) || 0, i.currency_code),
+    0
+  );
+  const paidInvoicesTotalEur = paidInvoices.reduce(
+    (acc, i) => acc + toEur(Number(i.amount) || 0, i.currency_code),
+    0
+  );
 
   const handleOpenNewInvoice = () => {
     setEditingInvoice(null);
@@ -241,7 +283,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
+              {formatMoneyFromEur(pendingQuotationsTotalEur)} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -250,7 +292,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
+              {formatMoneyFromEur(unpaidInvoicesTotalEur)} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -259,7 +301,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
+              {formatMoneyFromEur(paidInvoicesTotalEur)} encaissés
             </p>
           </div>
         </div>
@@ -332,7 +374,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(invoice.amount))}
+                              {formatCurrency(Number(invoice.amount), invoice.currency_code)}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
@@ -436,7 +478,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(quotation.amount))}
+                              {formatCurrency(Number(quotation.amount), quotation.currency_code)}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
