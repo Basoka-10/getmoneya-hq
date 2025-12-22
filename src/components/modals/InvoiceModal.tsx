@@ -33,7 +33,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultDueDate = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
+  const { currencyConfig } = useCurrency();
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -58,10 +58,6 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-  // Convert from selected currency to EUR (for storage)
-  const toBaseEur = (amountValue: number) => convertToEUR(amountValue, currency);
-  // Convert from EUR to selected currency (for display)
-  const fromBaseEur = (amountValue: number) => convertFromEUR(amountValue);
 
   // Parse items safely - handles both JSON string and array
   const parseItems = (items: unknown): LineItem[] => {
@@ -89,12 +85,12 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         setNotes(invoice.notes || "");
         const parsedItems = parseItems(invoice.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
-        setItems(safeItems.map((it) => ({ ...it, unit_price: fromBaseEur(Number(it.unit_price) || 0) })));
+        setItems(safeItems.map((it) => ({ ...it, unit_price: Number(it.unit_price) || 0 })));
       } else if (prefillData) {
         setInvoiceNumber(`F-${format(new Date(), "yyyy")}-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`);
         setClientId(prefillData.clientId || "");
         const prefillItems = prefillData.items || [{ description: "", quantity: 1, unit_price: 0 }];
-        setItems(prefillItems.map((it) => ({ ...it, unit_price: fromBaseEur(Number(it.unit_price) || 0) })));
+        setItems(prefillItems.map((it) => ({ ...it, unit_price: Number(it.unit_price) || 0 })));
         setNotes(prefillData.notes || "");
         setIssueDate(today);
         setDueDate(defaultDueDate);
@@ -107,7 +103,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         setDueDate(defaultDueDate);
       }
     }
-  }, [open, invoice, prefillData, today, defaultDueDate, currency]);
+  }, [open, invoice, prefillData, today, defaultDueDate]);
 
   const totalAmountSelected = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
@@ -128,37 +124,35 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const itemsEur = items
+    const itemsToSave = items
       .filter((item) => item.description)
       .map((item) => ({
         ...item,
-        unit_price: toBaseEur(Number(item.unit_price) || 0),
+        quantity: Number(item.quantity) || 0,
+        unit_price: Number(item.unit_price) || 0,
       }));
 
-    const totalAmountEur = itemsEur.reduce(
-      (sum, item) => sum + Number(item.quantity || 0) * Number(item.unit_price || 0),
-      0
-    );
+    const totalAmount = itemsToSave.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
     if (isEditing && invoice) {
       await updateInvoice.mutateAsync({
         id: invoice.id,
         invoice_number: invoiceNumber,
         client_id: clientId || null,
-        amount: totalAmountEur,
+        amount: totalAmount,
         issue_date: issueDate,
         due_date: dueDate,
-        items: itemsEur,
+        items: itemsToSave,
         notes: notes || null,
       });
     } else {
       await createInvoice.mutateAsync({
         invoice_number: invoiceNumber,
         client_id: clientId || null,
-        amount: totalAmountEur,
+        amount: totalAmount,
         issue_date: issueDate,
         due_date: dueDate,
-        items: itemsEur,
+        items: itemsToSave,
         notes: notes || null,
       });
     }
