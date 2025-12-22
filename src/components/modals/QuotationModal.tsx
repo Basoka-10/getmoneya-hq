@@ -111,15 +111,16 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const itemsEur = items
+    const itemsToSave = items
       .filter((item) => item.description)
       .map((item) => ({
         ...item,
-        unit_price: toBaseEur(Number(item.unit_price) || 0),
+        quantity: Number(item.quantity) || 0,
+        unit_price: Number(item.unit_price) || 0,
       }));
 
-    const totalAmountEur = itemsEur.reduce(
-      (sum, item) => sum + Number(item.quantity || 0) * Number(item.unit_price || 0),
+    const totalAmount = itemsToSave.reduce(
+      (sum, item) => sum + item.quantity * item.unit_price,
       0
     );
 

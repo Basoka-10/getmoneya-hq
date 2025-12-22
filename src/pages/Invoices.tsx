@@ -111,9 +111,7 @@ const Invoices = () => {
   // Download invoice as PDF
   const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
-    const items = parseItems(invoice.items);
-    
-    const items = parseItems(invoice.items).map((item) => ({
+    const invoiceItems = parseItems(invoice.items).map((item) => ({
       ...item,
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
@@ -127,7 +125,7 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: invoice.issue_date,
       dueDate: invoice.due_date,
-      items,
+      items: invoiceItems,
       notes: invoice.notes || undefined,
       amount: Number(invoice.amount) || 0,
       currencySymbol: currencyConfig.symbol,
@@ -144,9 +142,7 @@ const Invoices = () => {
   // Download quotation as PDF
   const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
-    const items = parseItems(quotation.items);
-    
-    const items = parseItems(quotation.items).map((item) => ({
+    const quotationItems = parseItems(quotation.items).map((item) => ({
       ...item,
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
@@ -160,7 +156,7 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: quotation.issue_date,
       validUntil: quotation.valid_until,
-      items,
+      items: quotationItems,
       notes: quotation.notes || undefined,
       amount: Number(quotation.amount) || 0,
       currencySymbol: currencyConfig.symbol,
