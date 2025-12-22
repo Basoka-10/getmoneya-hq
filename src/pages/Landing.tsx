@@ -333,17 +333,70 @@ const Landing = () => {
       <section id="tarifs">
         <PricingSection onSelectPlan={() => navigate("/auth")} variant="landing" />
       </section>
+      {/* RGPD / Privacy Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Shield className="h-8 w-8 text-primary" />
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Votre confidentialité est essentielle
+            </h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Vos données sont stockées en toute sécurité et ne sont jamais utilisées sans votre consentement.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Votre confidentialité est essentielle
-          </h2>
-          <p className="text-white/60 max-w-2xl mx-auto">
-            Vos données sont stockées en toute sécurité et ne sont jamais utilisées sans votre consentement.
-          </p>
+
+          {/* RGPD Cards */}
+          <div className="bg-gradient-to-r from-[#0d2818] via-[#0d1f1a] to-[#0d1f1a] border border-primary/20 rounded-3xl p-8 md:p-12">
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Card 1 - Confidentialité Garantie */}
+              <div className="text-center">
+                <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <div className="text-2xl">🇪🇺</div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Confidentialité Garantie</h3>
+                <p className="text-white/60 text-sm">
+                  Vos données ne sont jamais utilisées pour entraîner nos modèles IA ou partagées avec des tiers.
+                </p>
+              </div>
+
+              {/* Card 2 - Conformité Mondiale */}
+              <div className="text-center">
+                <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Globe className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Conformité Mondiale</h3>
+                <p className="text-white/60 text-sm">
+                  Respecte les réglementations RGPD, CCPA et autres lois sur la protection des données.
+                </p>
+              </div>
+
+              {/* Card 3 - Confiance Totale */}
+              <div className="text-center">
+                <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Confiance Totale</h3>
+                <p className="text-white/60 text-sm">
+                  Transparence complète avec notre politique de confidentialité accessible.
+                </p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center mt-10">
+              <p className="text-white/60 mb-4">
+                Découvrez notre engagement envers la sécurité et la conformité.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/politique-confidentialite")}
+                className="border-white/20 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white rounded-xl px-6"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Consulter la politique de confidentialité
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -474,9 +527,15 @@ const Landing = () => {
               <span className="text-lg font-bold">MONEYA</span>
             </div>
             
-            <p className="text-white/40 text-sm">
-              Outil tout-en-un pour entrepreneurs — gérez votre activité simplement.
-            </p>
+            <div className="flex items-center gap-6 text-sm text-white/40">
+              <span>Outil tout-en-un pour entrepreneurs</span>
+              <a 
+                href="/politique-confidentialite" 
+                className="hover:text-white transition-colors underline"
+              >
+                Politique de confidentialité
+              </a>
+            </div>
             
             <p className="text-white/40 text-sm">
               © 2024 MONEYA. Tous droits réservés.
