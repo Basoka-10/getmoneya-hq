@@ -12,6 +12,7 @@ import {
   Loader2,
   ArrowRightLeft,
   Check,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -58,6 +59,8 @@ interface LineItem {
 const Invoices = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<(Invoice & { clients: { name: string } | null }) | null>(null);
+  const [editingQuotation, setEditingQuotation] = useState<(Quotation & { clients: { name: string } | null }) | null>(null);
   const [invoicePrefillData, setInvoicePrefillData] = useState<{
     clientId?: string;
     items?: LineItem[];
@@ -196,8 +199,25 @@ const Invoices = () => {
   const paidInvoices = invoices.filter((i) => i.status === "paid");
 
   const handleOpenNewInvoice = () => {
+    setEditingInvoice(null);
     setInvoicePrefillData(undefined);
     setShowInvoiceModal(true);
+  };
+
+  const handleEditInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
+    setEditingInvoice(invoice);
+    setInvoicePrefillData(undefined);
+    setShowInvoiceModal(true);
+  };
+
+  const handleOpenNewQuotation = () => {
+    setEditingQuotation(null);
+    setShowQuotationModal(true);
+  };
+
+  const handleEditQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
+    setEditingQuotation(quotation);
+    setShowQuotationModal(true);
   };
 
   return (
@@ -328,6 +348,10 @@ const Invoices = () => {
                                     <Download className="mr-2 h-4 w-4" />
                                     Télécharger PDF
                                   </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Modifier
+                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   {invoice.status === "draft" && (
                                     <DropdownMenuItem onClick={() => updateInvoice.mutate({ id: invoice.id, status: "sent" })}>
@@ -362,7 +386,7 @@ const Invoices = () => {
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-4">
             <div className="flex justify-end">
-              <Button size="sm" onClick={() => setShowQuotationModal(true)}>
+              <Button size="sm" onClick={handleOpenNewQuotation}>
                 <Plus className="mr-2 h-4 w-4" />
                 Nouveau devis
               </Button>
@@ -377,7 +401,7 @@ const Invoices = () => {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <FilePlus className="h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">Aucun devis créé</p>
-                    <Button variant="outline" className="mt-4" onClick={() => setShowQuotationModal(true)}>
+                    <Button variant="outline" className="mt-4" onClick={handleOpenNewQuotation}>
                       <Plus className="mr-2 h-4 w-4" />
                       Créer votre premier devis
                     </Button>
@@ -428,6 +452,10 @@ const Invoices = () => {
                                     <Download className="mr-2 h-4 w-4" />
                                     Télécharger PDF
                                   </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditQuotation(quotation)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Modifier
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>
                                     <ArrowRightLeft className="mr-2 h-4 w-4" />
                                     Convertir en facture
@@ -467,10 +495,21 @@ const Invoices = () => {
 
       <InvoiceModal 
         open={showInvoiceModal} 
-        onOpenChange={setShowInvoiceModal}
+        onOpenChange={(open) => {
+          setShowInvoiceModal(open);
+          if (!open) setEditingInvoice(null);
+        }}
+        invoice={editingInvoice}
         prefillData={invoicePrefillData}
       />
-      <QuotationModal open={showQuotationModal} onOpenChange={setShowQuotationModal} />
+      <QuotationModal 
+        open={showQuotationModal} 
+        onOpenChange={(open) => {
+          setShowQuotationModal(open);
+          if (!open) setEditingQuotation(null);
+        }}
+        quotation={editingQuotation}
+      />
     </AppLayout>
   );
 };
