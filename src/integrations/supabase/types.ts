@@ -181,6 +181,7 @@ export type Database = {
           amount: number
           client_id: string | null
           created_at: string
+          currency_code: string | null
           due_date: string
           id: string
           invoice_number: string
@@ -195,6 +196,7 @@ export type Database = {
           amount: number
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           due_date: string
           id?: string
           invoice_number: string
@@ -209,6 +211,7 @@ export type Database = {
           amount?: number
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           due_date?: string
           id?: string
           invoice_number?: string
@@ -342,6 +345,7 @@ export type Database = {
           amount: number
           client_id: string | null
           created_at: string
+          currency_code: string | null
           id: string
           issue_date: string
           items: Json
@@ -356,6 +360,7 @@ export type Database = {
           amount: number
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           id?: string
           issue_date?: string
           items?: Json
@@ -370,6 +375,7 @@ export type Database = {
           amount?: number
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           id?: string
           issue_date?: string
           items?: Json

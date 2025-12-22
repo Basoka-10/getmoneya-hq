@@ -19,6 +19,7 @@ export type Invoice = {
   due_date: string;
   items: InvoiceItem[];
   notes: string | null;
+  currency_code: string;
   created_at: string;
   updated_at: string;
 };
@@ -32,6 +33,7 @@ export type CreateInvoiceInput = {
   due_date: string;
   items?: InvoiceItem[];
   notes?: string | null;
+  currency_code?: string;
 };
 
 export function useInvoices() {
@@ -57,11 +59,23 @@ export function useCreateInvoice() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
+      // Get user's currency preference if not provided
+      let currencyCode = input.currency_code;
+      if (!currencyCode) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("currency_preference")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        currencyCode = profile?.currency_preference || "EUR";
+      }
+
       const { data, error } = await supabase
         .from("invoices")
         .insert({
           ...input,
           user_id: user.id,
+          currency_code: currencyCode,
           items: JSON.stringify(input.items || []),
         })
         .select()

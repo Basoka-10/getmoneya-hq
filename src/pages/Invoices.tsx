@@ -19,7 +19,7 @@ import { useState } from "react";
 import { useInvoices, useDeleteInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
 import { useQuotations, useDeleteQuotation, useUpdateQuotation, Quotation } from "@/hooks/useQuotations";
 import { useClients } from "@/hooks/useClients";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCurrency, ALL_CURRENCY_CONFIGS } from "@/contexts/CurrencyContext";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { QuotationModal } from "@/components/modals/QuotationModal";
 import { downloadPDF } from "@/utils/pdfGenerator";
@@ -108,7 +108,7 @@ const Invoices = () => {
     return [];
   };
 
-  // Download invoice as PDF
+  // Download invoice as PDF - use the invoice's stored currency
   const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
     const invoiceItems = parseItems(invoice.items).map((item) => ({
@@ -116,6 +116,10 @@ const Invoices = () => {
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
+
+    // Get the currency config for the invoice's stored currency
+    const invoiceCurrencyCode = (invoice as { currency_code?: string }).currency_code || "EUR";
+    const invoiceCurrencyConfig = ALL_CURRENCY_CONFIGS[invoiceCurrencyCode] || currencyConfig;
 
     const success = downloadPDF({
       type: "invoice",
@@ -128,8 +132,8 @@ const Invoices = () => {
       items: invoiceItems,
       notes: invoice.notes || undefined,
       amount: Number(invoice.amount) || 0,
-      currencySymbol: currencyConfig.symbol,
-      currencyLocale: currencyConfig.locale,
+      currencySymbol: invoiceCurrencyConfig.symbol,
+      currencyLocale: invoiceCurrencyConfig.locale,
     });
     
     if (success) {
@@ -139,7 +143,7 @@ const Invoices = () => {
     }
   };
 
-  // Download quotation as PDF
+  // Download quotation as PDF - use the quotation's stored currency
   const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
     const quotationItems = parseItems(quotation.items).map((item) => ({
@@ -147,6 +151,10 @@ const Invoices = () => {
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
+
+    // Get the currency config for the quotation's stored currency
+    const quotationCurrencyCode = (quotation as { currency_code?: string }).currency_code || "EUR";
+    const quotationCurrencyConfig = ALL_CURRENCY_CONFIGS[quotationCurrencyCode] || currencyConfig;
 
     const success = downloadPDF({
       type: "quotation",
@@ -159,8 +167,8 @@ const Invoices = () => {
       items: quotationItems,
       notes: quotation.notes || undefined,
       amount: Number(quotation.amount) || 0,
-      currencySymbol: currencyConfig.symbol,
-      currencyLocale: currencyConfig.locale,
+      currencySymbol: quotationCurrencyConfig.symbol,
+      currencyLocale: quotationCurrencyConfig.locale,
     });
     
     if (success) {
