@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateInvoice, Invoice } from "@/hooks/useInvoices";
+import { useCreateInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { QuickClientModal } from "./QuickClientModal";
@@ -44,7 +44,10 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const [showQuickClient, setShowQuickClient] = useState(false);
 
   const createInvoice = useCreateInvoice();
+  const updateInvoice = useUpdateInvoice();
   const { data: clients } = useClients();
+
+  const isEditing = !!invoice;
 
   const formatSelectedMoney = (amountValue: number) => {
     const formatted = amountValue.toLocaleString(currencyConfig.locale, {
@@ -121,15 +124,28 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
       0
     );
 
-    await createInvoice.mutateAsync({
-      invoice_number: invoiceNumber,
-      client_id: clientId || null,
-      amount: totalAmountEur,
-      issue_date: issueDate,
-      due_date: dueDate,
-      items: itemsEur,
-      notes: notes || null,
-    });
+    if (isEditing && invoice) {
+      await updateInvoice.mutateAsync({
+        id: invoice.id,
+        invoice_number: invoiceNumber,
+        client_id: clientId || null,
+        amount: totalAmountEur,
+        issue_date: issueDate,
+        due_date: dueDate,
+        items: itemsEur,
+        notes: notes || null,
+      });
+    } else {
+      await createInvoice.mutateAsync({
+        invoice_number: invoiceNumber,
+        client_id: clientId || null,
+        amount: totalAmountEur,
+        issue_date: issueDate,
+        due_date: dueDate,
+        items: itemsEur,
+        notes: notes || null,
+      });
+    }
 
     onOpenChange(false);
   };
@@ -144,7 +160,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         <DialogContent className="sm:max-w-[600px] bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">
-              {prefillData ? "Créer la facture depuis le devis" : "Nouvelle facture"}
+              {isEditing ? "Modifier la facture" : prefillData ? "Créer la facture depuis le devis" : "Nouvelle facture"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -277,8 +293,10 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createInvoice.isPending}>
-                {createInvoice.isPending ? "Création..." : "Créer la facture"}
+              <Button type="submit" disabled={createInvoice.isPending || updateInvoice.isPending}>
+                {createInvoice.isPending || updateInvoice.isPending 
+                  ? (isEditing ? "Mise à jour..." : "Création...") 
+                  : (isEditing ? "Enregistrer" : "Créer la facture")}
               </Button>
             </div>
           </form>

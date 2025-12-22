@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateQuotation, Quotation } from "@/hooks/useQuotations";
+import { useCreateQuotation, useUpdateQuotation, Quotation } from "@/hooks/useQuotations";
 import { useClients } from "@/hooks/useClients";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { QuickClientModal } from "./QuickClientModal";
@@ -39,7 +39,10 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const [showQuickClient, setShowQuickClient] = useState(false);
 
   const createQuotation = useCreateQuotation();
+  const updateQuotation = useUpdateQuotation();
   const { data: clients } = useClients();
+
+  const isEditing = !!quotation;
 
   const formatSelectedMoney = (amountValue: number) => {
     const formatted = amountValue.toLocaleString(currencyConfig.locale, {
@@ -108,15 +111,28 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
       0
     );
 
-    await createQuotation.mutateAsync({
-      quotation_number: quotationNumber,
-      client_id: clientId || null,
-      amount: totalAmountEur,
-      issue_date: issueDate,
-      valid_until: validUntil,
-      items: itemsEur,
-      notes: notes || null,
-    });
+    if (isEditing && quotation) {
+      await updateQuotation.mutateAsync({
+        id: quotation.id,
+        quotation_number: quotationNumber,
+        client_id: clientId || null,
+        amount: totalAmountEur,
+        issue_date: issueDate,
+        valid_until: validUntil,
+        items: itemsEur,
+        notes: notes || null,
+      });
+    } else {
+      await createQuotation.mutateAsync({
+        quotation_number: quotationNumber,
+        client_id: clientId || null,
+        amount: totalAmountEur,
+        issue_date: issueDate,
+        valid_until: validUntil,
+        items: itemsEur,
+        notes: notes || null,
+      });
+    }
 
     onOpenChange(false);
   };
@@ -130,7 +146,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px] bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Nouveau devis</DialogTitle>
+            <DialogTitle className="text-foreground">{isEditing ? "Modifier le devis" : "Nouveau devis"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -262,8 +278,10 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createQuotation.isPending}>
-                {createQuotation.isPending ? "Création..." : "Créer le devis"}
+              <Button type="submit" disabled={createQuotation.isPending || updateQuotation.isPending}>
+                {createQuotation.isPending || updateQuotation.isPending 
+                  ? (isEditing ? "Mise à jour..." : "Création...") 
+                  : (isEditing ? "Enregistrer" : "Créer le devis")}
               </Button>
             </div>
           </form>
