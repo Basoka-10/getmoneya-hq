@@ -85,20 +85,20 @@ export function useUpdateInvoice() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<Invoice> & { id: string }) => {
-      const updateData = {
-        ...input,
-        items: input.items ? JSON.stringify(input.items) : undefined,
-      };
+      // Clean undefined values to avoid sending them
+      const cleanInput: Record<string, unknown> = {};
+      Object.entries(input).forEach(([key, value]) => {
+        if (value !== undefined) {
+          cleanInput[key] = key === "items" ? JSON.stringify(value) : value;
+        }
+      });
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("invoices")
-        .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
+        .update(cleanInput)
+        .eq("id", id);
 
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });

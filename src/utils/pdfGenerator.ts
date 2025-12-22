@@ -65,10 +65,14 @@ export function generatePDF(data: DocumentData): jsPDF {
   const currencyLocale = data.currencyLocale || "fr-FR";
 
   const formatCurrency = (amount: number) => {
+    // Determine decimals based on currency (FCFA, GNF have 0 decimals)
+    const noDecimalCurrencies = ["FCFA", "GNF", "XOF", "XAF", "RWF", "UGX", "TZS", "SLL"];
+    const decimals = noDecimalCurrencies.includes(currencySymbol) ? 0 : 2;
+    
     // Use Intl.NumberFormat for consistent formatting across all environments
     const formatter = new Intl.NumberFormat(currencyLocale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
       useGrouping: true,
     });
     const formatted = formatter.format(amount);
