@@ -71,7 +71,7 @@ const Invoices = () => {
   const deleteQuotation = useDeleteQuotation();
   const updateInvoice = useUpdateInvoice();
   const updateQuotation = useUpdateQuotation();
-  const { formatAmount, currencyConfig } = useCurrency();
+  const { formatAmount, currencyConfig, convertFromEUR } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
@@ -110,6 +110,15 @@ const Invoices = () => {
     const client = getClientById(invoice.client_id);
     const items = parseItems(invoice.items);
     
+    // Convert items from EUR to user's currency
+    const convertedItems = items.map(item => ({
+      ...item,
+      unit_price: convertFromEUR(Number(item.unit_price) || 0),
+    }));
+    
+    // Convert total from EUR to user's currency
+    const convertedAmount = convertFromEUR(Number(invoice.amount));
+    
     const success = downloadPDF({
       type: "invoice",
       number: invoice.invoice_number,
@@ -118,9 +127,9 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: invoice.issue_date,
       dueDate: invoice.due_date,
-      items: items,
+      items: convertedItems,
       notes: invoice.notes || undefined,
-      amount: Number(invoice.amount),
+      amount: convertedAmount,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
@@ -137,6 +146,15 @@ const Invoices = () => {
     const client = getClientById(quotation.client_id);
     const items = parseItems(quotation.items);
     
+    // Convert items from EUR to user's currency
+    const convertedItems = items.map(item => ({
+      ...item,
+      unit_price: convertFromEUR(Number(item.unit_price) || 0),
+    }));
+    
+    // Convert total from EUR to user's currency
+    const convertedAmount = convertFromEUR(Number(quotation.amount));
+    
     const success = downloadPDF({
       type: "quotation",
       number: quotation.quotation_number,
@@ -145,9 +163,9 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: quotation.issue_date,
       validUntil: quotation.valid_until,
-      items: items,
+      items: convertedItems,
       notes: quotation.notes || undefined,
-      amount: Number(quotation.amount),
+      amount: convertedAmount,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
