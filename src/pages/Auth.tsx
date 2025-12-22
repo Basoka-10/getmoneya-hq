@@ -11,6 +11,8 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
@@ -40,7 +42,10 @@ const Auth = () => {
           navigate("/dashboard");
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email, password, { 
+          first_name: firstName.trim() || undefined, 
+          last_name: lastName.trim() || undefined 
+        });
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("Cet email est déjà utilisé");
@@ -68,6 +73,31 @@ const Auth = () => {
 
         <div className="rounded-xl border border-border bg-card p-8 shadow-card">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Prénom</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Jean"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Dupont"
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
