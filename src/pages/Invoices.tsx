@@ -80,26 +80,16 @@ const Invoices = () => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
   };
 
-  // Format currency using the document's stored currency_code
-  const formatDocumentCurrency = (amount: number, documentCurrencyCode?: string) => {
-    const docCurrencyConfig = ALL_CURRENCY_CONFIGS[documentCurrencyCode || "EUR"] || currencyConfig;
+  // Format currency using user's current currency preference (single source of truth)
+  const formatCurrency = (amount: number) => {
     const noDecimalCurrencies = ["XOF", "XAF", "GNF", "RWF", "UGX", "TZS", "SLL"];
-    const decimals = noDecimalCurrencies.includes(docCurrencyConfig.code) ? 0 : 2;
+    const decimals = noDecimalCurrencies.includes(currencyConfig.code) ? 0 : currencyConfig.decimals;
     
-    const formatted = amount.toLocaleString(docCurrencyConfig.locale, {
+    const formatted = amount.toLocaleString(currencyConfig.locale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     });
     
-    if (docCurrencyConfig.code === "USD") {
-      return `${docCurrencyConfig.symbol}${formatted}`;
-    }
-    return `${formatted} ${docCurrencyConfig.symbol}`;
-  };
-  
-  // For summary cards, use user's current currency (these mix multiple documents)
-  const formatSummaryCurrency = (amount: number) => {
-    const formatted = formatAmount(amount);
     if (currencyConfig.code === "USD") {
       return `${currencyConfig.symbol}${formatted}`;
     }
@@ -126,7 +116,7 @@ const Invoices = () => {
     return [];
   };
 
-  // Download invoice as PDF - use the invoice's stored currency
+  // Download invoice as PDF - always use user's current currency
   const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
     const invoiceItems = parseItems(invoice.items).map((item) => ({
@@ -134,10 +124,6 @@ const Invoices = () => {
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
-
-    // Get the currency config for the invoice's stored currency
-    const invoiceCurrencyCode = (invoice as { currency_code?: string }).currency_code || "EUR";
-    const invoiceCurrencyConfig = ALL_CURRENCY_CONFIGS[invoiceCurrencyCode] || currencyConfig;
 
     const success = downloadPDF({
       type: "invoice",
@@ -150,8 +136,8 @@ const Invoices = () => {
       items: invoiceItems,
       notes: invoice.notes || undefined,
       amount: Number(invoice.amount) || 0,
-      currencySymbol: invoiceCurrencyConfig.symbol,
-      currencyLocale: invoiceCurrencyConfig.locale,
+      currencySymbol: currencyConfig.symbol,
+      currencyLocale: currencyConfig.locale,
     });
     
     if (success) {
@@ -161,7 +147,7 @@ const Invoices = () => {
     }
   };
 
-  // Download quotation as PDF - use the quotation's stored currency
+  // Download quotation as PDF - always use user's current currency
   const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
     const quotationItems = parseItems(quotation.items).map((item) => ({
@@ -169,10 +155,6 @@ const Invoices = () => {
       quantity: Number(item.quantity) || 0,
       unit_price: Number(item.unit_price) || 0,
     }));
-
-    // Get the currency config for the quotation's stored currency
-    const quotationCurrencyCode = (quotation as { currency_code?: string }).currency_code || "EUR";
-    const quotationCurrencyConfig = ALL_CURRENCY_CONFIGS[quotationCurrencyCode] || currencyConfig;
 
     const success = downloadPDF({
       type: "quotation",
@@ -185,8 +167,8 @@ const Invoices = () => {
       items: quotationItems,
       notes: quotation.notes || undefined,
       amount: Number(quotation.amount) || 0,
-      currencySymbol: quotationCurrencyConfig.symbol,
-      currencyLocale: quotationCurrencyConfig.locale,
+      currencySymbol: currencyConfig.symbol,
+      currencyLocale: currencyConfig.locale,
     });
     
     if (success) {
@@ -259,7 +241,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatSummaryCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
+              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -268,7 +250,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatSummaryCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
+              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -277,7 +259,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatSummaryCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
+              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
             </p>
           </div>
         </div>
@@ -350,7 +332,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatDocumentCurrency(Number(invoice.amount), (invoice as unknown as { currency_code?: string }).currency_code)}
+                              {formatCurrency(Number(invoice.amount))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
@@ -454,7 +436,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatDocumentCurrency(Number(quotation.amount), (quotation as unknown as { currency_code?: string }).currency_code)}
+                              {formatCurrency(Number(quotation.amount))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
