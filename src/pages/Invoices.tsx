@@ -243,7 +243,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
+              {formatCurrency(convertFromEUR(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0)))} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -252,7 +252,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
+              {formatCurrency(convertFromEUR(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0)))} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -261,7 +261,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
+              {formatCurrency(convertFromEUR(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0)))} encaissés
             </p>
           </div>
         </div>
@@ -334,7 +334,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(invoice.amount))}
+                              {formatCurrency(convertFromEUR(Number(invoice.amount)))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
@@ -438,7 +438,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(quotation.amount))}
+                              {formatCurrency(convertFromEUR(Number(quotation.amount)))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>

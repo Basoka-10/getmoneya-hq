@@ -58,6 +58,21 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   // Convert from EUR to selected currency (for display)
   const fromBaseEur = (amountValue: number) => convertFromEUR(amountValue);
 
+  // Parse items safely - handles both JSON string and array
+  const parseItems = (items: unknown): LineItem[] => {
+    if (!items) return [];
+    if (typeof items === "string") {
+      try {
+        const parsed = JSON.parse(items);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(items)) return items as LineItem[];
+    return [];
+  };
+
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
@@ -67,7 +82,8 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         setIssueDate(quotation.issue_date);
         setValidUntil(quotation.valid_until);
         setNotes(quotation.notes || "");
-        const safeItems = quotation.items?.length ? quotation.items : [{ description: "", quantity: 1, unit_price: 0 }];
+        const parsedItems = parseItems(quotation.items);
+        const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
         setItems(safeItems.map((it) => ({ ...it, unit_price: fromBaseEur(Number(it.unit_price) || 0) })));
       } else {
         setQuotationNumber(`D-${format(new Date(), "yyyy")}-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`);
