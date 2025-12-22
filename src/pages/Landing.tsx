@@ -185,17 +185,17 @@ const Landing = () => {
       <section className="pt-36 pb-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
             <span className="text-white/80 text-sm">Le seul outil au monde où tout y est</span>
           </div>
           
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in" style={{ animationDelay: "0.2s" }}>
             Pilotez votre{" "}
             <span className="relative inline-block">
               business
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="absolute -bottom-2 left-0 w-full animate-scale-in" style={{ animationDelay: "0.6s" }} viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 8C50 2 150 2 198 8" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round"/>
               </svg>
             </span>
@@ -203,16 +203,16 @@ const Landing = () => {
             depuis un seul outil
           </h1>
           
-          <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
             Clients, finances, tâches, devis et factures au même endroit — commencez gratuitement.
           </p>
           
           {/* CTA Button */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 rounded-full group"
+              className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 rounded-full group hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-primary/25"
             >
               <ArrowRight className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               Commencer gratuitement
@@ -247,9 +247,10 @@ const Landing = () => {
             {benefits.map((benefit, index) => (
               <div 
                 key={index}
-                className="p-6 bg-[#111] border border-white/10 rounded-2xl hover:border-primary/50 transition-all duration-300 group"
+                className="p-6 bg-[#111] border border-white/10 rounded-2xl hover:border-primary/50 transition-all duration-300 group hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/5 animate-fade-in"
+                style={{ animationDelay: `${0.1 * index}s` }}
               >
-                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <benefit.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
@@ -275,8 +276,12 @@ const Landing = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="text-7xl font-bold text-primary/20 mb-4">{step.number}</div>
+              <div 
+                key={index} 
+                className="relative animate-fade-in group"
+                style={{ animationDelay: `${0.15 * index}s` }}
+              >
+                <div className="text-7xl font-bold text-primary/20 mb-4 group-hover:text-primary/40 transition-colors duration-300">{step.number}</div>
                 <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
                 <p className="text-white/60">{step.description}</p>
               </div>
@@ -298,9 +303,10 @@ const Landing = () => {
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="flex items-start gap-4 p-6 bg-[#111] border border-white/10 rounded-2xl hover:border-primary/30 transition-colors"
+                className="flex items-start gap-4 p-6 bg-[#111] border border-white/10 rounded-2xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-in"
+                style={{ animationDelay: `${0.08 * index}s` }}
               >
-                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:rotate-6 transition-transform">
                   <feature.icon className="h-6 w-6 text-primary" />
                 </div>
                 <div>
@@ -423,11 +429,12 @@ const Landing = () => {
             {testimonials.map((testimonial, index) => (
               <div 
                 key={index}
-                className="p-6 bg-[#111] border border-white/10 rounded-2xl"
+                className="p-6 bg-[#111] border border-white/10 rounded-2xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] animate-fade-in"
+                style={{ animationDelay: `${0.15 * index}s` }}
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-500 text-yellow-500" />
+                    <Star key={i} className="h-5 w-5 fill-yellow-500 text-yellow-500 animate-scale-in" style={{ animationDelay: `${0.1 * i}s` }} />
                   ))}
                 </div>
                 <p className="text-white/80 mb-4 italic">"{testimonial.quote}"</p>

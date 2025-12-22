@@ -13,9 +13,6 @@ export interface UserProfile {
   company_logo: string | null;
   is_suspended: boolean;
   currency_preference: string | null;
-  siret: string | null;
-  tva_number: string | null;
-  activity_sector: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,9 +23,6 @@ export interface UserProfilePrivate {
   email: string | null;
   phone: string | null;
   address: string | null;
-  siret: string | null;
-  tva_number: string | null;
-  activity_sector: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -14,6 +14,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 import {
   User,
   Building,
@@ -110,9 +111,6 @@ const Settings = () => {
       setProfilePhoto(profile.avatar_url);
       setCompanyName(profile.company_name || "");
       setCompanyLogo(profile.company_logo);
-      setSiret(profile.siret || "");
-      setTva(profile.tva_number || "");
-      setActivity(profile.activity_sector || "");
     }
   }, [profile]);
 
@@ -200,9 +198,6 @@ const Settings = () => {
     await updateProfile.mutateAsync({
       company_name: companyName || null,
       company_logo: companyLogo,
-      siret: siret || null,
-      tva_number: tva || null,
-      activity_sector: activity || null,
     });
     await updateProfilePrivate.mutateAsync({
       address: address || null,
@@ -1152,10 +1147,9 @@ const Settings = () => {
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   La suppression de votre compte est irréversible et entraînera la perte de toutes vos données.
+                  Cette action supprimera également vos données de la base de données administrateur.
                 </p>
-                <Button variant="destructive">
-                  Supprimer mon compte
-                </Button>
+                <DeleteAccountModal />
               </div>
             </div>
           )}
