@@ -80,7 +80,25 @@ const Invoices = () => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
   };
 
-  const formatCurrency = (amount: number) => {
+  // Format currency using the document's stored currency_code
+  const formatDocumentCurrency = (amount: number, documentCurrencyCode?: string) => {
+    const docCurrencyConfig = ALL_CURRENCY_CONFIGS[documentCurrencyCode || "EUR"] || currencyConfig;
+    const noDecimalCurrencies = ["XOF", "XAF", "GNF", "RWF", "UGX", "TZS", "SLL"];
+    const decimals = noDecimalCurrencies.includes(docCurrencyConfig.code) ? 0 : 2;
+    
+    const formatted = amount.toLocaleString(docCurrencyConfig.locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+    
+    if (docCurrencyConfig.code === "USD") {
+      return `${docCurrencyConfig.symbol}${formatted}`;
+    }
+    return `${formatted} ${docCurrencyConfig.symbol}`;
+  };
+  
+  // For summary cards, use user's current currency (these mix multiple documents)
+  const formatSummaryCurrency = (amount: number) => {
     const formatted = formatAmount(amount);
     if (currencyConfig.code === "USD") {
       return `${currencyConfig.symbol}${formatted}`;
@@ -241,7 +259,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
+              {formatSummaryCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -250,7 +268,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
+              {formatSummaryCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -259,7 +277,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
+              {formatSummaryCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
             </p>
           </div>
         </div>
@@ -332,7 +350,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(invoice.amount))}
+                              {formatDocumentCurrency(Number(invoice.amount), (invoice as unknown as { currency_code?: string }).currency_code)}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
@@ -436,7 +454,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(Number(quotation.amount))}
+                              {formatDocumentCurrency(Number(quotation.amount), (quotation as unknown as { currency_code?: string }).currency_code)}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
