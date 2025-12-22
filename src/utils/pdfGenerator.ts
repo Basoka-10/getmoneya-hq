@@ -65,7 +65,13 @@ export function generatePDF(data: DocumentData): jsPDF {
   const currencyLocale = data.currencyLocale || "fr-FR";
 
   const formatCurrency = (amount: number) => {
-    const formatted = amount.toLocaleString(currencyLocale);
+    // Use Intl.NumberFormat for consistent formatting across all environments
+    const formatter = new Intl.NumberFormat(currencyLocale, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+      useGrouping: true,
+    });
+    const formatted = formatter.format(amount);
     if (currencySymbol === "$") {
       return `${currencySymbol}${formatted}`;
     }
