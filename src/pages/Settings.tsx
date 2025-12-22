@@ -13,6 +13,8 @@ import { useOnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useCategories } from "@/hooks/useCategories";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
+import { useClients } from "@/hooks/useClients";
+import { useInvoices } from "@/hooks/useInvoices";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 import {
@@ -71,6 +73,8 @@ const Settings = () => {
   const { guideEnabled, setGuideEnabled } = useGuideMode();
   const { resetTour } = useOnboardingTour();
   const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
+  const { data: clients = [] } = useClients();
+  const { data: invoices = [] } = useInvoices();
   const {
     expenseCategories,
     incomeCategories,
@@ -400,7 +404,7 @@ const Settings = () => {
                         <span className="text-xs text-muted-foreground">Clients</span>
                         <Users className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="text-lg font-semibold text-foreground">0</p>
+                      <p className="text-lg font-semibold text-foreground">{clients.length}</p>
                     </div>
                     
                     <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -408,7 +412,7 @@ const Settings = () => {
                         <span className="text-xs text-muted-foreground">Factures</span>
                         <CreditCard className="h-4 w-4 text-primary" />
                       </div>
-                      <p className="text-lg font-semibold text-foreground">0</p>
+                      <p className="text-lg font-semibold text-foreground">{invoices.length}</p>
                     </div>
                   </div>
                 </div>
