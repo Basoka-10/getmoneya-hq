@@ -28,7 +28,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultValidUntil = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
+  const { currencyConfig } = useCurrency();
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -53,10 +53,6 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-  // Convert from selected currency to EUR (for storage)
-  const toBaseEur = (amountValue: number) => convertToEUR(amountValue, currency);
-  // Convert from EUR to selected currency (for display)
-  const fromBaseEur = (amountValue: number) => convertFromEUR(amountValue);
 
   // Parse items safely - handles both JSON string and array
   const parseItems = (items: unknown): LineItem[] => {
@@ -84,7 +80,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         setNotes(quotation.notes || "");
         const parsedItems = parseItems(quotation.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
-        setItems(safeItems.map((it) => ({ ...it, unit_price: fromBaseEur(Number(it.unit_price) || 0) })));
+        setItems(safeItems.map((it) => ({ ...it, unit_price: Number(it.unit_price) || 0 })));
       } else {
         setQuotationNumber(`D-${format(new Date(), "yyyy")}-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`);
         setClientId("");
@@ -94,7 +90,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         setValidUntil(defaultValidUntil);
       }
     }
-  }, [open, quotation, today, defaultValidUntil, currency]);
+  }, [open, quotation, today, defaultValidUntil]);
 
   const totalAmountSelected = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
@@ -132,20 +128,20 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         id: quotation.id,
         quotation_number: quotationNumber,
         client_id: clientId || null,
-        amount: totalAmountEur,
+        amount: totalAmount,
         issue_date: issueDate,
         valid_until: validUntil,
-        items: itemsEur,
+        items: itemsToSave,
         notes: notes || null,
       });
     } else {
       await createQuotation.mutateAsync({
         quotation_number: quotationNumber,
         client_id: clientId || null,
-        amount: totalAmountEur,
+        amount: totalAmount,
         issue_date: issueDate,
         valid_until: validUntil,
-        items: itemsEur,
+        items: itemsToSave,
         notes: notes || null,
       });
     }

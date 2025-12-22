@@ -74,7 +74,7 @@ const Invoices = () => {
   const deleteQuotation = useDeleteQuotation();
   const updateInvoice = useUpdateInvoice();
   const updateQuotation = useUpdateQuotation();
-  const { formatAmount, currencyConfig, convertFromEUR } = useCurrency();
+  const { formatAmount, currencyConfig } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
@@ -113,15 +113,12 @@ const Invoices = () => {
     const client = getClientById(invoice.client_id);
     const items = parseItems(invoice.items);
     
-    // Convert items from EUR to user's currency
-    const convertedItems = items.map(item => ({
+    const items = parseItems(invoice.items).map((item) => ({
       ...item,
-      unit_price: convertFromEUR(Number(item.unit_price) || 0),
+      quantity: Number(item.quantity) || 0,
+      unit_price: Number(item.unit_price) || 0,
     }));
-    
-    // Convert total from EUR to user's currency
-    const convertedAmount = convertFromEUR(Number(invoice.amount));
-    
+
     const success = downloadPDF({
       type: "invoice",
       number: invoice.invoice_number,
@@ -130,9 +127,9 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: invoice.issue_date,
       dueDate: invoice.due_date,
-      items: convertedItems,
+      items,
       notes: invoice.notes || undefined,
-      amount: convertedAmount,
+      amount: Number(invoice.amount) || 0,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
@@ -149,15 +146,12 @@ const Invoices = () => {
     const client = getClientById(quotation.client_id);
     const items = parseItems(quotation.items);
     
-    // Convert items from EUR to user's currency
-    const convertedItems = items.map(item => ({
+    const items = parseItems(quotation.items).map((item) => ({
       ...item,
-      unit_price: convertFromEUR(Number(item.unit_price) || 0),
+      quantity: Number(item.quantity) || 0,
+      unit_price: Number(item.unit_price) || 0,
     }));
-    
-    // Convert total from EUR to user's currency
-    const convertedAmount = convertFromEUR(Number(quotation.amount));
-    
+
     const success = downloadPDF({
       type: "quotation",
       number: quotation.quotation_number,
@@ -166,9 +160,9 @@ const Invoices = () => {
       clientCompany: client?.company || undefined,
       issueDate: quotation.issue_date,
       validUntil: quotation.valid_until,
-      items: convertedItems,
+      items,
       notes: quotation.notes || undefined,
-      amount: convertedAmount,
+      amount: Number(quotation.amount) || 0,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
     });
@@ -243,7 +237,7 @@ const Invoices = () => {
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(convertFromEUR(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0)))} en cours
+              {formatCurrency(pendingQuotations.reduce((acc, q) => acc + Number(q.amount), 0))} en cours
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -252,7 +246,7 @@ const Invoices = () => {
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(convertFromEUR(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0)))} à encaisser
+              {formatCurrency(unpaidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} à encaisser
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -261,7 +255,7 @@ const Invoices = () => {
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(convertFromEUR(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0)))} encaissés
+              {formatCurrency(paidInvoices.reduce((acc, i) => acc + Number(i.amount), 0))} encaissés
             </p>
           </div>
         </div>
@@ -334,7 +328,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(convertFromEUR(Number(invoice.amount)))}
+                              {formatCurrency(Number(invoice.amount))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
@@ -438,7 +432,7 @@ const Invoices = () => {
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">
-                              {formatCurrency(convertFromEUR(Number(quotation.amount)))}
+                              {formatCurrency(Number(quotation.amount))}
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right">
                               <DropdownMenu>
