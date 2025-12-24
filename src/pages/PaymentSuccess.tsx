@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle, Loader2, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,62 +12,151 @@ const PaymentSuccess = () => {
   const { user } = useAuth();
   const [isActivating, setIsActivating] = useState(true);
   const [activated, setActivated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const plan = searchParams.get("plan");
-  const userId = searchParams.get("user_id");
+  const paymentId = searchParams.get("paymentId");
 
-  useEffect(() => {
-    const activateSubscription = async () => {
-      if (!user?.id || !plan) {
+  const activateSubscription = async () => {
+    const currentUserId = user?.id;
+    
+    if (!currentUserId || !plan) {
+      console.log("Missing user or plan:", { currentUserId, plan });
+      setIsActivating(false);
+      setError("Informations de paiement manquantes");
+      return;
+    }
+
+    setIsActivating(true);
+    setError(null);
+
+    try {
+      console.log("Starting subscription activation...", { currentUserId, plan, paymentId });
+
+      // First check if subscription is already active
+      const { data: existingSub } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .single();
+
+      if (existingSub?.status === "active" && existingSub?.plan === plan) {
+        console.log("Subscription already active:", existingSub);
+        setActivated(true);
+        toast.success(`Votre abonnement ${plan.charAt(0).toUpperCase() + plan.slice(1)} est activé !`);
         setIsActivating(false);
         return;
       }
 
-      try {
-        // Wait a bit for webhook to process
-        await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call verify-payment edge function to check with Moneroo and activate
+      if (paymentId) {
+        console.log("Calling verify-payment function...");
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-payment", {
+          body: {
+            payment_id: paymentId,
+            user_id: currentUserId,
+            plan: plan,
+          },
+        });
 
-        // Check if subscription was activated by webhook
-        const { data: subscription } = await supabase
-          .from("subscriptions")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
+        console.log("Verify payment response:", verifyData, verifyError);
 
-        if (subscription?.status === "active" && subscription?.plan === plan) {
+        if (verifyData?.success && verifyData?.status === "active") {
+          setActivated(true);
+          toast.success(`Votre abonnement ${plan.charAt(0).toUpperCase() + plan.slice(1)} est activé !`);
+          setIsActivating(false);
+          return;
+        }
+
+        if (verifyError) {
+          console.error("Verify payment error:", verifyError);
+        }
+      }
+
+      // Fallback: Create subscription directly if payment exists in our DB
+      console.log("Checking payment in database...");
+      const { data: payment } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .eq("plan", plan)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      console.log("Payment from DB:", payment);
+
+      // If we have a payment record (regardless of status for now), activate subscription
+      // This handles cases where webhook updated payment but not subscription
+      if (payment) {
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+        const subscriptionData = {
+          user_id: currentUserId,
+          plan: plan,
+          status: "active",
+          payment_id: payment.moneroo_payment_id,
+          amount: payment.amount,
+          currency: payment.currency,
+          started_at: new Date().toISOString(),
+          expires_at: expiresAt.toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        let result;
+        if (existingSub) {
+          result = await supabase
+            .from("subscriptions")
+            .update(subscriptionData)
+            .eq("user_id", currentUserId);
+        } else {
+          result = await supabase
+            .from("subscriptions")
+            .insert(subscriptionData);
+        }
+
+        if (!result.error) {
+          console.log("Subscription created/updated successfully");
           setActivated(true);
           toast.success(`Votre abonnement ${plan.charAt(0).toUpperCase() + plan.slice(1)} est activé !`);
         } else {
-          // If webhook hasn't processed yet, create subscription manually
-          const expiresAt = new Date();
-          expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-          const { error } = await supabase
-            .from("subscriptions")
-            .upsert({
-              user_id: user.id,
-              plan: plan,
-              status: "active",
-              started_at: new Date().toISOString(),
-              expires_at: expiresAt.toISOString(),
-            }, {
-              onConflict: "user_id"
-            });
-
-          if (!error) {
-            setActivated(true);
-            toast.success(`Votre abonnement ${plan.charAt(0).toUpperCase() + plan.slice(1)} est activé !`);
-          }
+          console.error("Error creating subscription:", result.error);
+          setError("Erreur lors de l'activation. Veuillez réessayer.");
         }
-      } catch (error) {
-        console.error("Error activating subscription:", error);
-      } finally {
-        setIsActivating(false);
+      } else {
+        // No payment found, wait and retry
+        if (retryCount < 3) {
+          console.log(`No payment found, retry ${retryCount + 1}/3...`);
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 3000);
+          return;
+        }
+        setError("Paiement en cours de traitement. Veuillez patienter quelques instants.");
       }
-    };
+    } catch (err) {
+      console.error("Error activating subscription:", err);
+      setError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setIsActivating(false);
+    }
+  };
 
+  useEffect(() => {
+    // Wait a bit for webhook to process before checking
+    const timer = setTimeout(() => {
+      activateSubscription();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [user?.id, plan, retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount(0);
     activateSubscription();
-  }, [user?.id, plan]);
+  };
 
   const planName = plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : "Pro";
   const planPrice = plan === "business" ? "17€" : "7€";
@@ -84,8 +173,39 @@ const PaymentSuccess = () => {
               Activation en cours...
             </h1>
             <p className="text-muted-foreground">
-              Nous activons votre abonnement {planName}
+              Nous vérifions votre paiement et activons votre abonnement {planName}
             </p>
+            {retryCount > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Tentative {retryCount}/3...
+              </p>
+            )}
+          </>
+        ) : error && !activated ? (
+          <>
+            <div className="w-20 h-20 mx-auto rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <AlertCircle className="w-12 h-12 text-yellow-500" />
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-foreground">
+                Vérification en cours
+              </h1>
+              <p className="text-muted-foreground">
+                {error}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleRetry} variant="outline" className="w-full">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Réessayer
+              </Button>
+              <Button onClick={() => navigate("/dashboard")} className="w-full">
+                Aller au tableau de bord
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </>
         ) : (
           <>

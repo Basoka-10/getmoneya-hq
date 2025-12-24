@@ -65,7 +65,7 @@ serve(async (req) => {
           first_name: userName?.split(" ")[0] || "Client",
           last_name: userName?.split(" ").slice(1).join(" ") || "FreelanceBox",
         },
-        return_url: `${origin}/payment-success?plan=${plan}&user_id=${userId}`,
+        return_url: `${origin}/payment-success?plan=${plan}&user_id=${userId}&paymentId=${monerooData.data?.id || "pending"}`,
         metadata: {
           plan: plan,
           user_id: userId,
