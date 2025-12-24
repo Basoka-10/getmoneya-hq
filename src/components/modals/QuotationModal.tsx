@@ -28,13 +28,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultValidUntil = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
-
-  const convertToCurrent = (amount: number, fromCurrencyCode?: string | null) => {
-    const from = fromCurrencyCode || currency;
-    if (from === currency) return amount;
-    return convertFromEUR(convertToEUR(amount, from));
-  };
+  const { currency, currencyConfig } = useCurrency();
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -59,7 +53,6 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-
   // Parse items safely - handles both JSON string and array
   const parseItems = (items: unknown): LineItem[] => {
     if (!items) return [];
@@ -75,7 +68,7 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
     return [];
   };
 
-  // Reset form when modal opens
+  // Reset form when modal opens - documents are already in active currency
   useEffect(() => {
     if (open) {
       if (quotation) {
@@ -86,11 +79,10 @@ export function QuotationModal({ open, onOpenChange, quotation }: QuotationModal
         setNotes(quotation.notes || "");
         const parsedItems = parseItems(quotation.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
-        const sourceCurrency = quotation.currency_code || currency;
         setItems(
           safeItems.map((it) => ({
             ...it,
-            unit_price: convertToCurrent(Number(it.unit_price) || 0, sourceCurrency),
+            unit_price: Number(it.unit_price) || 0,
           }))
         );
       } else {

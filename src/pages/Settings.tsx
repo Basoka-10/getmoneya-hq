@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 import {
@@ -67,6 +68,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [newExpenseCategory, setNewExpenseCategory] = useState("");
   const [newIncomeCategory, setNewIncomeCategory] = useState("");
+  const [isSyncingCurrency, setIsSyncingCurrency] = useState(false);
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
@@ -75,6 +77,7 @@ const Settings = () => {
   const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
   const { data: clients = [] } = useClients();
   const { data: invoices = [] } = useInvoices();
+  const { syncDocumentsCurrency } = useDocumentCurrencySync();
   const {
     expenseCategories,
     incomeCategories,
@@ -83,6 +86,44 @@ const Settings = () => {
     addIncomeCategory: addIncomeCat,
     removeIncomeCategory,
   } = useCategories();
+
+  // Get exchange rates from localStorage for sync
+  const getExchangeRates = useCallback((): Record<string, number> => {
+    try {
+      const cached = localStorage.getItem("moneya_exchange_rates");
+      if (cached) {
+        const { rates } = JSON.parse(cached);
+        return rates || { EUR: 1 };
+      }
+    } catch {
+      // ignore
+    }
+    return { EUR: 1 };
+  }, []);
+
+  // Handle currency change with document sync
+  const handleCurrencyChange = useCallback(async (newCurrency: string) => {
+    if (newCurrency === currency || isSyncingCurrency) return;
+    
+    setIsSyncingCurrency(true);
+    const oldCurrency = currency;
+    
+    try {
+      // First update the currency preference
+      await setCurrency(newCurrency);
+      
+      // Then sync all documents to the new currency
+      const rates = getExchangeRates();
+      await syncDocumentsCurrency(oldCurrency, newCurrency, rates);
+      
+      toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`);
+    } catch (error) {
+      console.error("Error changing currency:", error);
+      toast.error("Erreur lors du changement de devise");
+    } finally {
+      setIsSyncingCurrency(false);
+    }
+  }, [currency, isSyncingCurrency, setCurrency, syncDocumentsCurrency, getExchangeRates]);
 
   // Profile hooks with real-time sync
   const { data: profile, isLoading: profileLoading } = useUserProfile();
@@ -871,10 +912,8 @@ const Settings = () => {
                     <Label htmlFor="currency">Sélectionner une devise</Label>
                     <Select
                       value={currency}
-                      onValueChange={async (value: string) => {
-                        await setCurrency(value);
-                        toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[value]?.name || value}`);
-                      }}
+                      onValueChange={handleCurrencyChange}
+                      disabled={isSyncingCurrency}
                     >
                       <SelectTrigger className="w-full max-w-xs">
                         <SelectValue placeholder="Sélectionner une devise" />
@@ -930,15 +969,14 @@ const Settings = () => {
                     return (
                       <button
                         key={code}
-                        onClick={async () => {
-                          await setCurrency(code);
-                          toast.success(`Devise changée en ${curr.name}`);
-                        }}
+                        onClick={() => handleCurrencyChange(code)}
+                        disabled={isSyncingCurrency}
                         className={cn(
                           "flex items-center justify-between p-4 rounded-lg border transition-all",
                           currency === code
                             ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50 hover:bg-muted/30"
+                            : "border-border hover:border-primary/50 hover:bg-muted/30",
+                          isSyncingCurrency && "opacity-50 cursor-not-allowed"
                         )}
                       >
                         <div className="flex items-center gap-3">

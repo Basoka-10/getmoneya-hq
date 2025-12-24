@@ -64,19 +64,27 @@ export function generatePDF(data: DocumentData): jsPDF {
   const currencySymbol = data.currencySymbol || "€";
   const currencyLocale = data.currencyLocale || "fr-FR";
 
+  // PDF-safe number formatter - avoids all problematic characters
+  const formatNumber = (num: number, decimals: number): string => {
+    // Round to specified decimals
+    const rounded = Number(num.toFixed(decimals));
+    // Split into integer and decimal parts
+    const [intPart, decPart] = rounded.toString().split(".");
+    // Add thousand separators using simple space (no non-breaking space)
+    const withSeparators = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    // Return with decimal part if needed
+    if (decimals > 0 && decPart) {
+      return `${withSeparators}.${decPart.padEnd(decimals, "0")}`;
+    }
+    return withSeparators;
+  };
+
   const formatCurrency = (amount: number) => {
     // Determine decimals based on currency (FCFA, GNF have 0 decimals)
     const noDecimalCurrencies = ["FCFA", "GNF", "XOF", "XAF", "RWF", "UGX", "TZS", "SLL"];
     const decimals = noDecimalCurrencies.includes(currencySymbol) ? 0 : 2;
 
-    // Important: avoid non-breaking spaces in PDFs (they can render as "/")
-    const formatted = amount
-      .toLocaleString(currencyLocale, {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-        useGrouping: false,
-      })
-      .replace(/[\u202F\u00A0]/g, " ");
+    const formatted = formatNumber(amount, decimals);
 
     if (currencySymbol === "$") {
       return `${currencySymbol}${formatted}`;

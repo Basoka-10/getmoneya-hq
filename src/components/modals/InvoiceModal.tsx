@@ -33,13 +33,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultDueDate = format(addDays(new Date(), 30), "yyyy-MM-dd");
 
-  const { currency, currencyConfig, convertToEUR, convertFromEUR } = useCurrency();
-
-  const convertToCurrent = (amount: number, fromCurrencyCode?: string | null) => {
-    const from = fromCurrencyCode || currency;
-    if (from === currency) return amount;
-    return convertFromEUR(convertToEUR(amount, from));
-  };
+  const { currency, currencyConfig } = useCurrency();
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [clientId, setClientId] = useState("");
@@ -64,7 +58,6 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-
   // Parse items safely - handles both JSON string and array
   const parseItems = (items: unknown): LineItem[] => {
     if (!items) return [];
@@ -80,7 +73,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
     return [];
   };
 
-  // Reset form when modal opens
+  // Reset form when modal opens - documents are already in active currency
   useEffect(() => {
     if (open) {
       if (invoice) {
@@ -91,11 +84,10 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         setNotes(invoice.notes || "");
         const parsedItems = parseItems(invoice.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
-        const sourceCurrency = invoice.currency_code || currency;
         setItems(
           safeItems.map((it) => ({
             ...it,
-            unit_price: convertToCurrent(Number(it.unit_price) || 0, sourceCurrency),
+            unit_price: Number(it.unit_price) || 0,
           }))
         );
       } else if (prefillData) {
