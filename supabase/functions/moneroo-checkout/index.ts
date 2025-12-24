@@ -13,6 +13,14 @@ interface CheckoutRequest {
   userName?: string;
 }
 
+interface MonerooResponse {
+  data?: {
+    id: string;
+    checkout_url: string;
+  };
+  message?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -65,7 +73,7 @@ serve(async (req) => {
           first_name: userName?.split(" ")[0] || "Client",
           last_name: userName?.split(" ").slice(1).join(" ") || "FreelanceBox",
         },
-        return_url: `${origin}/payment-success?plan=${plan}&user_id=${userId}&paymentId=${monerooData.data?.id || "pending"}`,
+        return_url: `${origin}/payment-success?plan=${plan}&user_id=${userId}`,
         metadata: {
           plan: plan,
           user_id: userId,
@@ -74,13 +82,15 @@ serve(async (req) => {
       }),
     });
 
-    const monerooData = await monerooResponse.json();
+    const monerooData: MonerooResponse = await monerooResponse.json();
     console.log("Moneroo response:", JSON.stringify(monerooData));
 
     if (!monerooResponse.ok) {
       console.error("Moneroo error:", monerooData);
       throw new Error(monerooData.message || "Erreur Moneroo");
     }
+
+    const paymentId = monerooData.data?.id || "unknown";
 
     // Store payment record in database
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -89,7 +99,7 @@ serve(async (req) => {
 
     const { error: insertError } = await supabase.from("payments").insert({
       user_id: userId,
-      moneroo_payment_id: monerooData.data?.id || "unknown",
+      moneroo_payment_id: paymentId,
       amount: amount,
       currency: "EUR",
       status: "pending",
@@ -101,11 +111,16 @@ serve(async (req) => {
       console.error("Error storing payment:", insertError);
     }
 
+    // Return checkout URL with paymentId included
+    const checkoutUrl = monerooData.data?.checkout_url;
+    const returnUrlWithPaymentId = `${origin}/payment-success?plan=${plan}&user_id=${userId}&paymentId=${paymentId}`;
+
     return new Response(
       JSON.stringify({
         success: true,
-        checkout_url: monerooData.data?.checkout_url,
-        payment_id: monerooData.data?.id,
+        checkout_url: checkoutUrl,
+        payment_id: paymentId,
+        return_url: returnUrlWithPaymentId,
       }),
       {
         status: 200,
