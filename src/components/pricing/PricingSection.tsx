@@ -101,7 +101,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Pro",
-      price: "10€",
+      price: "9,99€",
       originalPrice: "84€",
       period: "/an",
       description: "Pour les freelances actifs",
@@ -122,7 +122,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Business",
-      price: "30€",
+      price: "29,99€",
       originalPrice: "204€",
       period: "/an",
       description: "Pour les agences & gros volumes",
@@ -181,7 +181,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
           )}>
             <Flame className="h-4 w-4 text-orange-500" />
             <span className={cn("text-sm font-medium", isLanding ? "text-orange-400" : "text-orange-600")}>
-              🎉 Promo fin d'année — Jusqu'à 70% de réduction !
+              🎉 Promo fin d'année — Jusqu'à 85% de réduction !
             </span>
             <Clock className="h-4 w-4 text-orange-500" />
           </div>
@@ -214,7 +214,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
               >
                 Annuel
                 {billingPeriod !== "yearly" && (
-                  <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5">-70%</Badge>
+                  <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5">-85%</Badge>
                 )}
               </button>
             </div>
@@ -262,7 +262,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
                 {plan.promo && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 animate-pulse">
                     <Flame className="h-3 w-3 mr-1" />
-                    Promo -70%
+                    Promo -85%
                   </Badge>
                 )}
               </div>
