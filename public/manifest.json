@@ -2,8 +2,11 @@
   "name": "MONEYA - Centre de contrôle entrepreneur",
   "short_name": "MONEYA",
   "description": "Un seul outil pour gérer votre argent, votre activité, vos clients et vos factures.",
-  "start_url": "/auth",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#0a0a0a",
   "theme_color": "#22c55e",
   "orientation": "portrait-primary",
@@ -28,5 +31,6 @@
     }
   ],
   "categories": ["business", "finance", "productivity"],
-  "lang": "fr-FR"
+  "lang": "fr-FR",
+  "prefer_related_applications": false
 }
