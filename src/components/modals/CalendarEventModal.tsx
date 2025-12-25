@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useCreateCalendarEvent, CalendarEvent, useUpdateCalendarEvent } from "@/hooks/useCalendarEvents";
 import { useClients } from "@/hooks/useClients";
 import { format } from "date-fns";
+import { X } from "lucide-react";
 
 interface CalendarEventModalProps {
   open: boolean;
@@ -69,13 +70,24 @@ export function CalendarEventModal({ open, onOpenChange, event, defaultDate }: C
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-card border-border p-0">
+        {/* Header sticky avec bouton X visible */}
+        <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+          <DialogTitle className="text-foreground text-lg font-semibold">
             {isEditing ? "Modifier l'événement" : "Nouvel événement"}
           </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="h-8 w-8 rounded-full"
+          >
+            <X className="h-5 w-5" />
+            <span className="sr-only">Fermer</span>
+          </Button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4 p-4">
           <div className="space-y-2">
             <Label htmlFor="title">Titre *</Label>
             <Input
@@ -200,12 +212,13 @@ export function CalendarEventModal({ open, onOpenChange, event, defaultDate }: C
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
+          {/* Boutons sticky en bas sur mobile */}
+          <div className="flex justify-end gap-3 pt-4 pb-2 sticky bottom-0 bg-card">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
             <Button type="submit" disabled={createEvent.isPending || updateEvent.isPending}>
-              {(createEvent.isPending || updateEvent.isPending) ? "Enregistrement..." : isEditing ? "Modifier" : "Créer"}
+              {(createEvent.isPending || updateEvent.isPending) ? "..." : isEditing ? "Modifier" : "Créer"}
             </Button>
           </div>
         </form>
