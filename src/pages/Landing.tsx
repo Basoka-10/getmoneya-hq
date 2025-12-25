@@ -347,8 +347,8 @@ const Landing = () => {
           </div>
 
           {/* RGPD Cards */}
-          <div className="bg-gradient-to-r from-[#0d2818] via-[#0d1f1a] to-[#0d1f1a] border border-primary/20 rounded-3xl p-8 md:p-12">
-            <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-gradient-to-r from-[#0d2818] via-[#0d1f1a] to-[#0d1f1a] border border-primary/20 rounded-3xl p-6 sm:p-8 md:p-12">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {/* Card 1 - Confidentialité Garantie */}
               <div className="text-center">
                 <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
