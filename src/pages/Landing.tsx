@@ -26,6 +26,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PricingSection } from "@/components/pricing/PricingSection";
+import { AppPreviewSection } from "@/components/landing/AppPreviewSection";
 import logo from "@/assets/logo.png";
 import avatarTestimonial1 from '@/assets/avatar-testimonial-1.png';
 import avatarTestimonial2 from '@/assets/avatar-testimonial-2.png';
@@ -236,6 +237,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* App Preview Section */}
+      <AppPreviewSection />
 
       {/* Benefits Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
