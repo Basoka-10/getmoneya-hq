@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { PromoPopup } from "@/components/landing/PromoPopup";
 import { 
   LayoutDashboard,
   Users, 
@@ -139,7 +140,7 @@ const Landing = () => {
   const faqs = [
     {
       question: "Quelle est la différence entre les offres ?",
-      answer: "L'offre Gratuite permet de découvrir MONEYA avec 3 clients et 10 factures/devis. Pro (7€/mois) débloque 20 clients, 40 factures et exports. Business (17€/mois) offre tout en illimité."
+      answer: "L'offre Gratuite permet de découvrir MONEYA avec 3 clients et 10 factures/devis. Pro (2,99€/mois ou 10€/an en promo) débloque 20 clients, 40 factures et exports. Business (6,99€/mois ou 30€/an en promo) offre tout en illimité. Promotion valable jusqu'au 5 janvier 2026 !"
     },
     {
       question: "Puis-je importer mes données ?",
@@ -157,6 +158,9 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      {/* Promo Popup */}
+      <PromoPopup onAccept={() => navigate("/auth")} />
+
       {/* Navigation */}
       <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
         <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3">
