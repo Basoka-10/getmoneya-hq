@@ -102,7 +102,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     {
       name: "Pro",
       price: "10€",
-      originalPrice: "35,88€",
+      originalPrice: "84€",
       period: "/an",
       description: "Pour les freelances actifs",
       icon: <Crown className="h-6 w-6" />,
@@ -123,7 +123,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     {
       name: "Business",
       price: "30€",
-      originalPrice: "83,88€",
+      originalPrice: "204€",
       period: "/an",
       description: "Pour les agences & gros volumes",
       icon: <Building2 className="h-6 w-6" />,
