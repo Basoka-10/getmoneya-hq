@@ -164,14 +164,14 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       </nav>
 
       {/* Bottom Section */}
-      <div className="mt-auto border-t border-sidebar-border p-3 space-y-3">
-        {/* Theme Toggle */}
+      <div className="border-t border-sidebar-border p-3 space-y-3 flex-shrink-0">
+        {/* Theme Toggle - Always show both buttons */}
         <div className={cn(
           "flex items-center rounded-xl bg-muted/50 p-1",
-          collapsed ? "justify-center" : "justify-between"
+          collapsed ? "flex-col gap-1" : "justify-between"
         )}>
           <button 
-            onClick={() => theme === "light" && toggleTheme()}
+            onClick={() => theme !== "dark" && toggleTheme()}
             className={cn(
               "flex items-center justify-center rounded-lg p-2 transition-all duration-200",
               theme === "dark" 
@@ -182,20 +182,18 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           >
             <Moon className="h-4 w-4" />
           </button>
-          {!collapsed && (
-            <button 
-              onClick={() => theme === "dark" && toggleTheme()}
-              className={cn(
-                "flex items-center justify-center rounded-lg p-2 transition-all duration-200",
-                theme === "light" 
-                  ? "bg-card text-primary shadow-sm" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              title="Mode clair"
-            >
-              <Sun className="h-4 w-4" />
-            </button>
-          )}
+          <button 
+            onClick={() => theme !== "light" && toggleTheme()}
+            className={cn(
+              "flex items-center justify-center rounded-lg p-2 transition-all duration-200",
+              theme === "light" 
+                ? "bg-card text-primary shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            title="Mode clair"
+          >
+            <Sun className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Plan Info Card */}

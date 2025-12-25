@@ -6,10 +6,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { useCreateCalendarEvent, CalendarEvent, useUpdateCalendarEvent } from "@/hooks/useCalendarEvents";
+import { useCreateCalendarEvent, CalendarEvent, useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/hooks/useCalendarEvents";
 import { useClients } from "@/hooks/useClients";
 import { format } from "date-fns";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CalendarEventModalProps {
   open: boolean;
@@ -41,6 +52,7 @@ export function CalendarEventModal({ open, onOpenChange, event, defaultDate }: C
 
   const createEvent = useCreateCalendarEvent();
   const updateEvent = useUpdateCalendarEvent();
+  const deleteEvent = useDeleteCalendarEvent();
   const { data: clients } = useClients();
 
   const isEditing = !!event;
@@ -68,6 +80,12 @@ export function CalendarEventModal({ open, onOpenChange, event, defaultDate }: C
     onOpenChange(false);
   };
 
+  const handleDelete = async () => {
+    if (!event) return;
+    await deleteEvent.mutateAsync(event.id);
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-card border-border p-0">
@@ -76,16 +94,50 @@ export function CalendarEventModal({ open, onOpenChange, event, defaultDate }: C
           <DialogTitle className="text-foreground text-lg font-semibold">
             {isEditing ? "Modifier l'événement" : "Nouvel événement"}
           </DialogTitle>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-            className="h-8 w-8 rounded-full"
-          >
-            <X className="h-5 w-5" />
-            <span className="sr-only">Fermer</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {isEditing && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Supprimer</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer l'événement ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. L'événement sera définitivement supprimé.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 rounded-full"
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Fermer</span>
+            </Button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-4">
           <div className="space-y-2">
