@@ -14,8 +14,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop top bar with install button */}
-      <div className="hidden md:flex fixed top-0 left-64 right-0 z-40 h-14 items-center justify-end border-b border-border bg-background px-6">
+      {/* Desktop/Tablet top bar with install button */}
+      <div className="hidden md:flex fixed top-0 left-20 lg:left-64 right-0 z-40 h-14 items-center justify-end border-b border-border bg-background px-4 lg:px-6">
         <DesktopInstallButton />
       </div>
 
@@ -41,7 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         />
       )}
 
-      {/* Sidebar - hidden on mobile unless menu is open */}
+      {/* Sidebar - hidden on mobile unless menu is open, collapsed on tablet, full on desktop */}
       <div className={cn(
         "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 md:transform-none",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -53,9 +53,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       <main className={cn(
         "min-h-screen transition-all duration-300",
         "pt-14", // Account for header on both mobile and desktop
-        "md:ml-64" // Sidebar width on desktop
+        "md:ml-20 lg:ml-64" // Collapsed sidebar on tablet, full on desktop
       )}>
-        <div className="p-4 md:p-6 lg:p-8">{children}</div>
+        <div className="p-4 md:p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

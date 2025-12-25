@@ -134,7 +134,7 @@ const Analysis = () => {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
           {/* Revenue Evolution Chart */}
           <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-card">
             <h2 className="mb-4 sm:mb-6 text-base sm:text-lg font-semibold text-card-foreground">

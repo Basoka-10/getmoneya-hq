@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -43,11 +43,30 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  // Collapsed by default on tablet (md), expanded on desktop (lg)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024;
+    }
+    return false;
+  });
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { data: isOwner } = useIsOwner();
   const { currentPlan: plan } = useSubscription();
+
+  // Update collapsed state on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024 && window.innerWidth >= 768) {
+        setCollapsed(true);
+      } else if (window.innerWidth >= 1024) {
+        setCollapsed(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
   const userName = user?.email?.split("@")[0] || "Utilisateur";
