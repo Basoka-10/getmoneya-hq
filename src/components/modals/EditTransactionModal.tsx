@@ -140,12 +140,12 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
           {type === "income" && clients && clients.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="edit-client">Client (optionnel)</Label>
-              <Select value={clientId} onValueChange={setClientId}>
+              <Select value={clientId || "none"} onValueChange={(val) => setClientId(val === "none" ? "" : val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un client" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun client</SelectItem>
+                  <SelectItem value="none">Aucun client</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
