@@ -87,7 +87,7 @@ const Dashboard = () => {
         </div>
 
         {/* Top Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <GuideTooltip content="Votre solde actuel = Revenus - Dépenses - Épargne. C'est l'argent disponible.">
             <div className="rounded-xl border border-border bg-card p-6 w-full">
               <div className="flex items-center gap-2 text-muted-foreground mb-4">
@@ -134,7 +134,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           <GuideTooltip content="Somme de tous vos revenus enregistrés.">
             <div className="w-full">
               <StatCard
@@ -164,7 +164,7 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
           {/* Tasks */}
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
