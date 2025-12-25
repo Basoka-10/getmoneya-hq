@@ -9,12 +9,14 @@ import {
   Trash2,
   Loader2,
   PiggyBank,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
-import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
+import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { EditTransactionModal } from "@/components/modals/EditTransactionModal";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GuideTooltip } from "@/components/onboarding/GuideTooltip";
@@ -26,6 +28,7 @@ const Finances = () => {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showSavingsModal, setShowSavingsModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     period: "all",
     type: "all",
@@ -113,6 +116,62 @@ const Finances = () => {
     toast.success(`${allFiltered.length} transaction(s) exportée(s)`);
   };
 
+  // Render transaction row with edit button
+  const renderTransactionRow = (
+    transaction: Transaction,
+    icon: React.ReactNode,
+    iconBgClass: string,
+    amountColorClass: string,
+    amountPrefix: string = ""
+  ) => (
+    <tr
+      key={transaction.id}
+      className="transition-colors hover:bg-muted/30"
+    >
+      <td className="px-3 sm:px-6 py-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={cn("flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg shrink-0", iconBgClass)}>
+            {icon}
+          </div>
+          <span className="text-sm font-medium text-foreground line-clamp-2 sm:line-clamp-1">
+            {transaction.description}
+          </span>
+        </div>
+      </td>
+      <td className="hidden sm:table-cell whitespace-nowrap px-4 sm:px-6 py-4">
+        <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+          {transaction.category}
+        </span>
+      </td>
+      <td className="hidden md:table-cell whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
+        {formatDate(transaction.date)}
+      </td>
+      <td className={cn("whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold", amountColorClass)}>
+        {amountPrefix}{formatCurrency(Number(transaction.amount))}
+      </td>
+      <td className="whitespace-nowrap px-2 sm:px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setEditingTransaction(transaction)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={() => deleteTransaction.mutate(transaction.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -144,17 +203,23 @@ const Finances = () => {
         {/* Tabs */}
         <Tabs defaultValue="income" className="w-full">
           <TabsList className="mb-6 grid w-full max-w-lg grid-cols-3">
-            <TabsTrigger value="income" className="gap-2">
-              <ArrowDownLeft className="h-4 w-4" />
-              Revenus ({filteredIncomes.length})
+            <TabsTrigger value="income" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <ArrowDownLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Revenus</span>
+              <span className="xs:hidden">Rev.</span>
+              ({filteredIncomes.length})
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2">
-              <ArrowUpRight className="h-4 w-4" />
-              Dépenses ({filteredExpenses.length})
+            <TabsTrigger value="expenses" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Dépenses</span>
+              <span className="xs:hidden">Dép.</span>
+              ({filteredExpenses.length})
             </TabsTrigger>
-            <TabsTrigger value="savings" className="gap-2">
-              <PiggyBank className="h-4 w-4" />
-              Épargne ({filteredSavings.length})
+            <TabsTrigger value="savings" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <PiggyBank className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Épargne</span>
+              <span className="xs:hidden">Ép.</span>
+              ({filteredSavings.length})
             </TabsTrigger>
           </TabsList>
 
@@ -164,7 +229,8 @@ const Finances = () => {
               <GuideTooltip content="Cliquez ici pour enregistrer un nouveau revenu (paiement client, vente, etc.)">
                 <Button size="sm" onClick={() => setShowIncomeModal(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Ajouter un revenu
+                  <span className="hidden sm:inline">Ajouter un revenu</span>
+                  <span className="sm:hidden">Ajouter</span>
                 </Button>
               </GuideTooltip>
             </div>
@@ -175,7 +241,7 @@ const Finances = () => {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : filteredIncomes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                   <ArrowDownLeft className="h-12 w-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground">
                     {incomes.length === 0 ? "Aucun revenu enregistré" : "Aucun revenu correspondant aux filtres"}
@@ -188,65 +254,36 @@ const Finances = () => {
                   )}
                 </div>
               ) : (
-                <table className="w-full min-w-[720px]">
+                <table className="w-full min-w-[400px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Description
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Catégorie
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Date
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Montant
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredIncomes.map((income) => (
-                      <tr
-                        key={income.id}
-                        className="transition-colors hover:bg-muted/30"
-                      >
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
-                              <ArrowDownLeft className="h-4 w-4" />
-                            </div>
-                            <span className="text-sm font-medium text-foreground">
-                              {income.description}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                            {income.category}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
-                          {formatDate(income.date)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right text-sm font-semibold text-success">
-                          +{formatCurrency(Number(income.amount))}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteTransaction.mutate(income.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredIncomes.map((income) =>
+                      renderTransactionRow(
+                        income,
+                        <ArrowDownLeft className="h-4 w-4" />,
+                        "bg-success/10 text-success",
+                        "text-success",
+                        "+"
+                      )
+                    )}
                   </tbody>
                 </table>
               )}
@@ -260,7 +297,8 @@ const Finances = () => {
               <GuideTooltip content="Cliquez ici pour enregistrer une nouvelle dépense (achat, abonnement, etc.)">
                 <Button size="sm" onClick={() => setShowExpenseModal(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Ajouter une dépense
+                  <span className="hidden sm:inline">Ajouter une dépense</span>
+                  <span className="sm:hidden">Ajouter</span>
                 </Button>
               </GuideTooltip>
             </div>
@@ -271,7 +309,7 @@ const Finances = () => {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : filteredExpenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                   <ArrowUpRight className="h-12 w-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground">
                     {expenses.length === 0 ? "Aucune dépense enregistrée" : "Aucune dépense correspondant aux filtres"}
@@ -284,65 +322,36 @@ const Finances = () => {
                   )}
                 </div>
               ) : (
-                <table className="w-full min-w-[720px]">
+                <table className="w-full min-w-[400px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Description
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Catégorie
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Date
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Montant
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredExpenses.map((expense) => (
-                      <tr
-                        key={expense.id}
-                        className="transition-colors hover:bg-muted/30"
-                      >
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                              <ArrowUpRight className="h-4 w-4" />
-                            </div>
-                            <span className="text-sm font-medium text-foreground">
-                              {expense.description}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                            {expense.category}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
-                          {formatDate(expense.date)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right text-sm font-semibold text-destructive">
-                          -{formatCurrency(Number(expense.amount))}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteTransaction.mutate(expense.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredExpenses.map((expense) =>
+                      renderTransactionRow(
+                        expense,
+                        <ArrowUpRight className="h-4 w-4" />,
+                        "bg-destructive/10 text-destructive",
+                        "text-destructive",
+                        "-"
+                      )
+                    )}
                   </tbody>
                 </table>
               )}
@@ -356,7 +365,8 @@ const Finances = () => {
               <GuideTooltip content="Cliquez ici pour enregistrer une épargne (économies, investissement, etc.)">
                 <Button size="sm" onClick={() => setShowSavingsModal(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Ajouter une épargne
+                  <span className="hidden sm:inline">Ajouter une épargne</span>
+                  <span className="sm:hidden">Ajouter</span>
                 </Button>
               </GuideTooltip>
             </div>
@@ -367,7 +377,7 @@ const Finances = () => {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : filteredSavings.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                   <PiggyBank className="h-12 w-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground">
                     {savings.length === 0 ? "Aucune épargne enregistrée" : "Aucune épargne correspondant aux filtres"}
@@ -385,65 +395,36 @@ const Finances = () => {
                   )}
                 </div>
               ) : (
-                <table className="w-full min-w-[720px]">
+                <table className="w-full min-w-[400px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Description
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Catégorie
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Date
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Montant
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <th className="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredSavings.map((saving) => (
-                      <tr
-                        key={saving.id}
-                        className="transition-colors hover:bg-muted/30"
-                      >
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                              <PiggyBank className="h-4 w-4" />
-                            </div>
-                            <span className="text-sm font-medium text-foreground">
-                              {saving.description}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4">
-                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                            {saving.category}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-sm text-muted-foreground">
-                          {formatDate(saving.date)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right text-sm font-semibold text-primary">
-                          {formatCurrency(Number(saving.amount))}
-                        </td>
-                        <td className="whitespace-nowrap px-4 sm:px-6 py-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteTransaction.mutate(saving.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredSavings.map((saving) =>
+                      renderTransactionRow(
+                        saving,
+                        <PiggyBank className="h-4 w-4" />,
+                        "bg-primary/10 text-primary",
+                        "text-primary",
+                        ""
+                      )
+                    )}
                   </tbody>
                 </table>
               )}
@@ -468,6 +449,11 @@ const Finances = () => {
         type="savings"
         open={showSavingsModal}
         onOpenChange={setShowSavingsModal}
+      />
+      <EditTransactionModal
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+        transaction={editingTransaction}
       />
     </AppLayout>
   );

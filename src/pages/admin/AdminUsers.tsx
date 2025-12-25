@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,8 @@ import {
   Ban, 
   CalendarPlus, 
   ArrowUpCircle,
-  AlertTriangle 
+  AlertTriangle,
+  Mail
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -120,24 +120,24 @@ export default function AdminUsers() {
     if (daysLeft < 0) {
       return { text: "Expiré", variant: "destructive" as const, urgent: true };
     } else if (daysLeft <= 7) {
-      return { text: `${daysLeft}j restants`, variant: "outline" as const, urgent: true };
+      return { text: `${daysLeft}j`, variant: "outline" as const, urgent: true };
     } else {
       return { text: format(expiryDate, "dd/MM/yy"), variant: "outline" as const, urgent: false };
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestion des utilisateurs</h1>
-        <p className="text-muted-foreground">Voir et gérer tous les utilisateurs MONEYA</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Gestion des utilisateurs</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Voir et gérer tous les utilisateurs MONEYA</p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <span>Utilisateurs ({users?.length || 0})</span>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex flex-col gap-3">
+            <span className="text-base sm:text-lg">Utilisateurs ({users?.length || 0})</span>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Select value={planFilter} onValueChange={setPlanFilter}>
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Filtrer par plan" />
@@ -150,7 +150,7 @@ export default function AdminUsers() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="relative w-full sm:w-64">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher..."
@@ -163,183 +163,167 @@ export default function AdminUsers() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Utilisateur</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Entreprise</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Expiration</TableHead>
-                  <TableHead>Rôle</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Inscrit le</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array.from({ length: 9 }).map((_, j) => (
-                        <TableCell key={j}>
-                          <Skeleton className="h-5 w-full" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : filteredUsers?.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      Aucun utilisateur trouvé
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers?.map((user) => {
-                    const isOwner = user.user_roles?.some((r) => r.role === "owner");
-                    const plan = isOwner ? "business" : (user.subscription_plan || "free");
-                    const planInfo = planBadges[plan] || planBadges.free;
-                    const PlanIcon = planInfo.icon;
-                    
-                    // Get subscription expiry from the subscription data in useAllUsers
-                    const subscriptionExpiresAt = (user as any).subscription_expires_at;
-                    const expiryInfo = plan !== "free" ? getExpiryInfo(subscriptionExpiresAt) : null;
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : filteredUsers?.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              Aucun utilisateur trouvé
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {filteredUsers?.map((user) => {
+                const isOwner = user.user_roles?.some((r) => r.role === "owner");
+                const plan = isOwner ? "business" : (user.subscription_plan || "free");
+                const planInfo = planBadges[plan] || planBadges.free;
+                const PlanIcon = planInfo.icon;
+                
+                const subscriptionExpiresAt = (user as any).subscription_expires_at;
+                const expiryInfo = plan !== "free" ? getExpiryInfo(subscriptionExpiresAt) : null;
 
-                    return (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.full_name || "Non renseigné"}
-                        </TableCell>
-                        <TableCell>{user.private_data?.email || "-"}</TableCell>
-                        <TableCell>{user.company_name || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={planInfo.variant} className="gap-1">
-                            {PlanIcon && <PlanIcon className="h-3 w-3" />}
-                            {planInfo.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {expiryInfo ? (
-                            <Badge 
-                              variant={expiryInfo.variant} 
-                              className={expiryInfo.urgent ? "border-destructive text-destructive" : ""}
-                            >
-                              {expiryInfo.urgent && <AlertTriangle className="h-3 w-3 mr-1" />}
-                              {expiryInfo.text}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
+                return (
+                  <div key={user.id} className="p-3 sm:p-4 rounded-lg border bg-card">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-2">
+                        {/* User name and role */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm sm:text-base truncate">
+                            {user.full_name || "Non renseigné"}
+                          </span>
                           {isOwner ? (
-                            <Badge variant="default" className="gap-1">
+                            <Badge variant="default" className="gap-1 text-xs">
                               <Shield className="h-3 w-3" />
                               Owner
                             </Badge>
                           ) : (
-                            <Badge variant="secondary">User</Badge>
+                            <Badge variant="secondary" className="text-xs">User</Badge>
                           )}
-                        </TableCell>
-                        <TableCell>
                           {user.is_suspended ? (
-                            <Badge variant="destructive">Suspendu</Badge>
+                            <Badge variant="destructive" className="text-xs">Suspendu</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
+                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
                               Actif
                             </Badge>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(user.created_at), "dd MMM yyyy", { locale: fr })}
-                        </TableCell>
-                        <TableCell>
-                          {!isOwner && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                
-                                {/* Suspension action */}
+                        </div>
+                        
+                        {/* Email */}
+                        <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{user.private_data?.email || "-"}</span>
+                        </div>
+                        
+                        {/* Plan and company */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant={planInfo.variant} className="gap-1 text-xs">
+                            {PlanIcon && <PlanIcon className="h-3 w-3" />}
+                            {planInfo.label}
+                          </Badge>
+                          {expiryInfo && (
+                            <Badge 
+                              variant={expiryInfo.variant} 
+                              className={`text-xs ${expiryInfo.urgent ? "border-destructive text-destructive" : ""}`}
+                            >
+                              {expiryInfo.urgent && <AlertTriangle className="h-3 w-3 mr-1" />}
+                              {expiryInfo.text}
+                            </Badge>
+                          )}
+                          {user.company_name && (
+                            <span className="text-xs text-muted-foreground">
+                              • {user.company_name}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Date */}
+                        <p className="text-xs text-muted-foreground">
+                          Inscrit le {format(new Date(user.created_at), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                      </div>
+                      
+                      {/* Actions */}
+                      {!isOwner && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="shrink-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            
+                            <DropdownMenuItem
+                              onClick={() => handleToggleSuspension(user.user_id, user.is_suspended)}
+                              className={user.is_suspended ? "text-green-600" : "text-destructive"}
+                            >
+                              {user.is_suspended ? (
+                                <>
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Activer
+                                </>
+                              ) : (
+                                <>
+                                  <UserX className="h-4 w-4 mr-2" />
+                                  Suspendre
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">Abonnement</DropdownMenuLabel>
+                            
+                            <DropdownMenuItem
+                              onClick={() => setChangePlanDialog({ 
+                                open: true, 
+                                userId: user.user_id, 
+                                userName: user.full_name || user.private_data?.email || "Utilisateur",
+                                plan: plan === "pro" ? "business" : "pro"
+                              })}
+                            >
+                              <ArrowUpCircle className="h-4 w-4 mr-2" />
+                              Changer plan
+                            </DropdownMenuItem>
+                            
+                            {plan !== "free" && (
+                              <>
                                 <DropdownMenuItem
-                                  onClick={() => handleToggleSuspension(user.user_id, user.is_suspended)}
-                                  className={user.is_suspended ? "text-green-600" : "text-destructive"}
-                                >
-                                  {user.is_suspended ? (
-                                    <>
-                                      <UserCheck className="h-4 w-4 mr-2" />
-                                      Activer le compte
-                                    </>
-                                  ) : (
-                                    <>
-                                      <UserX className="h-4 w-4 mr-2" />
-                                      Suspendre le compte
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                                
-                                <DropdownMenuSeparator />
-                                <DropdownMenuLabel className="text-xs text-muted-foreground">Abonnement</DropdownMenuLabel>
-                                
-                                {/* Change plan */}
-                                <DropdownMenuItem
-                                  onClick={() => setChangePlanDialog({ 
+                                  onClick={() => setExtendDialog({ 
                                     open: true, 
                                     userId: user.user_id, 
                                     userName: user.full_name || user.private_data?.email || "Utilisateur",
-                                    plan: plan === "pro" ? "business" : "pro"
+                                    days: 30
                                   })}
                                 >
-                                  <ArrowUpCircle className="h-4 w-4 mr-2" />
-                                  Changer le plan
+                                  <CalendarPlus className="h-4 w-4 mr-2" />
+                                  Prolonger
                                 </DropdownMenuItem>
                                 
-                                {/* Extend subscription (only for paid plans) */}
-                                {plan !== "free" && (
-                                  <DropdownMenuItem
-                                    onClick={() => setExtendDialog({ 
-                                      open: true, 
-                                      userId: user.user_id, 
-                                      userName: user.full_name || user.private_data?.email || "Utilisateur",
-                                      days: 30
-                                    })}
-                                  >
-                                    <CalendarPlus className="h-4 w-4 mr-2" />
-                                    Prolonger l'abonnement
-                                  </DropdownMenuItem>
-                                )}
-                                
-                                {/* Revoke subscription (only for paid plans) */}
-                                {plan !== "free" && (
-                                  <DropdownMenuItem
-                                    onClick={() => setRevokeDialog({ 
-                                      open: true, 
-                                      userId: user.user_id, 
-                                      userName: user.full_name || user.private_data?.email || "Utilisateur"
-                                    })}
-                                    className="text-destructive"
-                                  >
-                                    <Ban className="h-4 w-4 mr-2" />
-                                    Révoquer l'abonnement
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                                <DropdownMenuItem
+                                  onClick={() => setRevokeDialog({ 
+                                    open: true, 
+                                    userId: user.user_id, 
+                                    userName: user.full_name || user.private_data?.email || "Utilisateur"
+                                  })}
+                                  className="text-destructive"
+                                >
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Révoquer
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -356,7 +340,7 @@ export default function AdminUsers() {
               L'utilisateur sera immédiatement rétrogradé au plan gratuit.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setRevokeDialog({ open: false, userId: "", userName: "" })}>
               Annuler
             </Button>
@@ -385,7 +369,7 @@ export default function AdminUsers() {
           </DialogHeader>
           <div className="py-4">
             <label className="text-sm font-medium">Nombre de jours à ajouter</label>
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {[7, 30, 90, 365].map((days) => (
                 <Button
                   key={days}
@@ -398,7 +382,7 @@ export default function AdminUsers() {
               ))}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setExtendDialog({ open: false, userId: "", userName: "", days: 30 })}>
               Annuler
             </Button>
@@ -421,33 +405,31 @@ export default function AdminUsers() {
               Changer le plan
             </DialogTitle>
             <DialogDescription>
-              Modifier le plan d'abonnement de <strong>{changePlanDialog.userName}</strong>
+              Modifier le plan de <strong>{changePlanDialog.userName}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium">Nouveau plan</label>
-            <div className="flex gap-2 mt-2">
-              {(["free", "pro", "business"] as const).map((p) => (
-                <Button
-                  key={p}
-                  variant={changePlanDialog.plan === p ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setChangePlanDialog({ ...changePlanDialog, plan: p })}
-                  className="gap-1"
-                >
-                  {p === "pro" && <Star className="h-3 w-3" />}
-                  {p === "business" && <Crown className="h-3 w-3" />}
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </Button>
-              ))}
+            <label className="text-sm font-medium">Sélectionner un plan</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {(["free", "pro", "business"] as const).map((plan) => {
+                const info = planBadges[plan];
+                const Icon = info.icon;
+                return (
+                  <Button
+                    key={plan}
+                    variant={changePlanDialog.plan === plan ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setChangePlanDialog({ ...changePlanDialog, plan })}
+                    className="gap-1"
+                  >
+                    {Icon && <Icon className="h-3 w-3" />}
+                    {info.label}
+                  </Button>
+                );
+              })}
             </div>
-            {changePlanDialog.plan !== "free" && (
-              <p className="text-xs text-muted-foreground mt-2">
-                L'abonnement sera valide pour 365 jours.
-              </p>
-            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setChangePlanDialog({ open: false, userId: "", userName: "", plan: "pro" })}>
               Annuler
             </Button>
@@ -455,7 +437,7 @@ export default function AdminUsers() {
               onClick={handleChangePlan}
               disabled={updateUserPlan.isPending}
             >
-              {updateUserPlan.isPending ? "Mise à jour..." : "Confirmer"}
+              {updateUserPlan.isPending ? "Modification..." : "Appliquer"}
             </Button>
           </DialogFooter>
         </DialogContent>
