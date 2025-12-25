@@ -97,6 +97,40 @@ export function useDeleteTransaction() {
   });
 }
 
+export type UpdateTransactionInput = {
+  id: string;
+  amount?: number;
+  description?: string;
+  category?: string;
+  date?: string;
+  client_id?: string | null;
+};
+
+export function useUpdateTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...input }: UpdateTransactionInput) => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .update(input)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Transaction modifiée avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la modification: " + error.message);
+    },
+  });
+}
+
 export function useTransactionStats() {
   return useQuery({
     queryKey: ["transaction-stats"],

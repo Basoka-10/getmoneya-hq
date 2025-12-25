@@ -6,14 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 const statusColors: Record<string, string> = {
@@ -68,11 +60,12 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Vue d'ensemble en temps réel de la plateforme MONEYA
           </p>
         </div>
@@ -83,20 +76,20 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
         {statCards.map((stat) => (
           <Card key={stat.title} className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
               </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-8 sm:h-10 w-24" />
               ) : (
-                <div className="text-4xl font-bold">{stat.value}</div>
+                <div className="text-3xl sm:text-4xl font-bold">{stat.value}</div>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Mis à jour en temps réel
@@ -111,46 +104,46 @@ export default function AdminDashboard() {
 
       {/* Users by Plan */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-primary" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Utilisateurs par plan
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
               {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
+                <Skeleton key={i} className="h-20 sm:h-24 w-full" />
               ))}
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-                <div className="p-3 rounded-full bg-gray-500/10">
-                  <Users className="h-6 w-6 text-gray-500" />
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
+              <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <div className="p-2 sm:p-3 rounded-full bg-gray-500/10">
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Plan Gratuit</p>
-                  <p className="text-3xl font-bold">{stats.usersByPlan.free}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Plan Gratuit</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.usersByPlan.free}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-                <div className="p-3 rounded-full bg-amber-500/10">
-                  <Star className="h-6 w-6 text-amber-500" />
+              <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <div className="p-2 sm:p-3 rounded-full bg-amber-500/10">
+                  <Star className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Plan Pro</p>
-                  <p className="text-3xl font-bold">{stats.usersByPlan.pro}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Plan Pro</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.usersByPlan.pro}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-                <div className="p-3 rounded-full bg-purple-500/10">
-                  <Crown className="h-6 w-6 text-purple-500" />
+              <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <div className="p-2 sm:p-3 rounded-full bg-purple-500/10">
+                  <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Plan Business</p>
-                  <p className="text-3xl font-bold">{stats.usersByPlan.business}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Plan Business</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.usersByPlan.business}</p>
                 </div>
               </div>
             </div>
@@ -158,11 +151,11 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Latest Users */}
+      {/* Latest Users - Mobile optimized */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-blue-500" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
             Derniers utilisateurs inscrits
           </CardTitle>
         </CardHeader>
@@ -178,49 +171,39 @@ export default function AdminDashboard() {
               Aucun utilisateur inscrit
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Entreprise</TableHead>
-                    <TableHead>Date d'inscription</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {latestUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.full_name || "Non renseigné"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          {user.company_name || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          {format(new Date(user.created_at), "dd MMM yyyy HH:mm", {
-                            locale: fr,
-                          })}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="space-y-3">
+              {latestUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">
+                      {user.full_name || "Non renseigné"}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Building2 className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{user.company_name || "—"}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                    <Clock className="h-3 w-3" />
+                    <span className="hidden sm:inline">
+                      {format(new Date(user.created_at), "dd MMM yyyy HH:mm", { locale: fr })}
+                    </span>
+                    <span className="sm:hidden">
+                      {format(new Date(user.created_at), "dd/MM HH:mm", { locale: fr })}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Latest Quotations */}
+      {/* Latest Quotations - Mobile optimized */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-orange-500" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
             Derniers devis créés
           </CardTitle>
         </CardHeader>
@@ -234,53 +217,40 @@ export default function AdminDashboard() {
           ) : latestQuotations.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">Aucun devis créé</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>N° Devis</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {latestQuotations.map((quotation) => (
-                    <TableRow key={quotation.id}>
-                      <TableCell className="font-mono font-medium">
+            <div className="space-y-3">
+              {latestQuotations.map((quotation) => (
+                <div key={quotation.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-medium text-sm">
                         {quotation.quotation_number}
-                      </TableCell>
-                      <TableCell>{quotation.client_name}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatAmount(quotation.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`${statusColors[quotation.status]} text-white`}
-                        >
-                          {statusLabels[quotation.status] || quotation.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(quotation.created_at), "dd MMM yyyy", {
-                          locale: fr,
-                        })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </span>
+                      <Badge className={`${statusColors[quotation.status]} text-white text-xs`}>
+                        {statusLabels[quotation.status] || quotation.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {quotation.client_name}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-medium text-sm">{formatAmount(quotation.amount)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(quotation.created_at), "dd/MM/yy", { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Latest Invoices */}
+      {/* Latest Invoices - Mobile optimized */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-purple-500" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
             Dernières factures créées
           </CardTitle>
         </CardHeader>
@@ -296,43 +266,30 @@ export default function AdminDashboard() {
               Aucune facture créée
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>N° Facture</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {latestInvoices.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-mono font-medium">
+            <div className="space-y-3">
+              {latestInvoices.map((invoice) => (
+                <div key={invoice.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-medium text-sm">
                         {invoice.invoice_number}
-                      </TableCell>
-                      <TableCell>{invoice.client_name}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatAmount(invoice.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`${statusColors[invoice.status]} text-white`}
-                        >
-                          {statusLabels[invoice.status] || invoice.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(invoice.created_at), "dd MMM yyyy", {
-                          locale: fr,
-                        })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </span>
+                      <Badge className={`${statusColors[invoice.status]} text-white text-xs`}>
+                        {statusLabels[invoice.status] || invoice.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {invoice.client_name}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-medium text-sm">{formatAmount(invoice.amount)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(invoice.created_at), "dd/MM/yy", { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
@@ -340,24 +297,24 @@ export default function AdminDashboard() {
 
       {/* System Status */}
       <Card>
-        <CardHeader>
-          <CardTitle>Statut du système</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Statut du système</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Mode</span>
+            <span className="text-sm text-muted-foreground">Mode</span>
             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
               PRODUCTION
             </Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Realtime</span>
+            <span className="text-sm text-muted-foreground">Realtime</span>
             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
               Actif
             </Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">API Taux de change</span>
+            <span className="text-sm text-muted-foreground">API Taux de change</span>
             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
               Actif
             </Badge>
