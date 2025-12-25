@@ -32,6 +32,8 @@ import avatarTestimonial1 from '@/assets/avatar-testimonial-1.png';
 import avatarTestimonial2 from '@/assets/avatar-testimonial-2.png';
 import avatarTestimonial3 from '@/assets/avatar-testimonial-3.png';
 import avatarTestimonial4 from '@/assets/avatar-testimonial-4.png';
+import mobilePreview from '@/assets/mobile-analysis-preview.jpg';
+import desktopPreview from '@/assets/desktop-dashboard-preview.png';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -327,19 +329,110 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Mobile Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d]">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
-            <Smartphone className="h-4 w-4 text-primary" />
-            <span className="text-primary text-sm font-medium">100% responsive</span>
+      {/* Mobile & Desktop Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d] overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <Smartphone className="h-4 w-4 text-primary" />
+              <span className="text-primary text-sm font-medium">100% responsive</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Utilisez <span className="text-primary">MONEYA</span> partout
+            </h2>
+            <p className="text-white/60 max-w-2xl mx-auto text-lg">
+              MONEYA est optimisé pour mobile et desktop — suivez votre activité où que vous soyez.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Utilisez MONEYA partout
-          </h2>
-          <p className="text-white/60 max-w-2xl mx-auto">
-            MONEYA est optimisé pour mobile et desktop — suivez votre activité où que vous soyez.
-          </p>
+
+          {/* Devices Mockup */}
+          <div className="relative flex items-center justify-center">
+            {/* Desktop Mockup */}
+            <div className="relative w-full max-w-4xl animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              {/* Monitor Frame */}
+              <div className="relative bg-[#1a1a1a] rounded-2xl p-2 border border-white/10 shadow-2xl shadow-black/50">
+                {/* Screen bezel */}
+                <div className="relative bg-[#0a0a0a] rounded-xl overflow-hidden">
+                  {/* Camera dot */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-white/10 rounded-full z-10"></div>
+                  {/* Screenshot */}
+                  <img 
+                    src={desktopPreview} 
+                    alt="MONEYA Dashboard Desktop" 
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+              {/* Monitor Stand */}
+              <div className="flex flex-col items-center mt-2">
+                <div className="w-16 h-6 bg-gradient-to-b from-[#1a1a1a] to-[#111] rounded-sm"></div>
+                <div className="w-32 h-2 bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] rounded-full"></div>
+              </div>
+            </div>
+
+            {/* Mobile Mockup - Positioned to overlap */}
+            <div className="absolute -right-4 sm:right-8 lg:right-16 bottom-8 w-32 sm:w-40 lg:w-52 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              {/* Phone Frame */}
+              <div className="relative bg-[#1a1a1a] rounded-[2rem] sm:rounded-[2.5rem] p-1.5 sm:p-2 border border-white/10 shadow-2xl shadow-black/50">
+                {/* Notch */}
+                <div className="absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-4 sm:h-5 bg-[#0a0a0a] rounded-full z-10"></div>
+                {/* Screen */}
+                <div className="relative bg-[#0a0a0a] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden">
+                  <img 
+                    src={mobilePreview} 
+                    alt="MONEYA Analyse Mobile" 
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Badges */}
+            <div className="absolute -left-4 sm:left-4 lg:left-12 top-1/4 animate-fade-in hidden sm:block" style={{ animationDelay: "0.6s" }}>
+              <div className="bg-[#111] border border-primary/30 rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <LayoutDashboard className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/60">Interface</p>
+                    <p className="text-sm font-semibold text-white">Intuitive</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute -left-4 sm:left-8 lg:left-20 bottom-1/4 animate-fade-in hidden sm:block" style={{ animationDelay: "0.8s" }}>
+              <div className="bg-[#111] border border-primary/30 rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/60">Données</p>
+                    <p className="text-sm font-semibold text-white">Sécurisées</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Pills */}
+          <div className="flex flex-wrap justify-center gap-4 mt-12">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full">
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-sm text-white/80">Responsive design</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full">
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-sm text-white/80">Synchronisation temps réel</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full">
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-sm text-white/80">Accès depuis n'importe où</span>
+            </div>
+          </div>
         </div>
       </section>
 
