@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FinancialHealth } from "@/components/dashboard/FinancialHealth";
+import { SubscriptionAlert } from "@/components/dashboard/SubscriptionAlert";
 import { Wallet, TrendingUp, TrendingDown, Users, ArrowRight, Loader2, PiggyBank, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTransactionStats, useTransactions } from "@/hooks/useTransactions";
@@ -59,6 +60,9 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="space-y-8 animate-fade-in">
+        {/* Subscription Alert */}
+        <SubscriptionAlert />
+
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="text-center sm:text-left">

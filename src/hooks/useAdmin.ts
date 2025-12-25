@@ -125,8 +125,10 @@ export function useAllUsers() {
       return (profiles as Profile[]).map((profile) => {
         const subscription = subscriptionMap.get(profile.user_id);
         let currentPlan = "free";
+        let subscriptionExpiresAt: string | null = null;
         
         if (subscription) {
+          subscriptionExpiresAt = subscription.expires_at;
           // Check if subscription is expired
           if (subscription.expires_at) {
             const expiryDate = new Date(subscription.expires_at);
@@ -144,6 +146,7 @@ export function useAllUsers() {
           private_data: privateMap.get(profile.user_id) || null,
           user_roles: (roles as UserRole[]).filter((r) => r.user_id === profile.user_id),
           subscription_plan: currentPlan,
+          subscription_expires_at: subscriptionExpiresAt,
         };
       });
     },
