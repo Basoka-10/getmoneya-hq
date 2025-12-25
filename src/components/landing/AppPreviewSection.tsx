@@ -26,35 +26,35 @@ export const AppPreviewSection = () => {
         {/* Monitor Mockup Container */}
         <div className="relative max-w-5xl mx-auto">
           {/* Floating Badges */}
-          <div className="absolute -left-4 top-20 z-20 hidden lg:block animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-4 py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
+          <div className="absolute -left-4 md:left-0 lg:-left-4 top-16 md:top-20 z-20 hidden md:block animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-3 py-2 md:px-4 md:py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <Zap className="h-4 w-4 text-primary" />
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-white">Gestion simplifiée</span>
+                <span className="text-xs md:text-sm font-medium text-white">Gestion simplifiée</span>
               </div>
             </div>
           </div>
 
-          <div className="absolute -right-4 top-32 z-20 hidden lg:block animate-fade-in" style={{ animationDelay: "0.5s" }}>
-            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-4 py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
+          <div className="absolute -right-4 md:right-0 lg:-right-4 top-28 md:top-32 z-20 hidden md:block animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-3 py-2 md:px-4 md:py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="h-4 w-4 text-primary" />
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-white">Suivi en temps réel</span>
+                <span className="text-xs md:text-sm font-medium text-white">Suivi en temps réel</span>
               </div>
             </div>
           </div>
 
-          <div className="absolute -left-8 bottom-32 z-20 hidden lg:block animate-fade-in" style={{ animationDelay: "0.7s" }}>
-            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-4 py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
+          <div className="absolute -left-8 md:-left-4 lg:-left-8 bottom-28 md:bottom-32 z-20 hidden md:block animate-fade-in" style={{ animationDelay: "0.7s" }}>
+            <div className="bg-[#1a1a1a]/90 backdrop-blur-sm border border-primary/30 rounded-xl px-3 py-2 md:px-4 md:py-3 shadow-xl shadow-primary/10 hover:scale-105 transition-transform">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <Shield className="h-4 w-4 text-primary" />
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Shield className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-white">Données sécurisées</span>
+                <span className="text-xs md:text-sm font-medium text-white">Données sécurisées</span>
               </div>
             </div>
           </div>

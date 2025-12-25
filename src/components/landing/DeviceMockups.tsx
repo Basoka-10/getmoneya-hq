@@ -166,7 +166,7 @@ export const DeviceMockups = () => {
 
           {/* Mobile Mockup - Positioned to overlap */}
           <div 
-            className="absolute -right-4 sm:right-8 lg:right-16 bottom-8 w-32 sm:w-40 lg:w-52 transition-all duration-500 ease-out"
+            className="absolute -right-4 sm:right-4 md:right-12 lg:right-16 bottom-8 w-28 sm:w-36 md:w-44 lg:w-52 transition-all duration-500 ease-out"
             style={{ 
               ...mobileParallax,
               transform: `${mobileParallax.transform} ${getMobileTransform()}`,
@@ -197,34 +197,34 @@ export const DeviceMockups = () => {
 
           {/* Floating Badges */}
           <div 
-            className="absolute -left-4 sm:left-4 lg:left-12 top-1/4 hidden sm:block transition-all duration-700 ease-out"
+            className="absolute -left-4 sm:left-2 md:left-4 lg:left-12 top-1/4 hidden md:block transition-all duration-700 ease-out"
             style={badge1Parallax}
           >
-            <div className="bg-[#111] border border-primary/30 rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm hover:scale-105 hover:border-primary/50 transition-all duration-300">
+            <div className="bg-[#111] border border-primary/30 rounded-xl px-3 py-2 md:px-4 md:py-3 shadow-lg backdrop-blur-sm hover:scale-105 hover:border-primary/50 transition-all duration-300">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <LayoutDashboard className="w-4 h-4 text-primary" />
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/60">Interface</p>
-                  <p className="text-sm font-semibold text-white">Intuitive</p>
+                  <p className="text-[10px] md:text-xs text-white/60">Interface</p>
+                  <p className="text-xs md:text-sm font-semibold text-white">Intuitive</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div 
-            className="absolute -left-4 sm:left-8 lg:left-20 bottom-1/4 hidden sm:block transition-all duration-700 ease-out"
+            className="absolute -left-4 sm:left-4 md:left-8 lg:left-20 bottom-1/4 hidden md:block transition-all duration-700 ease-out"
             style={badge2Parallax}
           >
-            <div className="bg-[#111] border border-primary/30 rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm hover:scale-105 hover:border-primary/50 transition-all duration-300">
+            <div className="bg-[#111] border border-primary/30 rounded-xl px-3 py-2 md:px-4 md:py-3 shadow-lg backdrop-blur-sm hover:scale-105 hover:border-primary/50 transition-all duration-300">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-primary" />
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Shield className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/60">Données</p>
-                  <p className="text-sm font-semibold text-white">Sécurisées</p>
+                  <p className="text-[10px] md:text-xs text-white/60">Données</p>
+                  <p className="text-xs md:text-sm font-semibold text-white">Sécurisées</p>
                 </div>
               </div>
             </div>
