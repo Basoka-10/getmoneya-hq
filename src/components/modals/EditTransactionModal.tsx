@@ -26,21 +26,20 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
   const updateTransaction = useUpdateTransaction();
   const { data: clients } = useClients();
-  const { currencyConfig, convertFromEUR, convertToEUR } = useCurrency();
+  const { currencyConfig } = useCurrency();
   const { incomeCategories, expenseCategories } = useCategories();
 
-  // Initialize form when transaction changes
+  // Initialize form when transaction changes - NO CONVERSION, amounts are stored in native currency
   useEffect(() => {
     if (transaction) {
       setDescription(transaction.description);
-      // Convert from EUR to user's currency for display
-      const displayAmount = convertFromEUR(transaction.amount);
-      setAmount(displayAmount.toFixed(2));
+      // Display amount as-is, no conversion needed
+      setAmount(String(transaction.amount));
       setCategory(transaction.category);
       setDate(transaction.date);
       setClientId(transaction.client_id || "");
     }
-  }, [transaction, convertFromEUR]);
+  }, [transaction]);
 
   const type = transaction?.type || "income";
   const categories = type === "income" 
@@ -54,13 +53,12 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
     if (!transaction) return;
 
     const inputAmount = parseFloat(amount);
-    // Convert from user's currency to EUR for storage
-    const amountEur = convertToEUR(inputAmount);
+    // Store amount directly - NO CONVERSION, amounts are in native currency
 
     await updateTransaction.mutateAsync({
       id: transaction.id,
       description,
-      amount: amountEur,
+      amount: inputAmount,
       category,
       date,
       client_id: clientId || null,

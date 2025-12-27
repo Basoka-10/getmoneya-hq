@@ -69,8 +69,10 @@ interface CurrencyContextType {
   currency: Currency;
   currencyConfig: CurrencyConfig;
   setCurrency: (currency: Currency) => Promise<void>;
+  // Native formatting - no conversion, displays amount as-is in current currency
   formatAmount: (amount: number) => string;
   formatAmountWithSymbol: (amount: number, showSign?: boolean) => string;
+  // Legacy conversion functions - use only when comparing different currencies
   convertFromEUR: (amountInEUR: number) => number;
   convertToEUR: (amount: number, fromCurrency?: Currency) => number;
   isLoading: boolean;
@@ -343,34 +345,32 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     [currency, exchangeRates]
   );
 
-  // Format amount without symbol
+  // Format amount without symbol - NO CONVERSION, displays as-is in current currency
   const formatAmount = useCallback(
-    (amountInEUR: number): string => {
-      const converted = convertFromEUR(amountInEUR);
-      return converted.toLocaleString(currencyConfig.locale, {
+    (amount: number): string => {
+      return Number(amount).toLocaleString(currencyConfig.locale, {
         minimumFractionDigits: currencyConfig.decimals,
         maximumFractionDigits: currencyConfig.decimals,
       });
     },
-    [convertFromEUR, currencyConfig]
+    [currencyConfig]
   );
 
-  // Format amount with symbol
+  // Format amount with symbol - NO CONVERSION, displays as-is in current currency
   const formatAmountWithSymbol = useCallback(
-    (amountInEUR: number, showSign = false): string => {
-      const converted = convertFromEUR(amountInEUR);
-      const formattedNumber = converted.toLocaleString(currencyConfig.locale, {
+    (amount: number, showSign = false): string => {
+      const formattedNumber = Number(amount).toLocaleString(currencyConfig.locale, {
         minimumFractionDigits: currencyConfig.decimals,
         maximumFractionDigits: currencyConfig.decimals,
       });
-      const sign = showSign && converted > 0 ? "+" : "";
+      const sign = showSign && amount > 0 ? "+" : "";
 
       if (currency === "USD") {
         return `${sign}${currencyConfig.symbol}${formattedNumber}`;
       }
       return `${sign}${formattedNumber} ${currencyConfig.symbol}`;
     },
-    [currency, currencyConfig, convertFromEUR]
+    [currency, currencyConfig]
   );
 
   return (
