@@ -15,7 +15,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
-import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
+// Document sync disabled - amounts are stored in native currency
+// import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 import {
@@ -77,7 +78,8 @@ const Settings = () => {
   const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
   const { data: clients = [] } = useClients();
   const { data: invoices = [] } = useInvoices();
-  const { syncDocumentsCurrency } = useDocumentCurrencySync();
+  // Document sync disabled - amounts are stored in native currency
+  // const { syncDocumentsCurrency } = useDocumentCurrencySync();
   const {
     expenseCategories,
     incomeCategories,
@@ -87,35 +89,18 @@ const Settings = () => {
     removeIncomeCategory,
   } = useCategories();
 
-  // Get exchange rates from localStorage for sync
-  const getExchangeRates = useCallback((): Record<string, number> => {
-    try {
-      const cached = localStorage.getItem("moneya_exchange_rates");
-      if (cached) {
-        const { rates } = JSON.parse(cached);
-        return rates || { EUR: 1 };
-      }
-    } catch {
-      // ignore
-    }
-    return { EUR: 1 };
-  }, []);
+  // Exchange rates no longer needed for document sync
+  // Amounts are stored directly in user's native currency
 
-  // Handle currency change with document sync
+  // Handle currency change - NO document sync, just update preference
+  // Documents keep their original amounts - they are stored in native currency
   const handleCurrencyChange = useCallback(async (newCurrency: string) => {
     if (newCurrency === currency || isSyncingCurrency) return;
     
     setIsSyncingCurrency(true);
-    const oldCurrency = currency;
     
     try {
-      // First update the currency preference
       await setCurrency(newCurrency);
-      
-      // Then sync all documents to the new currency
-      const rates = getExchangeRates();
-      await syncDocumentsCurrency(oldCurrency, newCurrency, rates);
-      
       toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`);
     } catch (error) {
       console.error("Error changing currency:", error);
@@ -123,7 +108,7 @@ const Settings = () => {
     } finally {
       setIsSyncingCurrency(false);
     }
-  }, [currency, isSyncingCurrency, setCurrency, syncDocumentsCurrency, getExchangeRates]);
+  }, [currency, isSyncingCurrency, setCurrency]);
 
   // Profile hooks with real-time sync
   const { data: profile, isLoading: profileLoading } = useUserProfile();

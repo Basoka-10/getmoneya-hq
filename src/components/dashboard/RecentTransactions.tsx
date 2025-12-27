@@ -1,5 +1,6 @@
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Transaction {
   id: string;
@@ -15,6 +16,8 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
+  const { formatAmountWithSymbol } = useCurrency();
+
   return (
     <div className="space-y-3">
       {transactions.map((transaction) => (
@@ -53,7 +56,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             )}
           >
             {transaction.type === "income" ? "+" : "-"}
-            {transaction.amount.toLocaleString("fr-FR")} €
+            {formatAmountWithSymbol(transaction.amount)}
           </p>
         </div>
       ))}
