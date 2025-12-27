@@ -129,10 +129,14 @@ export function useDeleteQuotation() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
       const { error } = await supabase
         .from("quotations")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },
@@ -141,6 +145,7 @@ export function useDeleteQuotation() {
       toast.success("Devis supprimé");
     },
     onError: (error) => {
+      console.error("Erreur suppression devis:", error);
       toast.error("Erreur: " + error.message);
     },
   });
