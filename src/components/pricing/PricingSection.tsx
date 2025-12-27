@@ -25,7 +25,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
   monthly: [
     {
       name: "Gratuit",
-      price: "0€",
+      price: "0 FCFA",
       period: "/mois",
       description: "Parfait pour démarrer",
       icon: <Sparkles className="h-6 w-6" />,
@@ -43,7 +43,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Pro",
-      price: "2,99€",
+      price: "2 000 FCFA",
       period: "/mois",
       description: "Pour les freelances actifs",
       icon: <Crown className="h-6 w-6" />,
@@ -61,7 +61,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Business",
-      price: "6,99€",
+      price: "4 500 FCFA",
       period: "/mois",
       description: "Pour les agences & gros volumes",
       icon: <Building2 className="h-6 w-6" />,
@@ -81,7 +81,7 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
   yearly: [
     {
       name: "Gratuit",
-      price: "0€",
+      price: "0 FCFA",
       period: "/an",
       description: "Parfait pour démarrer",
       icon: <Sparkles className="h-6 w-6" />,
@@ -99,8 +99,8 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Pro",
-      price: "9,99€",
-      originalPrice: "84€",
+      price: "6 500 FCFA",
+      originalPrice: "24 000 FCFA",
       period: "/an",
       description: "Pour les freelances actifs",
       icon: <Crown className="h-6 w-6" />,
@@ -119,8 +119,8 @@ const plansData: Record<BillingPeriod, PricingPlan[]> = {
     },
     {
       name: "Business",
-      price: "29,99€",
-      originalPrice: "204€",
+      price: "19 500 FCFA",
+      originalPrice: "54 000 FCFA",
       period: "/an",
       description: "Pour les agences & gros volumes",
       icon: <Building2 className="h-6 w-6" />,

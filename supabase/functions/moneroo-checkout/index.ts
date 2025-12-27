@@ -40,11 +40,11 @@ serve(async (req) => {
       throw new Error("Paramètres manquants: plan, userId, userEmail requis");
     }
 
-    // Determine amount based on plan (in EUR - Moneroo expects amount in main currency unit, not cents)
-    // Updated prices: Pro 2.99€, Business 6.99€
+    // Determine amount based on plan in XOF (FCFA) - integer amounts, no decimals
+    // Pro: ~2000 FCFA, Business: ~4500 FCFA (affordable for African market)
     const amounts: Record<string, number> = {
-      pro: 2.99, // 2,99€
-      business: 6.99, // 6,99€
+      pro: 2000, // 2000 FCFA
+      business: 4500, // 4500 FCFA
     };
 
     const amount = amounts[plan];
@@ -52,7 +52,7 @@ serve(async (req) => {
       throw new Error("Plan invalide");
     }
 
-    console.log(`Creating Moneroo payment for plan: ${plan}, user: ${userEmail}, amount: ${amount} EUR`);
+    console.log(`Creating Moneroo payment for plan: ${plan}, user: ${userEmail}, amount: ${amount} XOF`);
 
     // Get the base URL for redirects
     const origin = req.headers.get("origin") || "https://fisjgmjnezcchxnhihxc.lovableproject.com";
@@ -67,7 +67,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         amount: amount,
-        currency: "EUR",
+        currency: "XOF",
         description: `Abonnement FreelanceBox ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
         customer: {
           email: userEmail,
@@ -102,7 +102,7 @@ serve(async (req) => {
       user_id: userId,
       moneroo_payment_id: paymentId,
       amount: amount,
-      currency: "EUR",
+      currency: "XOF",
       status: "pending",
       plan: plan,
       metadata: monerooData.data,
