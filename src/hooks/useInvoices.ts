@@ -99,6 +99,46 @@ export function useUpdateInvoice() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<Invoice> & { id: string }) => {
+      // Si on passe à "paid", créer une transaction de revenu
+      if (input.status === "paid") {
+        // Récupérer les infos actuelles de la facture
+        const { data: currentInvoice } = await supabase
+          .from("invoices")
+          .select("*, clients(name)")
+          .eq("id", id)
+          .single();
+
+        // Ne créer la transaction que si le statut actuel n'est pas déjà "paid"
+        if (currentInvoice && currentInvoice.status !== "paid") {
+          // Vérifier si une transaction existe déjà pour cette facture
+          const { data: existingTx } = await supabase
+            .from("transactions")
+            .select("id")
+            .ilike("description", `%Facture ${currentInvoice.invoice_number}%`)
+            .maybeSingle();
+
+          if (!existingTx) {
+            // Créer la transaction de revenu
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              const { error: txError } = await supabase.from("transactions").insert({
+                user_id: user.id,
+                type: "income" as const,
+                amount: currentInvoice.amount,
+                description: `Facture ${currentInvoice.invoice_number} payée`,
+                category: "Factures",
+                date: new Date().toISOString().split("T")[0],
+                client_id: currentInvoice.client_id,
+              });
+
+              if (txError) {
+                console.error("Erreur création transaction:", txError);
+              }
+            }
+          }
+        }
+      }
+
       // Clean undefined values to avoid sending them
       const cleanInput: Record<string, unknown> = {};
       Object.entries(input).forEach(([key, value]) => {
@@ -116,6 +156,8 @@ export function useUpdateInvoice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-stats"] });
       toast.success("Facture mise à jour");
     },
     onError: (error) => {

@@ -242,8 +242,8 @@ export function generatePDF(data: DocumentData): jsPDF {
       halign: "left",
     },
     columnStyles: {
-      0: { cellWidth: Math.max(70, contentWidth - 22 - 40 - 40) },
-      1: { cellWidth: 22, halign: "center" },
+      0: { cellWidth: contentWidth - 30 - 40 - 40 },
+      1: { cellWidth: 30, halign: "center" },
       2: { cellWidth: 40, halign: "right" },
       3: { cellWidth: 40, halign: "right" },
     },
