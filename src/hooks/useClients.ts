@@ -99,18 +99,35 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié - veuillez vous reconnecter");
+
+      console.log("Suppression client:", id, "pour user:", user.id);
+
+      const { data, error } = await supabase
         .from("clients")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur DB suppression client:", error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error("Client introuvable ou accès refusé");
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       toast.success("Client supprimé");
     },
     onError: (error) => {
+      console.error("Erreur suppression client:", error);
       toast.error("Erreur: " + error.message);
     },
   });

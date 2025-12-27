@@ -708,7 +708,7 @@ const Settings = () => {
                         <Crown className="h-6 w-6 text-primary" />
                         <div>
                           <h3 className="text-lg font-semibold text-foreground">Pro</h3>
-                          <p className="text-2xl font-bold text-primary">7€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                          <p className="text-2xl font-bold text-primary">2,99€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
                         </div>
                       </div>
                       <ul className="space-y-2 text-sm mb-4">
@@ -752,7 +752,7 @@ const Settings = () => {
                       <Building className={cn("h-6 w-6", currentPlan === "pro" ? "text-primary" : "text-muted-foreground")} />
                       <div>
                         <h3 className="text-lg font-semibold text-foreground">Business</h3>
-                        <p className="text-2xl font-bold text-foreground">17€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                        <p className="text-2xl font-bold text-foreground">6,99€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
                       </div>
                     </div>
                     <ul className="space-y-2 text-sm mb-4">
