@@ -172,15 +172,30 @@ export function useDeleteInvoice() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
+      if (!user) throw new Error("Non authentifié - veuillez vous reconnecter");
 
-      const { error } = await supabase
+      console.log("Suppression facture:", id, "pour user:", user.id);
+
+      const { data, error } = await supabase
         .from("invoices")
         .delete()
         .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur DB suppression facture:", error);
+        throw error;
+      }
+
+      // Vérifier qu'une ligne a bien été supprimée
+      if (!data || data.length === 0) {
+        console.error("Aucune facture supprimée - vérifier RLS ou ID");
+        throw new Error("Facture introuvable ou accès refusé");
+      }
+
+      console.log("Facture supprimée avec succès:", data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });

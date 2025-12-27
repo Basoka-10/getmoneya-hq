@@ -130,15 +130,30 @@ export function useDeleteQuotation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
+      if (!user) throw new Error("Non authentifié - veuillez vous reconnecter");
 
-      const { error } = await supabase
+      console.log("Suppression devis:", id, "pour user:", user.id);
+
+      const { data, error } = await supabase
         .from("quotations")
         .delete()
         .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur DB suppression devis:", error);
+        throw error;
+      }
+
+      // Vérifier qu'une ligne a bien été supprimée
+      if (!data || data.length === 0) {
+        console.error("Aucun devis supprimé - vérifier RLS ou ID");
+        throw new Error("Devis introuvable ou accès refusé");
+      }
+
+      console.log("Devis supprimé avec succès:", data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotations"] });

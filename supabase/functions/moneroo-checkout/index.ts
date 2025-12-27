@@ -41,9 +41,10 @@ serve(async (req) => {
     }
 
     // Determine amount based on plan (in EUR - Moneroo expects amount in main currency unit, not cents)
+    // Updated prices: Pro 2.99€, Business 6.99€
     const amounts: Record<string, number> = {
-      pro: 7, // 7€
-      business: 17, // 17€
+      pro: 2.99, // 2,99€
+      business: 6.99, // 6,99€
     };
 
     const amount = amounts[plan];

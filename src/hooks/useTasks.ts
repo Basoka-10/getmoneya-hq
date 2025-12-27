@@ -109,12 +109,28 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié - veuillez vous reconnecter");
+
+      console.log("Suppression tâche:", id, "pour user:", user.id);
+
+      const { data, error } = await supabase
         .from("tasks")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur DB suppression tâche:", error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error("Tâche introuvable ou accès refusé");
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -122,6 +138,7 @@ export function useDeleteTask() {
       toast.success("Tâche supprimée");
     },
     onError: (error) => {
+      console.error("Erreur suppression tâche:", error);
       toast.error("Erreur: " + error.message);
     },
   });
