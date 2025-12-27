@@ -86,7 +86,7 @@ const RATES_CACHE_KEY = "moneya_exchange_rates";
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>(["EUR", "USD", "XOF", "GNF"]);
-  const [currency, setCurrencyState] = useState<Currency>("EUR");
+  const [currency, setCurrencyState] = useState<Currency>("XOF");
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ EUR: 1, USD: 1.08, XOF: 655.96, GNF: 9200 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
