@@ -67,7 +67,7 @@ export function useCreateInvoice() {
           .select("currency_preference")
           .eq("user_id", user.id)
           .maybeSingle();
-        currencyCode = profile?.currency_preference || "EUR";
+        currencyCode = profile?.currency_preference || "XOF";
       }
 
       const { data, error } = await supabase
