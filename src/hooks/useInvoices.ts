@@ -171,10 +171,14 @@ export function useDeleteInvoice() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
       const { error } = await supabase
         .from("invoices")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },
@@ -183,6 +187,7 @@ export function useDeleteInvoice() {
       toast.success("Facture supprimée");
     },
     onError: (error) => {
+      console.error("Erreur suppression facture:", error);
       toast.error("Erreur: " + error.message);
     },
   });
