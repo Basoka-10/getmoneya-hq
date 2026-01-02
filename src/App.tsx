@@ -24,12 +24,14 @@ import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
+import ApiIntegrations from "./pages/ApiIntegrations";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminLimits from "./pages/admin/AdminLimits";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminApi from "./pages/admin/AdminApi";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +115,14 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/api"
+                  element={
+                    <ProtectedRoute>
+                      <ApiIntegrations />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 {/* Admin Routes */}
                 <Route
@@ -127,6 +137,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="limits" element={<AdminLimits />} />
                   <Route path="logs" element={<AdminLogs />} />
+                  <Route path="api" element={<AdminApi />} />
                   <Route path="settings" element={<AdminSettings />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

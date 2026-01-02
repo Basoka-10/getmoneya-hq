@@ -47,6 +47,131 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_limits: {
+        Row: {
+          advanced_logs: boolean
+          created_at: string
+          id: string
+          max_api_keys: number
+          max_sales_per_month: number
+          plan: string
+          rate_limit_per_minute: number
+          updated_at: string
+          webhooks_enabled: boolean
+        }
+        Insert: {
+          advanced_logs?: boolean
+          created_at?: string
+          id?: string
+          max_api_keys?: number
+          max_sales_per_month?: number
+          plan: string
+          rate_limit_per_minute?: number
+          updated_at?: string
+          webhooks_enabled?: boolean
+        }
+        Update: {
+          advanced_logs?: boolean
+          created_at?: string
+          id?: string
+          max_api_keys?: number
+          max_sales_per_month?: number
+          plan?: string
+          rate_limit_per_minute?: number
+          updated_at?: string
+          webhooks_enabled?: boolean
+        }
+        Relationships: []
+      }
+      api_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          method: string
+          request_body: Json | null
+          response_time_ms: number | null
+          source: string | null
+          status_code: number
+          user_id: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string
+          request_body?: Json | null
+          response_time_ms?: number | null
+          source?: string | null
+          status_code: number
+          user_id: string
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string
+          request_body?: Json | null
+          response_time_ms?: number | null
+          source?: string | null
+          status_code?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           all_day: boolean
@@ -615,9 +740,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_create_api_key: { Args: { _user_id: string }; Returns: boolean }
       can_create_entity: {
         Args: { _entity_type: string; _user_id: string }
         Returns: boolean
+      }
+      get_active_api_keys_count: { Args: { _user_id: string }; Returns: number }
+      get_api_sales_this_month: { Args: { _user_id: string }; Returns: number }
+      get_user_api_limits: {
+        Args: { _user_id: string }
+        Returns: {
+          advanced_logs: boolean
+          max_api_keys: number
+          max_sales_per_month: number
+          plan: string
+          rate_limit_per_minute: number
+          webhooks_enabled: boolean
+        }[]
       }
       get_user_limit_usage: {
         Args: { _entity_type: string; _user_id: string }

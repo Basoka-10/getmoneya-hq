@@ -17,6 +17,7 @@ import {
   Shield,
   Star,
   MessageCircle,
+  Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "Calendrier", href: "/calendar", icon: CalendarDays },
   { name: "Facturation", href: "/invoices", icon: FileText },
+  { name: "API", href: "/api", icon: Key },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ];
 
