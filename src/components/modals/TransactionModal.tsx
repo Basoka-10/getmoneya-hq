@@ -61,26 +61,27 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-card border-border">
+      <DialogContent className="max-w-[95vw] sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">
+          <DialogTitle className="text-foreground text-base">
             {type === "income" ? "Ajouter un revenu" : type === "expense" ? "Ajouter une dépense" : "Ajouter une épargne"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-sm">Description</Label>
             <Input
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={type === "income" ? "Ex: Paiement client ABC" : type === "expense" ? "Ex: Abonnement logiciel" : "Ex: Épargne mensuelle"}
               required
+              className="h-9"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">Montant ({currencyConfig.symbol})</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="amount" className="text-sm">Montant ({currencyConfig.symbol})</Label>
             <Input
               id="amount"
               type="number"
@@ -90,13 +91,14 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
               required
+              className="h-9"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="category">Catégorie</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="category" className="text-sm">Catégorie</Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
@@ -109,22 +111,23 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="date" className="text-sm">Date</Label>
             <Input
               id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+              className="h-9"
             />
           </div>
 
           {type === "income" && clients && clients.length > 0 && (
-            <div className="space-y-2">
-              <Label htmlFor="client">Client (optionnel)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="client" className="text-sm">Client (optionnel)</Label>
               <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Sélectionner un client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,11 +141,11 @@ export function TransactionModal({ open, onOpenChange, type }: TransactionModalP
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-2 pt-3">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={createTransaction.isPending}>
+            <Button type="submit" size="sm" disabled={createTransaction.isPending}>
               {createTransaction.isPending ? "Ajout..." : "Ajouter"}
             </Button>
           </div>
