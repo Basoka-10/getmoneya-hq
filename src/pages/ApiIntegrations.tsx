@@ -62,12 +62,14 @@ import {
   useDeleteApiKey,
   useRegenerateApiKey,
 } from "@/hooks/useApiKeys";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export default function ApiIntegrations() {
   const [newKeyName, setNewKeyName] = useState("");
   const [showNewKey, setShowNewKey] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  const { currentPlan, isLoading: loadingSubscription } = useSubscription();
   const { data: apiKeys = [], isLoading: loadingKeys } = useApiKeys();
   const { data: logs = [], isLoading: loadingLogs } = useApiLogs(20);
   const { data: stats, isLoading: loadingStats } = useApiStats();
@@ -189,7 +191,7 @@ export default function ApiIntegrations() {
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
                 <span className="text-2xl font-bold capitalize">
-                  {loadingStats ? "..." : stats?.limits.plan || "Free"}
+                  {loadingSubscription ? "..." : currentPlan || "free"}
                 </span>
               </div>
             </CardContent>
