@@ -14,6 +14,7 @@ import {
   LogOut,
   ArrowLeft,
   Shield,
+  Key,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -21,6 +22,7 @@ const adminNavItems = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { title: "Utilisateurs", href: "/admin/users", icon: Users },
   { title: "Limites FREE", href: "/admin/limits", icon: Gauge },
+  { title: "API", href: "/admin/api", icon: Key },
   { title: "Logs", href: "/admin/logs", icon: Activity },
   { title: "Paramètres", href: "/admin/settings", icon: Settings },
 ];
