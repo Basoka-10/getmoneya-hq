@@ -149,17 +149,34 @@ export function useUpdateTransaction() {
   });
 }
 
-export function useTransactionStats() {
+export interface DateRange {
+  from: Date | undefined;
+  to: Date | undefined;
+}
+
+export function useTransactionStats(dateRange?: DateRange) {
   return useQuery({
-    queryKey: ["transaction-stats"],
+    queryKey: ["transaction-stats", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
-        .select("type, amount");
+        .select("type, amount, date");
+
+      // Apply date filtering if provided
+      if (dateRange?.from) {
+        const fromDate = dateRange.from.toISOString().split('T')[0];
+        query = query.gte("date", fromDate);
+      }
+      if (dateRange?.to) {
+        const toDate = dateRange.to.toISOString().split('T')[0];
+        query = query.lte("date", toDate);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      const transactions = data as { type: string; amount: number }[];
+      const transactions = data as { type: string; amount: number; date: string }[];
       
       const totalIncome = transactions
         .filter((t) => t.type === "income")

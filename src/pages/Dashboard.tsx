@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FinancialHealth } from "@/components/dashboard/FinancialHealth";
 import { SubscriptionAlert } from "@/components/dashboard/SubscriptionAlert";
+import { PeriodFilter, PeriodType, DateRange } from "@/components/dashboard/PeriodFilter";
 import { Wallet, TrendingUp, TrendingDown, Users, ArrowRight, Loader2, PiggyBank, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTransactionStats, useTransactions } from "@/hooks/useTransactions";
@@ -19,7 +20,10 @@ import { GuideTooltip } from "@/components/onboarding/GuideTooltip";
 const HIDE_AMOUNTS_KEY = "moneya_hide_amounts";
 
 const Dashboard = () => {
-  const { data: stats, isLoading: loadingStats } = useTransactionStats();
+  const [period, setPeriod] = useState<PeriodType>("all");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  
+  const { data: stats, isLoading: loadingStats } = useTransactionStats(dateRange);
   const { data: transactions = [] } = useTransactions();
   const { data: clients = [] } = useClients();
   const { data: tasks = [] } = useTasks();
@@ -64,26 +68,39 @@ const Dashboard = () => {
         <SubscriptionAlert />
 
         {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Bienvenue sur <span className="text-primary">MONEYA</span> 👋
-            </h1>
-            <p className="mt-2 text-muted-foreground text-base md:text-lg">
-              Votre tableau de bord financier
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                Bienvenue sur <span className="text-primary">MONEYA</span> 👋
+              </h1>
+              <p className="mt-2 text-muted-foreground text-base md:text-lg">
+                Votre tableau de bord financier
+              </p>
+            </div>
+            <GuideTooltip content="Masquez vos montants pour plus de confidentialité lorsque vous êtes en public.">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setHideAmounts(!hideAmounts)}
+                className="gap-2"
+              >
+                {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                {hideAmounts ? "Afficher" : "Masquer"}
+              </Button>
+            </GuideTooltip>
           </div>
-          <GuideTooltip content="Masquez vos montants pour plus de confidentialité lorsque vous êtes en public.">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setHideAmounts(!hideAmounts)}
-              className="gap-2"
-            >
-              {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              {hideAmounts ? "Afficher" : "Masquer"}
-            </Button>
-          </GuideTooltip>
+          
+          {/* Period Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Période :</span>
+            <PeriodFilter
+              period={period}
+              dateRange={dateRange}
+              onPeriodChange={setPeriod}
+              onDateRangeChange={setDateRange}
+            />
+          </div>
         </div>
 
         {/* Top Stats */}
