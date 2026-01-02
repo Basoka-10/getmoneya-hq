@@ -77,8 +77,39 @@ export function useApiStats() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      // Get limits
-      const { data: limits } = await supabase.rpc("get_user_api_limits", { _user_id: user.id });
+      // Check if user is owner (admin) - they get business plan limits
+      const { data: isOwner } = await supabase.rpc("is_owner");
+      
+      let userLimits: ApiLimits;
+      
+      if (isOwner) {
+        // Owners get business limits
+        const { data: businessLimits } = await supabase
+          .from("api_limits")
+          .select("*")
+          .eq("plan", "business")
+          .single();
+        
+        userLimits = businessLimits || {
+          plan: "business",
+          max_api_keys: 999999,
+          max_sales_per_month: 10000,
+          webhooks_enabled: true,
+          advanced_logs: true,
+          rate_limit_per_minute: 100,
+        };
+      } else {
+        // Get limits based on subscription
+        const { data: limits } = await supabase.rpc("get_user_api_limits", { _user_id: user.id });
+        userLimits = (limits as ApiLimits[] | null)?.[0] || {
+          plan: "free",
+          max_api_keys: 2,
+          max_sales_per_month: 50,
+          webhooks_enabled: false,
+          advanced_logs: false,
+          rate_limit_per_minute: 10,
+        };
+      }
       
       // Get current usage
       const { data: salesCount } = await supabase.rpc("get_api_sales_this_month", { _user_id: user.id });
@@ -92,15 +123,6 @@ export function useApiStats() {
         .neq("status_code", 201)
         .order("created_at", { ascending: false })
         .limit(10);
-
-      const userLimits = (limits as ApiLimits[] | null)?.[0] || {
-        plan: "free",
-        max_api_keys: 1,
-        max_sales_per_month: 50,
-        webhooks_enabled: false,
-        advanced_logs: false,
-        rate_limit_per_minute: 10,
-      };
 
       return {
         limits: userLimits,
