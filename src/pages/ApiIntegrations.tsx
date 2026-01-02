@@ -205,7 +205,11 @@ export default function ApiIntegrations() {
               <div className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-primary" />
                 <span className="text-2xl font-bold">
-                  {loadingStats ? "..." : `${stats?.usage.activeKeys || 0}/${stats?.limits.max_api_keys || 1}`}
+                  {loadingStats ? "..." : (
+                    stats?.limits.max_api_keys >= 999999 
+                      ? `${stats?.usage.activeKeys || 0} / ∞`
+                      : `${stats?.usage.activeKeys || 0}/${stats?.limits.max_api_keys || 2}`
+                  )}
                 </span>
               </div>
             </CardContent>
@@ -223,10 +227,10 @@ export default function ApiIntegrations() {
                   {loadingStats ? "..." : stats?.usage.salesThisMonth || 0}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  / {stats?.limits.max_sales_per_month || 50}
+                  / {stats?.limits.max_sales_per_month >= 10000 ? "∞" : (stats?.limits.max_sales_per_month || 50)}
                 </span>
               </div>
-              <Progress value={usagePercentage} className="h-2" />
+              <Progress value={stats?.limits.max_sales_per_month >= 10000 ? 0 : usagePercentage} className="h-2" />
             </CardContent>
           </Card>
         </div>
