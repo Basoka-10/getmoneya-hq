@@ -17,12 +17,15 @@ export function PdfPreviewModal({ open, onOpenChange, pdfDoc, filename, title }:
 
   useEffect(() => {
     if (pdfDoc && open) {
-      const blob = pdfDoc.output("blob");
+      // Get the raw blob and create a new one with explicit MIME type
+      const arrayBuffer = pdfDoc.output("arraybuffer");
+      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
 
       return () => {
         URL.revokeObjectURL(url);
+        setPdfUrl(null);
       };
     } else {
       setPdfUrl(null);
@@ -55,11 +58,26 @@ export function PdfPreviewModal({ open, onOpenChange, pdfDoc, filename, title }:
         </DialogHeader>
         <div className="flex-1 overflow-hidden bg-muted/30">
           {pdfUrl ? (
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full border-0"
-              title="Prévisualisation PDF"
-            />
+            <object
+              data={`${pdfUrl}#toolbar=1&view=FitH`}
+              type="application/pdf"
+              className="w-full h-full"
+            >
+              <embed 
+                src={pdfUrl} 
+                type="application/pdf" 
+                className="w-full h-full" 
+              />
+              <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+                <p className="text-muted-foreground">
+                  Votre navigateur ne supporte pas l'affichage PDF intégré.
+                </p>
+                <Button onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger le PDF
+                </Button>
+              </div>
+            </object>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Chargement...

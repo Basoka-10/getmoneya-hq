@@ -240,13 +240,22 @@ export function generatePDF(data: DocumentData): jsPDF {
       fillColor: primaryColor,
       textColor: [255, 255, 255],
       fontStyle: "bold",
-      halign: "left",
     },
     columnStyles: {
-      0: { cellWidth: contentWidth - 30 - 45 - 45 },
+      0: { cellWidth: contentWidth - 30 - 45 - 45, halign: "left" },
       1: { cellWidth: 30, halign: "center" },
       2: { cellWidth: 45, halign: "right" },
       3: { cellWidth: 45, halign: "right" },
+    },
+    didParseCell: (data) => {
+      // Align header cells to match their column alignment
+      if (data.section === 'head') {
+        if (data.column.index === 1) {
+          data.cell.styles.halign = 'center';
+        } else if (data.column.index === 2 || data.column.index === 3) {
+          data.cell.styles.halign = 'right';
+        }
+      }
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
