@@ -304,6 +304,7 @@ export type Database = {
       invoices: {
         Row: {
           amount: number
+          category: string | null
           client_id: string | null
           created_at: string
           currency_code: string | null
@@ -319,6 +320,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category?: string | null
           client_id?: string | null
           created_at?: string
           currency_code?: string | null
@@ -334,6 +336,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category?: string | null
           client_id?: string | null
           created_at?: string
           currency_code?: string | null
