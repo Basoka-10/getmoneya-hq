@@ -176,7 +176,13 @@ export function useDeleteInvoice() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié - veuillez vous reconnecter");
 
-      console.log("Suppression facture:", id, "pour user:", user.id);
+      // Récupérer la facture avant suppression pour vérifier si elle était payée
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("invoice_number, status")
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .single();
 
       const { data, error } = await supabase
         .from("invoices")
@@ -190,17 +196,29 @@ export function useDeleteInvoice() {
         throw error;
       }
 
-      // Vérifier qu'une ligne a bien été supprimée
       if (!data || data.length === 0) {
-        console.error("Aucune facture supprimée - vérifier RLS ou ID");
         throw new Error("Facture introuvable ou accès refusé");
       }
 
-      console.log("Facture supprimée avec succès:", data);
+      // Si la facture était payée, supprimer la transaction associée
+      if (invoice && invoice.status === "paid") {
+        const { error: txDeleteError } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("user_id", user.id)
+          .ilike("description", `%Facture ${invoice.invoice_number}%`);
+
+        if (txDeleteError) {
+          console.error("Erreur suppression transaction associée:", txDeleteError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-stats"] });
       toast.success("Facture supprimée");
     },
     onError: (error) => {
