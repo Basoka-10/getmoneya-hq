@@ -29,6 +29,14 @@ interface LineItem {
   unit_price: number;
 }
 
+const TVA_RATES = [
+  { value: 0, label: "0%" },
+  { value: 5, label: "5%" },
+  { value: 10, label: "10%" },
+  { value: 18, label: "18%" },
+  { value: 20, label: "20%" },
+];
+
 export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: InvoiceModalProps) {
   const today = format(new Date(), "yyyy-MM-dd");
   const defaultDueDate = format(addDays(new Date(), 30), "yyyy-MM-dd");
@@ -41,6 +49,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const [dueDate, setDueDate] = useState(defaultDueDate);
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unit_price: 0 }]);
+  const [tvaRate, setTvaRate] = useState(0);
   const [showQuickClient, setShowQuickClient] = useState(false);
 
   const createInvoice = useCreateInvoice();
@@ -109,7 +118,9 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
     }
   }, [open, invoice, prefillData, today, defaultDueDate]);
 
-  const totalAmountSelected = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const subtotalHT = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const tvaAmount = subtotalHT * (tvaRate / 100);
+  const totalTTC = subtotalHT + tvaAmount;
 
   const addItem = () => {
     setItems([...items, { description: "", quantity: 1, unit_price: 0 }]);
@@ -136,7 +147,9 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         unit_price: Number(item.unit_price) || 0,
       }));
 
-    const totalAmount = itemsToSave.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const subtotal = itemsToSave.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const tva = subtotal * (tvaRate / 100);
+    const totalAmount = subtotal + tva;
 
     if (itemsToSave.length === 0 || totalAmount <= 0) {
       toast.error("Veuillez ajouter au moins un article avec un prix valide");
@@ -152,7 +165,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         issue_date: issueDate,
         due_date: dueDate,
         items: itemsToSave,
-        notes: notes || null,
+        notes: notes ? `TVA: ${tvaRate}%\n${notes}` : `TVA: ${tvaRate}%`,
         currency_code: currency,
       });
     } else {
@@ -163,7 +176,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         issue_date: issueDate,
         due_date: dueDate,
         items: itemsToSave,
-        notes: notes || null,
+        notes: notes ? `TVA: ${tvaRate}%\n${notes}` : `TVA: ${tvaRate}%`,
         currency_code: currency,
       });
     }
@@ -294,8 +307,29 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
                 ))}
               </div>
 
-              <div className="text-right text-lg font-semibold text-foreground">
-                Total: {formatSelectedMoney(totalAmountSelected)}
+              <div className="space-y-1 text-right text-sm">
+                <div className="text-muted-foreground">
+                  Sous-total HT: {formatSelectedMoney(subtotalHT)}
+                </div>
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-muted-foreground">TVA:</span>
+                  <Select value={tvaRate.toString()} onValueChange={(v) => setTvaRate(Number(v))}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TVA_RATES.map((rate) => (
+                        <SelectItem key={rate.value} value={rate.value.toString()}>
+                          {rate.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-muted-foreground">{formatSelectedMoney(tvaAmount)}</span>
+                </div>
+                <div className="text-lg font-semibold text-foreground">
+                  Total TTC: {formatSelectedMoney(totalTTC)}
+                </div>
               </div>
             </div>
 
