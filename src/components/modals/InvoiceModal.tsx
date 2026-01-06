@@ -11,7 +11,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { QuickClientModal } from "./QuickClientModal";
 import { format, addDays } from "date-fns";
 import { Plus, Trash2, UserPlus } from "lucide-react";
-
+import { toast } from "sonner";
 interface InvoiceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -129,14 +129,19 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
     e.preventDefault();
 
     const itemsToSave = items
-      .filter((item) => item.description)
+      .filter((item) => item.description.trim() && (Number(item.quantity) > 0 || Number(item.unit_price) > 0))
       .map((item) => ({
         ...item,
-        quantity: Number(item.quantity) || 0,
+        quantity: Number(item.quantity) || 1,
         unit_price: Number(item.unit_price) || 0,
       }));
 
     const totalAmount = itemsToSave.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+
+    if (itemsToSave.length === 0 || totalAmount <= 0) {
+      toast.error("Veuillez ajouter au moins un article avec un prix valide");
+      return;
+    }
 
     if (isEditing && invoice) {
       await updateInvoice.mutateAsync({

@@ -242,10 +242,10 @@ export function generatePDF(data: DocumentData): jsPDF {
       halign: "left",
     },
     columnStyles: {
-      0: { cellWidth: contentWidth - 30 - 40 - 40 },
-      1: { cellWidth: 30, halign: "center" },
-      2: { cellWidth: 40, halign: "right" },
-      3: { cellWidth: 40, halign: "right" },
+      0: { cellWidth: contentWidth - 25 - 50 - 50 },
+      1: { cellWidth: 25, halign: "center" },
+      2: { cellWidth: 50, halign: "right" },
+      3: { cellWidth: 50, halign: "right" },
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
