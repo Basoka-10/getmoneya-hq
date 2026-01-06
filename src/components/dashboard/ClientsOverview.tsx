@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Client {
   id: string;
@@ -30,6 +31,7 @@ const statusStyles = {
 };
 
 export function ClientsOverview({ clients }: ClientsOverviewProps) {
+  const { formatAmountWithSymbol } = useCurrency();
   return (
     <div className="space-y-3">
       {clients.map((client) => {
@@ -59,7 +61,7 @@ export function ClientsOverview({ clients }: ClientsOverviewProps) {
               </div>
             </div>
             <p className="text-sm font-semibold text-card-foreground">
-              {client.revenue.toLocaleString("fr-FR")} €
+              {formatAmountWithSymbol(client.revenue)}
             </p>
           </div>
         );

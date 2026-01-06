@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useClients, useDeleteClient, Client } from "@/hooks/useClients";
 import { useTransactions } from "@/hooks/useTransactions";
 import { ClientModal } from "@/components/modals/ClientModal";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +44,7 @@ const Clients = () => {
   const { data: clients = [], isLoading } = useClients();
   const { data: transactions = [] } = useTransactions();
   const deleteClient = useDeleteClient();
+  const { formatAmountWithSymbol } = useCurrency();
 
   // Calculate revenue per client
   const getClientRevenue = (clientId: string) => {
@@ -210,7 +212,7 @@ const Clients = () => {
                         </td>
                         <td className="px-3 sm:px-6 py-4 text-sm font-medium text-foreground whitespace-nowrap">
                           {revenue > 0
-                            ? `${revenue.toLocaleString("fr-FR")} €`
+                            ? formatAmountWithSymbol(revenue)
                             : "-"}
                         </td>
                         <td className="px-3 sm:px-6 py-4 text-right">
