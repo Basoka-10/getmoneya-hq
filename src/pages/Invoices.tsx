@@ -153,13 +153,11 @@ const Invoices = () => {
       tvaRate,
     });
 
-    setPreviewPdf(pdf);
-    setPreviewFilename(`facture_${invoice.invoice_number}.pdf`);
-    setPreviewTitle(`Prévisualisation - Facture ${invoice.invoice_number}`);
-    setShowPreview(true);
+    // Télécharger directement (prévisualisation désactivée)
+    pdf.save(`facture_${invoice.invoice_number}.pdf`);
   };
 
-  // Preview quotation PDF
+  // Download quotation PDF directly (preview disabled)
   const handlePreviewQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
     const tvaRate = extractTvaRate(quotation.notes);
@@ -186,10 +184,8 @@ const Invoices = () => {
       tvaRate,
     });
 
-    setPreviewPdf(pdf);
-    setPreviewFilename(`devis_${quotation.quotation_number}.pdf`);
-    setPreviewTitle(`Prévisualisation - Devis ${quotation.quotation_number}`);
-    setShowPreview(true);
+    // Télécharger directement (prévisualisation désactivée)
+    pdf.save(`devis_${quotation.quotation_number}.pdf`);
   };
 
 
