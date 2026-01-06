@@ -22,7 +22,9 @@ import { useClients } from "@/hooks/useClients";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { QuotationModal } from "@/components/modals/QuotationModal";
-import { downloadPDF } from "@/utils/pdfGenerator";
+import { downloadPDF, generatePDF } from "@/utils/pdfGenerator";
+import { PdfPreviewModal } from "@/components/modals/PdfPreviewModal";
+import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -66,6 +68,10 @@ const Invoices = () => {
     items?: LineItem[];
     notes?: string;
   } | undefined>(undefined);
+  const [previewPdf, setPreviewPdf] = useState<jsPDF | null>(null);
+  const [previewFilename, setPreviewFilename] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const { data: invoices = [], isLoading: loadingInvoices } = useInvoices();
   const { data: quotations = [], isLoading: loadingQuotations } = useQuotations();
@@ -113,9 +119,17 @@ const Invoices = () => {
     return [];
   };
 
-  // Download invoice as PDF - documents are already in active currency after sync
-  const handleDownloadInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
+  // Extract TVA rate from notes
+  const extractTvaRate = (notes: string | null): number => {
+    if (!notes) return 0;
+    const match = notes.match(/TVA:\s*(\d+)%/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Preview invoice PDF
+  const handlePreviewInvoice = (invoice: Invoice & { clients: { name: string } | null }) => {
     const client = getClientById(invoice.client_id);
+    const tvaRate = extractTvaRate(invoice.notes);
 
     const invoiceItems = parseItems(invoice.items).map((item) => ({
       ...item,
@@ -123,10 +137,7 @@ const Invoices = () => {
       unit_price: Number(item.unit_price) || 0,
     }));
 
-    const itemsTotal = invoiceItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
-    const amountForPdf = invoiceItems.length ? itemsTotal : Number(invoice.amount) || 0;
-
-    const success = downloadPDF({
+    const pdf = generatePDF({
       type: "invoice",
       number: invoice.invoice_number,
       clientName: invoice.clients?.name,
@@ -136,21 +147,22 @@ const Invoices = () => {
       dueDate: invoice.due_date,
       items: invoiceItems,
       notes: invoice.notes || undefined,
-      amount: amountForPdf,
+      amount: Number(invoice.amount) || 0,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
+      tvaRate,
     });
 
-    if (success) {
-      toast.success("Facture téléchargée");
-    } else {
-      toast.error("Erreur lors du téléchargement");
-    }
+    setPreviewPdf(pdf);
+    setPreviewFilename(`facture_${invoice.invoice_number}.pdf`);
+    setPreviewTitle(`Prévisualisation - Facture ${invoice.invoice_number}`);
+    setShowPreview(true);
   };
 
-  // Download quotation as PDF - documents are already in active currency after sync
-  const handleDownloadQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
+  // Preview quotation PDF
+  const handlePreviewQuotation = (quotation: Quotation & { clients: { name: string } | null }) => {
     const client = getClientById(quotation.client_id);
+    const tvaRate = extractTvaRate(quotation.notes);
 
     const quotationItems = parseItems(quotation.items).map((item) => ({
       ...item,
@@ -158,10 +170,7 @@ const Invoices = () => {
       unit_price: Number(item.unit_price) || 0,
     }));
 
-    const itemsTotal = quotationItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
-    const amountForPdf = quotationItems.length ? itemsTotal : Number(quotation.amount) || 0;
-
-    const success = downloadPDF({
+    const pdf = generatePDF({
       type: "quotation",
       number: quotation.quotation_number,
       clientName: quotation.clients?.name,
@@ -171,17 +180,18 @@ const Invoices = () => {
       validUntil: quotation.valid_until,
       items: quotationItems,
       notes: quotation.notes || undefined,
-      amount: amountForPdf,
+      amount: Number(quotation.amount) || 0,
       currencySymbol: currencyConfig.symbol,
       currencyLocale: currencyConfig.locale,
+      tvaRate,
     });
 
-    if (success) {
-      toast.success("Devis téléchargé");
-    } else {
-      toast.error("Erreur lors du téléchargement");
-    }
+    setPreviewPdf(pdf);
+    setPreviewFilename(`devis_${quotation.quotation_number}.pdf`);
+    setPreviewTitle(`Prévisualisation - Devis ${quotation.quotation_number}`);
+    setShowPreview(true);
   };
+
 
   // Convert quotation to invoice
   const handleConvertToInvoice = (quotation: Quotation & { clients: { name: string } | null }) => {
@@ -360,9 +370,9 @@ const Invoices = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleDownloadInvoice(invoice)}>
+                                  <DropdownMenuItem onClick={() => handlePreviewInvoice(invoice)}>
                                     <Download className="mr-2 h-4 w-4" />
-                                    Télécharger PDF
+                                    Prévisualiser / Télécharger PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
                                     <Pencil className="mr-2 h-4 w-4" />
@@ -464,9 +474,9 @@ const Invoices = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleDownloadQuotation(quotation)}>
+                                  <DropdownMenuItem onClick={() => handlePreviewQuotation(quotation)}>
                                     <Download className="mr-2 h-4 w-4" />
-                                    Télécharger PDF
+                                    Prévisualiser / Télécharger PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditQuotation(quotation)}>
                                     <Pencil className="mr-2 h-4 w-4" />
@@ -525,6 +535,13 @@ const Invoices = () => {
           if (!open) setEditingQuotation(null);
         }}
         quotation={editingQuotation}
+      />
+      <PdfPreviewModal
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        pdfDoc={previewPdf}
+        filename={previewFilename}
+        title={previewTitle}
       />
     </AppLayout>
   );

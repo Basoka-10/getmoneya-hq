@@ -27,6 +27,7 @@ interface DocumentData {
   companyTva?: string;
   currencySymbol?: string;
   currencyLocale?: string;
+  tvaRate?: number;
 }
 
 // Parse items safely - handles both JSON string and array
@@ -242,10 +243,10 @@ export function generatePDF(data: DocumentData): jsPDF {
       halign: "left",
     },
     columnStyles: {
-      0: { cellWidth: contentWidth - 25 - 50 - 50 },
-      1: { cellWidth: 25, halign: "center" },
-      2: { cellWidth: 50, halign: "right" },
-      3: { cellWidth: 50, halign: "right" },
+      0: { cellWidth: contentWidth - 30 - 45 - 45 },
+      1: { cellWidth: 30, halign: "center" },
+      2: { cellWidth: 45, halign: "right" },
+      3: { cellWidth: 45, halign: "right" },
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
@@ -255,6 +256,12 @@ export function generatePDF(data: DocumentData): jsPDF {
   // @ts-ignore - autoTable adds this property
   yPos = doc.lastAutoTable.finalY + 15;
 
+  // Calculate amounts with TVA
+  const tvaRate = data.tvaRate || 0;
+  const subtotalHT = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
+  const tvaAmount = subtotalHT * (tvaRate / 100);
+  const totalTTC = subtotalHT + tvaAmount;
+
   // Totals section
   const totalsX = pageWidth - margin - 80;
 
@@ -263,17 +270,17 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setFontSize(10);
   doc.text("Sous-total HT:", totalsX, yPos);
   doc.setTextColor(...textDark);
-  doc.text(formatCurrency(data.amount), pageWidth - margin, yPos, {
+  doc.text(formatCurrency(subtotalHT), pageWidth - margin, yPos, {
     align: "right",
   });
 
   yPos += 8;
 
-  // TVA line (optional)
+  // TVA line
   doc.setTextColor(...textGray);
-  doc.text("TVA (0%):", totalsX, yPos);
+  doc.text(`TVA (${tvaRate}%):`, totalsX, yPos);
   doc.setTextColor(...textDark);
-  doc.text(formatCurrency(0), pageWidth - margin, yPos, { align: "right" });
+  doc.text(formatCurrency(tvaAmount), pageWidth - margin, yPos, { align: "right" });
 
   yPos += 10;
 
@@ -285,7 +292,7 @@ export function generatePDF(data: DocumentData): jsPDF {
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("TOTAL TTC", totalsX, yPos + 3);
-  doc.text(formatCurrency(data.amount), pageWidth - margin - 5, yPos + 3, {
+  doc.text(formatCurrency(totalTTC), pageWidth - margin - 5, yPos + 3, {
     align: "right",
   });
 
