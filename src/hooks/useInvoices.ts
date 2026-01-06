@@ -20,6 +20,7 @@ export type Invoice = {
   items: InvoiceItem[];
   notes: string | null;
   currency_code: string;
+  category: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -34,6 +35,7 @@ export type CreateInvoiceInput = {
   items?: InvoiceItem[];
   notes?: string | null;
   currency_code?: string;
+  category?: string;
 };
 
 export function useInvoices() {
@@ -126,7 +128,7 @@ export function useUpdateInvoice() {
                 type: "income" as const,
                 amount: currentInvoice.amount,
                 description: `Facture ${currentInvoice.invoice_number} payée`,
-                category: "Factures",
+                category: currentInvoice.category || "Ventes",
                 date: new Date().toISOString().split("T")[0],
                 client_id: currentInvoice.client_id,
               });
