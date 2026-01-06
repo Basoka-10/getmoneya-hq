@@ -368,7 +368,7 @@ const Invoices = () => {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handlePreviewInvoice(invoice)}>
                                     <Download className="mr-2 h-4 w-4" />
-                                    Prévisualiser / Télécharger PDF
+                                    Télécharger PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
                                     <Pencil className="mr-2 h-4 w-4" />
@@ -472,7 +472,7 @@ const Invoices = () => {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handlePreviewQuotation(quotation)}>
                                     <Download className="mr-2 h-4 w-4" />
-                                    Prévisualiser / Télécharger PDF
+                                    Télécharger PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditQuotation(quotation)}>
                                     <Pencil className="mr-2 h-4 w-4" />
