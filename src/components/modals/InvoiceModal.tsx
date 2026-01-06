@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateInvoice, useUpdateInvoice, Invoice } from "@/hooks/useInvoices";
 import { useClients } from "@/hooks/useClients";
+import { useCategories } from "@/hooks/useCategories";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { QuickClientModal } from "./QuickClientModal";
 import { format, addDays } from "date-fns";
@@ -20,6 +21,7 @@ interface InvoiceModalProps {
     clientId?: string;
     items?: LineItem[];
     notes?: string;
+    category?: string;
   };
 }
 
@@ -50,11 +52,13 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unit_price: 0 }]);
   const [tvaRate, setTvaRate] = useState(0);
+  const [category, setCategory] = useState("Ventes");
   const [showQuickClient, setShowQuickClient] = useState(false);
 
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const { data: clients } = useClients();
+  const { incomeCategories } = useCategories();
 
   const isEditing = !!invoice;
 
@@ -91,6 +95,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         setIssueDate(invoice.issue_date);
         setDueDate(invoice.due_date);
         setNotes(invoice.notes || "");
+        setCategory(invoice.category || "Ventes");
         const parsedItems = parseItems(invoice.items);
         const safeItems = parsedItems.length ? parsedItems : [{ description: "", quantity: 1, unit_price: 0 }];
         setItems(
@@ -105,6 +110,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         const prefillItems = prefillData.items || [{ description: "", quantity: 1, unit_price: 0 }];
         setItems(prefillItems.map((it) => ({ ...it, unit_price: Number(it.unit_price) || 0 })));
         setNotes(prefillData.notes || "");
+        setCategory(prefillData.category || "Ventes");
         setIssueDate(today);
         setDueDate(defaultDueDate);
       } else {
@@ -112,6 +118,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         setClientId("");
         setItems([{ description: "", quantity: 1, unit_price: 0 }]);
         setNotes("");
+        setCategory("Ventes");
         setIssueDate(today);
         setDueDate(defaultDueDate);
       }
@@ -167,6 +174,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         items: itemsToSave,
         notes: notes ? `TVA: ${tvaRate}%\n${notes}` : `TVA: ${tvaRate}%`,
         currency_code: currency,
+        category,
       });
     } else {
       await createInvoice.mutateAsync({
@@ -178,6 +186,7 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
         items: itemsToSave,
         notes: notes ? `TVA: ${tvaRate}%\n${notes}` : `TVA: ${tvaRate}%`,
         currency_code: currency,
+        category,
       });
     }
 
@@ -259,6 +268,25 @@ export function InvoiceModal({ open, onOpenChange, invoice, prefillData }: Invoi
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Catégorie de revenu</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {incomeCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Cette catégorie sera utilisée pour enregistrer le revenu quand la facture sera payée
+              </p>
             </div>
 
             {/* Line Items */}
