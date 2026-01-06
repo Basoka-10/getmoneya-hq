@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
+import { Download, X, FileText, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 
@@ -13,22 +13,19 @@ interface PdfPreviewModalProps {
 }
 
 export function PdfPreviewModal({ open, onOpenChange, pdfDoc, filename, title }: PdfPreviewModalProps) {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (pdfDoc && open) {
-      // Get the raw blob and create a new one with explicit MIME type
-      const arrayBuffer = pdfDoc.output("arraybuffer");
-      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+      // Use data URL instead of blob URL for better compatibility
+      const dataUrl = pdfDoc.output("datauristring");
+      setPdfDataUrl(dataUrl);
 
       return () => {
-        URL.revokeObjectURL(url);
-        setPdfUrl(null);
+        setPdfDataUrl(null);
       };
     } else {
-      setPdfUrl(null);
+      setPdfDataUrl(null);
     }
   }, [pdfDoc, open]);
 
@@ -39,50 +36,58 @@ export function PdfPreviewModal({ open, onOpenChange, pdfDoc, filename, title }:
     }
   };
 
+  const handleOpenInNewTab = () => {
+    if (pdfDataUrl) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head><title>${title}</title></head>
+            <body style="margin:0;padding:0;overflow:hidden;">
+              <iframe src="${pdfDataUrl}" style="width:100%;height:100%;border:none;"></iframe>
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-2xl flex flex-col p-0">
         <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-foreground">{title}</DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button onClick={handleDownload} size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden bg-muted/30">
-          {pdfUrl ? (
-            <object
-              data={`${pdfUrl}#toolbar=1&view=FitH`}
-              type="application/pdf"
-              className="w-full h-full"
-            >
-              <embed 
-                src={pdfUrl} 
-                type="application/pdf" 
-                className="w-full h-full" 
-              />
-              <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
-                <p className="text-muted-foreground">
-                  Votre navigateur ne supporte pas l'affichage PDF intégré.
-                </p>
-                <Button onClick={handleDownload}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Télécharger le PDF
-                </Button>
-              </div>
-            </object>
-          ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Chargement...
+        <div className="p-6 flex flex-col items-center gap-6">
+          <div className="w-24 h-32 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-border">
+            <FileText className="h-12 w-12 text-primary" />
+          </div>
+          
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-medium">PDF prêt</span>
             </div>
-          )}
+            <p className="text-sm text-muted-foreground">
+              {filename}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+            <Button onClick={handleDownload} className="flex-1">
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger
+            </Button>
+            <Button variant="outline" onClick={handleOpenInNewTab} className="flex-1">
+              Ouvrir dans un onglet
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
