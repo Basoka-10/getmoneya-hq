@@ -11,6 +11,7 @@ export type Transaction = {
   category: string;
   date: string;
   client_id: string | null;
+  currency_code: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -22,6 +23,7 @@ export type CreateTransactionInput = {
   category: string;
   date: string;
   client_id?: string | null;
+  currency_code?: string;
 };
 
 export function useTransactions(type?: "income" | "expense" | "savings") {
@@ -53,11 +55,23 @@ export function useCreateTransaction() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
+      // Get user's currency preference if not provided
+      let currencyCode = input.currency_code;
+      if (!currencyCode) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("currency_preference")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        currencyCode = profile?.currency_preference || "XOF";
+      }
+
       const { data, error } = await supabase
         .from("transactions")
         .insert({
           ...input,
           user_id: user.id,
+          currency_code: currencyCode,
         })
         .select()
         .single();
