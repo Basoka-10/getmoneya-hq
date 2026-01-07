@@ -649,6 +649,7 @@ export type Database = {
           category: string
           client_id: string | null
           created_at: string
+          currency_code: string | null
           date: string
           description: string
           id: string
@@ -661,6 +662,7 @@ export type Database = {
           category: string
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           date?: string
           description: string
           id?: string
@@ -673,6 +675,7 @@ export type Database = {
           category?: string
           client_id?: string | null
           created_at?: string
+          currency_code?: string | null
           date?: string
           description?: string
           id?: string

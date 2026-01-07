@@ -131,6 +131,7 @@ export function useUpdateInvoice() {
                 category: currentInvoice.category || "Ventes",
                 date: new Date().toISOString().split("T")[0],
                 client_id: currentInvoice.client_id,
+                currency_code: currentInvoice.currency_code || "XOF",
               });
 
               if (txError) {
