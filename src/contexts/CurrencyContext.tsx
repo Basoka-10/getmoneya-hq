@@ -72,6 +72,9 @@ interface CurrencyContextType {
   // Native formatting - no conversion, displays amount as-is in current currency
   formatAmount: (amount: number) => string;
   formatAmountWithSymbol: (amount: number, showSign?: boolean) => string;
+  // Display-time conversion: converts amount from source currency to user's display currency
+  convertAndFormat: (amount: number, fromCurrency: string | null | undefined) => string;
+  convertAmount: (amount: number, fromCurrency: string | null | undefined) => number;
   // Legacy conversion functions - use only when comparing different currencies
   convertFromEUR: (amountInEUR: number) => number;
   convertToEUR: (amount: number, fromCurrency?: Currency) => number;
@@ -79,6 +82,7 @@ interface CurrencyContextType {
   error: string | null;
   refreshRates: () => Promise<void>;
   supportedCurrencies: string[];
+  exchangeRates: ExchangeRates;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -345,6 +349,28 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     [currency, exchangeRates]
   );
 
+  // Convert amount from source currency to display currency (for display-time conversion)
+  const convertAmount = useCallback(
+    (amount: number, fromCurrency: string | null | undefined): number => {
+      const sourceCurrency = fromCurrency || currency;
+      
+      // If same currency, no conversion needed
+      if (sourceCurrency === currency) {
+        return amount;
+      }
+      
+      const sourceRate = exchangeRates[sourceCurrency] || 1;
+      const targetRate = exchangeRates[currency] || 1;
+      
+      // Convert: source → EUR → target
+      const amountInEur = amount / sourceRate;
+      const converted = amountInEur * targetRate;
+      
+      return Number(converted.toFixed(currencyConfig.decimals));
+    },
+    [currency, exchangeRates, currencyConfig.decimals]
+  );
+
   // Format amount without symbol - NO CONVERSION, displays as-is in current currency
   const formatAmount = useCallback(
     (amount: number): string => {
@@ -373,6 +399,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     [currency, currencyConfig]
   );
 
+  // Convert and format in one step (for display-time conversion)
+  const convertAndFormat = useCallback(
+    (amount: number, fromCurrency: string | null | undefined): string => {
+      const converted = convertAmount(amount, fromCurrency);
+      return formatAmountWithSymbol(converted);
+    },
+    [convertAmount, formatAmountWithSymbol]
+  );
+
   return (
     <CurrencyContext.Provider
       value={{
@@ -381,12 +416,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrency,
         formatAmount,
         formatAmountWithSymbol,
+        convertAndFormat,
+        convertAmount,
         convertFromEUR,
         convertToEUR,
         isLoading,
         error,
         refreshRates,
         supportedCurrencies,
+        exchangeRates,
       }}
     >
       {children}
