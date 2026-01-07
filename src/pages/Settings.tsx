@@ -90,41 +90,63 @@ const Settings = () => {
   } = useCategories();
 
   // Handle currency change with full data conversion
-  const handleCurrencyChange = useCallback(async (newCurrency: string) => {
-    if (newCurrency === currency || isSyncingCurrency) return;
-    
-    setIsSyncingCurrency(true);
-    const oldCurrency = currency;
-    
-    try {
-      // Get latest exchange rates
-      await refreshRates();
-      
-      // Fetch exchange rates from the edge function to get all rates
-      const { data: ratesData } = await supabase.functions.invoke("exchange-rates");
-      const exchangeRates: Record<string, number> = { EUR: 1 };
-      
-      if (ratesData?.result === "success" && ratesData?.rates) {
-        Object.assign(exchangeRates, ratesData.rates);
+  const handleCurrencyChange = useCallback(
+    async (newCurrency: string) => {
+      if (newCurrency === currency || isSyncingCurrency) return;
+
+      setIsSyncingCurrency(true);
+      const oldCurrency = currency;
+
+      try {
+        // 1) Fetch exchange rates FIRST (if we can't get rates, we must NOT change the user's currency)
+        const { data: ratesData, error: ratesError } = await supabase.functions.invoke(
+          "exchange-rates"
+        );
+
+        if (ratesError) {
+          throw new Error(ratesError.message || "Erreur lors de la récupération des taux");
+        }
+
+        const exchangeRates: Record<string, number> = {
+          EUR: 1,
+          ...(ratesData?.result === "success" && ratesData?.rates ? ratesData.rates : {}),
+        };
+
+        // Guard rails: ensure we have the currencies we need, otherwise conversion would silently do nothing
+        if (oldCurrency !== "EUR" && !exchangeRates[oldCurrency]) {
+          throw new Error(
+            `Taux manquant pour ${oldCurrency}. Conversion annulée pour éviter de fausser vos montants.`
+          );
+        }
+        if (newCurrency !== "EUR" && !exchangeRates[newCurrency]) {
+          throw new Error(
+            `Taux manquant pour ${newCurrency}. Conversion annulée pour éviter de fausser vos montants.`
+          );
+        }
+
+        // 2) Convert data first (transactions + documents)
+        await syncTransactionsCurrency(oldCurrency, newCurrency, exchangeRates);
+        await syncDocumentsCurrency(oldCurrency, newCurrency, exchangeRates);
+
+        // 3) Only after a successful conversion, update the user's preference
+        await setCurrency(newCurrency);
+
+        toast.success(
+          `Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`
+        );
+      } catch (error) {
+        console.error("Error changing currency:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Erreur lors du changement de devise"
+        );
+      } finally {
+        setIsSyncingCurrency(false);
       }
-      
-      // Update user's currency preference first
-      await setCurrency(newCurrency);
-      
-      // Convert all transactions to new currency
-      await syncTransactionsCurrency(oldCurrency, newCurrency, exchangeRates);
-      
-      // Convert all documents (invoices/quotations) to new currency
-      await syncDocumentsCurrency(oldCurrency, newCurrency, exchangeRates);
-      
-      toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`);
-    } catch (error) {
-      console.error("Error changing currency:", error);
-      toast.error("Erreur lors du changement de devise");
-    } finally {
-      setIsSyncingCurrency(false);
-    }
-  }, [currency, isSyncingCurrency, setCurrency, refreshRates, syncTransactionsCurrency, syncDocumentsCurrency]);
+    },
+    [currency, isSyncingCurrency, setCurrency, syncTransactionsCurrency, syncDocumentsCurrency]
+  );
 
   // Profile hooks with real-time sync
   const { data: profile, isLoading: profileLoading } = useUserProfile();
