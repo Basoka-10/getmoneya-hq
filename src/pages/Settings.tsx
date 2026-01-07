@@ -15,9 +15,10 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
+// Document sync disabled - amounts are stored in native currency
+// import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
-import { CurrencyRepairTool } from "@/components/settings/CurrencyRepairTool";
 import {
   User,
   Building,
@@ -71,12 +72,14 @@ const Settings = () => {
   const [isSyncingCurrency, setIsSyncingCurrency] = useState(false);
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currency, setCurrency, currencyConfig, convertFromEUR, convertToEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
+  const { currency, setCurrency, currencyConfig, convertFromEUR, isLoading: currencyLoading, refreshRates, supportedCurrencies } = useCurrency();
   const { guideEnabled, setGuideEnabled } = useGuideMode();
   const { resetTour } = useOnboardingTour();
   const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
   const { data: clients = [] } = useClients();
   const { data: invoices = [] } = useInvoices();
+  // Document sync disabled - amounts are stored in native currency
+  // const { syncDocumentsCurrency } = useDocumentCurrencySync();
   const {
     expenseCategories,
     incomeCategories,
@@ -86,33 +89,26 @@ const Settings = () => {
     removeIncomeCategory,
   } = useCategories();
 
-  // Handle currency change - NO data conversion, just preference update
-  const handleCurrencyChange = useCallback(
-    async (newCurrency: string) => {
-      if (newCurrency === currency || isSyncingCurrency) return;
+  // Exchange rates no longer needed for document sync
+  // Amounts are stored directly in user's native currency
 
-      setIsSyncingCurrency(true);
-
-      try {
-        // Just update the user's display preference - no data modification
-        await setCurrency(newCurrency);
-
-        toast.success(
-          `Devise d'affichage changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`
-        );
-      } catch (error) {
-        console.error("Error changing currency:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Erreur lors du changement de devise"
-        );
-      } finally {
-        setIsSyncingCurrency(false);
-      }
-    },
-    [currency, isSyncingCurrency, setCurrency]
-  );
+  // Handle currency change - NO document sync, just update preference
+  // Documents keep their original amounts - they are stored in native currency
+  const handleCurrencyChange = useCallback(async (newCurrency: string) => {
+    if (newCurrency === currency || isSyncingCurrency) return;
+    
+    setIsSyncingCurrency(true);
+    
+    try {
+      await setCurrency(newCurrency);
+      toast.success(`Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`);
+    } catch (error) {
+      console.error("Error changing currency:", error);
+      toast.error("Erreur lors du changement de devise");
+    } finally {
+      setIsSyncingCurrency(false);
+    }
+  }, [currency, isSyncingCurrency, setCurrency]);
 
   // Profile hooks with real-time sync
   const { data: profile, isLoading: profileLoading } = useUserProfile();
@@ -1052,9 +1048,6 @@ const Settings = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Currency Repair Tool */}
-              <CurrencyRepairTool />
             </div>
           )}
 
