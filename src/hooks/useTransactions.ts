@@ -168,13 +168,17 @@ export interface DateRange {
   to: Date | undefined;
 }
 
+/**
+ * Hook to get transaction stats with display-time currency conversion.
+ * All amounts are converted from their original currency to the user's display currency.
+ */
 export function useTransactionStats(dateRange?: DateRange) {
   return useQuery({
     queryKey: ["transaction-stats", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
       let query = supabase
         .from("transactions")
-        .select("type, amount, date");
+        .select("type, amount, date, currency_code");
 
       // Apply date filtering if provided
       if (dateRange?.from) {
@@ -190,27 +194,47 @@ export function useTransactionStats(dateRange?: DateRange) {
 
       if (error) throw error;
 
-      const transactions = data as { type: string; amount: number; date: string }[];
-      
-      const totalIncome = transactions
-        .filter((t) => t.type === "income")
-        .reduce((acc, t) => acc + Number(t.amount), 0);
-      
-      const totalExpenses = transactions
-        .filter((t) => t.type === "expense")
-        .reduce((acc, t) => acc + Number(t.amount), 0);
-
-      const totalSavings = transactions
-        .filter((t) => t.type === "savings")
-        .reduce((acc, t) => acc + Number(t.amount), 0);
-
-      return {
-        totalIncome,
-        totalExpenses,
-        totalSavings,
-        balance: totalIncome - totalExpenses - totalSavings,
-        percentageSpent: totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0,
-      };
+      // Return raw transactions data - conversion happens in the component
+      return data as { type: string; amount: number; date: string; currency_code: string | null }[];
     },
   });
+}
+
+/**
+ * Hook to calculate transaction stats with currency conversion applied.
+ * Uses the CurrencyContext to convert amounts at display time.
+ */
+export function useConvertedTransactionStats(
+  transactions: { type: string; amount: number; currency_code: string | null }[] | undefined,
+  convertAmount: (amount: number, fromCurrency: string | null | undefined) => number
+) {
+  if (!transactions) {
+    return {
+      totalIncome: 0,
+      totalExpenses: 0,
+      totalSavings: 0,
+      balance: 0,
+      percentageSpent: 0,
+    };
+  }
+
+  const totalIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((acc, t) => acc + convertAmount(Number(t.amount), t.currency_code), 0);
+  
+  const totalExpenses = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((acc, t) => acc + convertAmount(Number(t.amount), t.currency_code), 0);
+
+  const totalSavings = transactions
+    .filter((t) => t.type === "savings")
+    .reduce((acc, t) => acc + convertAmount(Number(t.amount), t.currency_code), 0);
+
+  return {
+    totalIncome,
+    totalExpenses,
+    totalSavings,
+    balance: totalIncome - totalExpenses - totalSavings,
+    percentageSpent: totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0,
+  };
 }

@@ -5,7 +5,7 @@ import { SubscriptionAlert } from "@/components/dashboard/SubscriptionAlert";
 import { PeriodFilter, PeriodType, DateRange } from "@/components/dashboard/PeriodFilter";
 import { Wallet, TrendingUp, TrendingDown, Users, ArrowRight, Loader2, PiggyBank, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTransactionStats, useTransactions } from "@/hooks/useTransactions";
+import { useTransactionStats, useTransactions, useConvertedTransactionStats } from "@/hooks/useTransactions";
 import { useClients } from "@/hooks/useClients";
 import { useTasks, useToggleTask } from "@/hooks/useTasks";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Clock, ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { GuideTooltip } from "@/components/onboarding/GuideTooltip";
 
@@ -23,12 +23,17 @@ const Dashboard = () => {
   const [period, setPeriod] = useState<PeriodType>("all");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   
-  const { data: stats, isLoading: loadingStats } = useTransactionStats(dateRange);
+  const { data: rawStats, isLoading: loadingStats } = useTransactionStats(dateRange);
   const { data: transactions = [] } = useTransactions();
   const { data: clients = [] } = useClients();
   const { data: tasks = [] } = useTasks();
   const toggleTask = useToggleTask();
-  const { formatAmount, currencyConfig } = useCurrency();
+  const { formatAmount, currencyConfig, convertAmount, convertAndFormat } = useCurrency();
+
+  // Calculate stats with currency conversion
+  const stats = useMemo(() => {
+    return useConvertedTransactionStats(rawStats, convertAmount);
+  }, [rawStats, convertAmount]);
 
   const [hideAmounts, setHideAmounts] = useState(() => {
     return localStorage.getItem(HIDE_AMOUNTS_KEY) === "true";
@@ -59,6 +64,13 @@ const Dashboard = () => {
   const formatHiddenAmount = (amount: number) => {
     if (hideAmounts) return "••••";
     return formatAmount(amount);
+  };
+
+  // Format transaction with currency conversion
+  const formatTransactionAmount = (amount: number, currencyCode: string | null, type: string) => {
+    if (hideAmounts) return "••••••";
+    const prefix = type === "income" ? "+" : type === "expense" ? "-" : "";
+    return prefix + convertAndFormat(amount, currencyCode);
   };
 
   return (
@@ -115,7 +127,7 @@ const Dashboard = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               ) : (
                 <p className="text-4xl md:text-5xl font-bold tracking-tight text-card-foreground">
-                  {formatHiddenAmount(stats?.balance || 0)}
+                  {formatHiddenAmount(stats.balance)}
                   {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
                 </p>
               )}
@@ -132,7 +144,7 @@ const Dashboard = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               ) : (
                 <p className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
-                  {formatHiddenAmount(stats?.totalSavings || 0)}
+                  {formatHiddenAmount(stats.totalSavings)}
                   {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
                 </p>
               )}
@@ -156,7 +168,7 @@ const Dashboard = () => {
             <div className="w-full">
               <StatCard
                 title="Revenus totaux"
-                value={formatCurrency(stats?.totalIncome || 0)}
+                value={formatCurrency(stats.totalIncome)}
                 icon={TrendingUp}
                 iconColor="success"
               />
@@ -166,7 +178,7 @@ const Dashboard = () => {
             <div className="w-full">
               <StatCard
                 title="Dépenses totales"
-                value={formatCurrency(stats?.totalExpenses || 0)}
+                value={formatCurrency(stats.totalExpenses)}
                 icon={TrendingDown}
                 iconColor="warning"
               />
@@ -175,7 +187,7 @@ const Dashboard = () => {
           <GuideTooltip content="Pourcentage de vos revenus dépensés. Moins de 70% = bonne santé financière.">
             <div className="rounded-xl border border-border bg-card p-6 w-full">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Santé financière</h3>
-              <FinancialHealth percentageSpent={stats?.percentageSpent || 0} />
+              <FinancialHealth percentageSpent={stats.percentageSpent} />
             </div>
           </GuideTooltip>
         </div>
@@ -241,7 +253,7 @@ const Dashboard = () => {
                       t.type === "expense" ? "text-destructive" : 
                       "text-primary"
                     )}>
-                      {t.type === "income" ? "+" : t.type === "expense" ? "-" : ""}{formatCurrency(Number(t.amount))}
+                      {formatTransactionAmount(Number(t.amount), t.currency_code, t.type)}
                     </span>
                   </div>
                 ))}

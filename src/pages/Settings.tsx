@@ -15,8 +15,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfile, useUserProfilePrivate, useUpdateProfile, useUpdateProfilePrivate } from "@/hooks/useProfile";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
-import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
-import { useTransactionCurrencySync } from "@/hooks/useTransactionCurrencySync";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 import {
@@ -78,8 +76,6 @@ const Settings = () => {
   const { currentPlan, isActive, isPaid, isLoading: subscriptionLoading, subscription } = useSubscription();
   const { data: clients = [] } = useClients();
   const { data: invoices = [] } = useInvoices();
-  const { syncDocumentsCurrency } = useDocumentCurrencySync();
-  const { syncTransactionsCurrency } = useTransactionCurrencySync();
   const {
     expenseCategories,
     incomeCategories,
@@ -89,50 +85,19 @@ const Settings = () => {
     removeIncomeCategory,
   } = useCategories();
 
-  // Handle currency change with full data conversion
+  // Handle currency change - NO data conversion, just preference update
   const handleCurrencyChange = useCallback(
     async (newCurrency: string) => {
       if (newCurrency === currency || isSyncingCurrency) return;
 
       setIsSyncingCurrency(true);
-      const oldCurrency = currency;
 
       try {
-        // 1) Fetch exchange rates FIRST (if we can't get rates, we must NOT change the user's currency)
-        const { data: ratesData, error: ratesError } = await supabase.functions.invoke(
-          "exchange-rates"
-        );
-
-        if (ratesError) {
-          throw new Error(ratesError.message || "Erreur lors de la récupération des taux");
-        }
-
-        const exchangeRates: Record<string, number> = {
-          EUR: 1,
-          ...(ratesData?.result === "success" && ratesData?.rates ? ratesData.rates : {}),
-        };
-
-        // Guard rails: ensure we have the currencies we need, otherwise conversion would silently do nothing
-        if (oldCurrency !== "EUR" && !exchangeRates[oldCurrency]) {
-          throw new Error(
-            `Taux manquant pour ${oldCurrency}. Conversion annulée pour éviter de fausser vos montants.`
-          );
-        }
-        if (newCurrency !== "EUR" && !exchangeRates[newCurrency]) {
-          throw new Error(
-            `Taux manquant pour ${newCurrency}. Conversion annulée pour éviter de fausser vos montants.`
-          );
-        }
-
-        // 2) Convert data first (transactions + documents)
-        await syncTransactionsCurrency(oldCurrency, newCurrency, exchangeRates);
-        await syncDocumentsCurrency(oldCurrency, newCurrency, exchangeRates);
-
-        // 3) Only after a successful conversion, update the user's preference
+        // Just update the user's display preference - no data modification
         await setCurrency(newCurrency);
 
         toast.success(
-          `Devise changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`
+          `Devise d'affichage changée en ${ALL_CURRENCY_CONFIGS[newCurrency]?.name || newCurrency}`
         );
       } catch (error) {
         console.error("Error changing currency:", error);
@@ -145,7 +110,7 @@ const Settings = () => {
         setIsSyncingCurrency(false);
       }
     },
-    [currency, isSyncingCurrency, setCurrency, syncTransactionsCurrency, syncDocumentsCurrency]
+    [currency, isSyncingCurrency, setCurrency]
   );
 
   // Profile hooks with real-time sync

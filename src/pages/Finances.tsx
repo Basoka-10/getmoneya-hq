@@ -39,18 +39,15 @@ const Finances = () => {
   const { data: expenses = [], isLoading: loadingExpenses } = useTransactions("expense");
   const { data: savings = [], isLoading: loadingSavings } = useTransactions("savings");
   const deleteTransaction = useDeleteTransaction();
-  const { formatAmount, currencyConfig } = useCurrency();
+  const { currencyConfig, convertAndFormat } = useCurrency();
 
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
   };
 
-  const formatCurrency = (amount: number) => {
-    const formatted = formatAmount(amount);
-    if (currencyConfig.code === "USD") {
-      return `${currencyConfig.symbol}${formatted}`;
-    }
-    return `${formatted} ${currencyConfig.symbol}`;
+  // Format with currency conversion
+  const formatCurrency = (amount: number, currencyCode: string | null) => {
+    return convertAndFormat(amount, currencyCode);
   };
 
   // Get all unique categories
@@ -147,7 +144,7 @@ const Finances = () => {
         {formatDate(transaction.date)}
       </td>
       <td className={cn("whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold", amountColorClass)}>
-        {amountPrefix}{formatCurrency(Number(transaction.amount))}
+        {amountPrefix}{formatCurrency(Number(transaction.amount), transaction.currency_code)}
       </td>
       <td className="whitespace-nowrap px-2 sm:px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-1">
@@ -421,8 +418,7 @@ const Finances = () => {
                         saving,
                         <PiggyBank className="h-4 w-4" />,
                         "bg-primary/10 text-primary",
-                        "text-primary",
-                        ""
+                        "text-primary"
                       )
                     )}
                   </tbody>
@@ -432,29 +428,31 @@ const Finances = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Modals */}
-      <TransactionModal
-        type="income"
-        open={showIncomeModal}
-        onOpenChange={setShowIncomeModal}
-      />
-      <TransactionModal
-        type="expense"
-        open={showExpenseModal}
-        onOpenChange={setShowExpenseModal}
-      />
-      <TransactionModal
-        type="savings"
-        open={showSavingsModal}
-        onOpenChange={setShowSavingsModal}
-      />
-      <EditTransactionModal
-        open={!!editingTransaction}
-        onOpenChange={(open) => !open && setEditingTransaction(null)}
-        transaction={editingTransaction}
-      />
+        {/* Transaction Modals */}
+        <TransactionModal
+          open={showIncomeModal}
+          onOpenChange={setShowIncomeModal}
+          type="income"
+        />
+        <TransactionModal
+          open={showExpenseModal}
+          onOpenChange={setShowExpenseModal}
+          type="expense"
+        />
+        <TransactionModal
+          open={showSavingsModal}
+          onOpenChange={setShowSavingsModal}
+          type="savings"
+        />
+        <EditTransactionModal
+          transaction={editingTransaction}
+          open={!!editingTransaction}
+          onOpenChange={(open) => {
+            if (!open) setEditingTransaction(null);
+          }}
+        />
+      </div>
     </AppLayout>
   );
 };

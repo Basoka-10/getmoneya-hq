@@ -25,7 +25,7 @@ const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Se
 
 const Analysis = () => {
   const { data: transactions = [] } = useTransactions();
-  const { formatAmount, currencyConfig } = useCurrency();
+  const { formatAmount, currencyConfig, convertAmount } = useCurrency();
 
   const formatCurrency = (amount: number) => {
     const formatted = formatAmount(amount);
@@ -35,7 +35,7 @@ const Analysis = () => {
     return `${formatted} ${currencyConfig.symbol}`;
   };
 
-  // Calculate monthly data from real transactions
+  // Calculate monthly data from real transactions with currency conversion
   const monthlyData = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const data = MONTHS.map((name, index) => ({
@@ -48,31 +48,34 @@ const Analysis = () => {
       const date = new Date(t.date);
       if (date.getFullYear() === currentYear) {
         const monthIndex = date.getMonth();
+        // Convert amount from original currency to display currency
+        const convertedAmount = convertAmount(Number(t.amount), t.currency_code);
         if (t.type === "income") {
-          data[monthIndex].revenus += Number(t.amount);
-        } else {
-          data[monthIndex].depenses += Number(t.amount);
+          data[monthIndex].revenus += convertedAmount;
+        } else if (t.type === "expense") {
+          data[monthIndex].depenses += convertedAmount;
         }
       }
     });
 
     return data;
-  }, [transactions]);
+  }, [transactions, convertAmount]);
 
-  // Calculate category data from real expenses
+  // Calculate category data from real expenses with currency conversion
   const categoryData = useMemo(() => {
     const categories: Record<string, number> = {};
     
     transactions
       .filter((t) => t.type === "expense")
       .forEach((t) => {
-        categories[t.category] = (categories[t.category] || 0) + Number(t.amount);
+        const convertedAmount = convertAmount(Number(t.amount), t.currency_code);
+        categories[t.category] = (categories[t.category] || 0) + convertedAmount;
       });
 
     return Object.entries(categories)
       .map(([name, montant]) => ({ name, montant }))
       .sort((a, b) => b.montant - a.montant);
-  }, [transactions]);
+  }, [transactions, convertAmount]);
 
   const totalRevenue = monthlyData.reduce((acc, d) => acc + d.revenus, 0);
   const totalExpenses = monthlyData.reduce((acc, d) => acc + d.depenses, 0);
