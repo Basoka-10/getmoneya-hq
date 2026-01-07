@@ -17,6 +17,7 @@ import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
+import { CurrencyRepairTool } from "@/components/settings/CurrencyRepairTool";
 import {
   User,
   Building,
@@ -1051,6 +1052,9 @@ const Settings = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Currency Repair Tool */}
+              <CurrencyRepairTool />
             </div>
           )}
 
