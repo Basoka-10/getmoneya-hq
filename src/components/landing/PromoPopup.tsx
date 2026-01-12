@@ -15,6 +15,9 @@ export function PromoPopup({ onAccept }: PromoPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // TEMPORARILY DISABLED - Popup is disabled for now
+  // To re-enable, uncomment the useEffect below
+  /*
   useEffect(() => {
     // Check if popup was recently closed
     const closedAt = localStorage.getItem(POPUP_STORAGE_KEY);
@@ -34,6 +37,7 @@ export function PromoPopup({ onAccept }: PromoPopupProps) {
 
     return () => clearTimeout(timer);
   }, []);
+  */
 
   const handleClose = () => {
     setIsAnimating(false);
