@@ -25,7 +25,7 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
   const [dueTime, setDueTime] = useState(task?.due_time || "");
   const [clientId, setClientId] = useState(task?.client_id || "");
   const [reminderMinutes, setReminderMinutes] = useState<string>(
-    task?.reminder_minutes?.toString() || ""
+    task?.reminder_minutes?.toString() || "none"
   );
 
   const createTask = useCreateTask();
@@ -44,7 +44,7 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
       due_date: dueDate || null,
       due_time: dueTime || null,
       client_id: clientId || null,
-      reminder_minutes: reminderMinutes ? parseInt(reminderMinutes) : null,
+      reminder_minutes: reminderMinutes && reminderMinutes !== "none" ? parseInt(reminderMinutes) : null,
       reminder_sent: false, // Reset reminder when updating
     };
 
@@ -61,7 +61,7 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
     setDueDate(format(new Date(), "yyyy-MM-dd"));
     setDueTime("");
     setClientId("");
-    setReminderMinutes("");
+    setReminderMinutes("none");
     onOpenChange(false);
   };
 
@@ -164,7 +164,7 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
                   <SelectValue placeholder="Pas de rappel" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Pas de rappel</SelectItem>
+                  <SelectItem value="none">Pas de rappel</SelectItem>
                   <SelectItem value="5">5 minutes avant</SelectItem>
                   <SelectItem value="10">10 minutes avant</SelectItem>
                   <SelectItem value="15">15 minutes avant</SelectItem>
