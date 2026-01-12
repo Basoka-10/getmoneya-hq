@@ -12,6 +12,8 @@ export type Task = {
   due_date: string | null;
   due_time: string | null;
   client_id: string | null;
+  reminder_minutes: number | null;
+  reminder_sent: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -23,6 +25,7 @@ export type CreateTaskInput = {
   due_date?: string | null;
   due_time?: string | null;
   client_id?: string | null;
+  reminder_minutes?: number | null;
 };
 
 export function useTasks(date?: string) {

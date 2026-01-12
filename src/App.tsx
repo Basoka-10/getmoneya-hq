@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { TaskReminderProvider } from "@/hooks/useTaskReminders";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
@@ -41,11 +42,12 @@ const App = () => (
       <AuthProvider>
         <CurrencyProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <InstallPrompt />
-            <BrowserRouter>
-              <OnboardingTour />
+            <TaskReminderProvider>
+              <Toaster />
+              <Sonner />
+              <InstallPrompt />
+              <BrowserRouter>
+                <OnboardingTour />
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/politique-confidentialite" element={<PrivacyPolicy />} />
@@ -142,7 +144,8 @@ const App = () => (
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
+              </BrowserRouter>
+            </TaskReminderProvider>
           </TooltipProvider>
         </CurrencyProvider>
       </AuthProvider>

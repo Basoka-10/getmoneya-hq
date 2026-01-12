@@ -603,6 +603,8 @@ export type Database = {
           due_time: string | null
           id: string
           priority: Database["public"]["Enums"]["task_priority"]
+          reminder_minutes: number | null
+          reminder_sent: boolean | null
           title: string
           updated_at: string
           user_id: string
@@ -616,6 +618,8 @@ export type Database = {
           due_time?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          reminder_minutes?: number | null
+          reminder_sent?: boolean | null
           title: string
           updated_at?: string
           user_id: string
@@ -629,6 +633,8 @@ export type Database = {
           due_time?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          reminder_minutes?: number | null
+          reminder_sent?: boolean | null
           title?: string
           updated_at?: string
           user_id?: string

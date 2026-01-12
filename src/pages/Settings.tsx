@@ -19,6 +19,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 // import { useDocumentCurrencySync } from "@/hooks/useDocumentCurrencySync";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
+import { TaskReminderSettings } from "@/components/settings/TaskReminderSettings";
 import {
   User,
   Building,
@@ -1094,47 +1095,7 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-card p-6 shadow-card space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Alertes financières</p>
-                    <p className="text-sm text-muted-foreground">
-                      Notification si 70% du capital est dépensé
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Rappels de tâches</p>
-                    <p className="text-sm text-muted-foreground">
-                      Notifications pour les tâches du jour
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Factures impayées</p>
-                    <p className="text-sm text-muted-foreground">
-                      Alertes pour les factures en retard
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Résumé hebdomadaire</p>
-                    <p className="text-sm text-muted-foreground">
-                      Récapitulatif chaque lundi matin
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-              </div>
+              <TaskReminderSettings />
             </div>
           )}
 

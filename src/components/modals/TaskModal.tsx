@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateTask, Task, useUpdateTask } from "@/hooks/useTasks";
 import { useClients } from "@/hooks/useClients";
 import { format } from "date-fns";
+import { Bell } from "lucide-react";
 
 interface TaskModalProps {
   open: boolean;
@@ -23,6 +24,9 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
   const [dueDate, setDueDate] = useState(task?.due_date || defaultDate || format(new Date(), "yyyy-MM-dd"));
   const [dueTime, setDueTime] = useState(task?.due_time || "");
   const [clientId, setClientId] = useState(task?.client_id || "");
+  const [reminderMinutes, setReminderMinutes] = useState<string>(
+    task?.reminder_minutes?.toString() || ""
+  );
 
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -40,6 +44,8 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
       due_date: dueDate || null,
       due_time: dueTime || null,
       client_id: clientId || null,
+      reminder_minutes: reminderMinutes ? parseInt(reminderMinutes) : null,
+      reminder_sent: false, // Reset reminder when updating
     };
 
     if (isEditing) {
@@ -55,6 +61,7 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
     setDueDate(format(new Date(), "yyyy-MM-dd"));
     setDueTime("");
     setClientId("");
+    setReminderMinutes("");
     onOpenChange(false);
   };
 
@@ -144,6 +151,32 @@ export function TaskModal({ open, onOpenChange, task, defaultDate }: TaskModalPr
               </div>
             )}
           </div>
+
+          {/* Reminder selection - only show if time is set */}
+          {dueTime && (
+            <div className="space-y-2">
+              <Label htmlFor="reminder" className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                Rappel
+              </Label>
+              <Select value={reminderMinutes} onValueChange={setReminderMinutes}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pas de rappel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Pas de rappel</SelectItem>
+                  <SelectItem value="5">5 minutes avant</SelectItem>
+                  <SelectItem value="10">10 minutes avant</SelectItem>
+                  <SelectItem value="15">15 minutes avant</SelectItem>
+                  <SelectItem value="30">30 minutes avant</SelectItem>
+                  <SelectItem value="60">1 heure avant</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Vous recevrez une notification avant l'heure prévue
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
