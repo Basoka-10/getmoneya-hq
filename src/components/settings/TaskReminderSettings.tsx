@@ -2,11 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useTaskReminders } from "@/hooks/useTaskReminders";
-import { Bell, BellRing, Check, X } from "lucide-react";
+import { Bell, BellRing, Check, X, Smartphone, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function TaskReminderSettings() {
-  const { notificationPermission, requestPermission, isSupported } = useTaskReminders();
+  const { notificationPermission, requestPermission, isSupported, supportsNativeNotifications } = useTaskReminders();
 
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
@@ -35,15 +35,14 @@ export function TaskReminderSettings() {
           <div>
             <p className="text-sm font-medium text-foreground">Rappels de tâches</p>
             <p className="text-sm text-muted-foreground">
-              {!isSupported ? "Non supporté par votre navigateur" :
-               isEnabled ? "Notifications activées" :
-               isDenied ? "Notifications bloquées" :
+              {isEnabled ? "Rappels activés sur cet appareil" :
+               isDenied ? "Notifications système bloquées" :
                "Recevez des rappels avant vos tâches"}
             </p>
           </div>
         </div>
         
-        {isSupported && !isEnabled && !isDenied && (
+        {!isEnabled && !isDenied && (
           <Button onClick={handleEnableNotifications} size="sm" variant="outline">
             Activer
           </Button>
@@ -64,18 +63,52 @@ export function TaskReminderSettings() {
         )}
       </div>
 
+      {/* Device compatibility - always show */}
+      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+        <div className="flex items-center gap-2 mb-2">
+          <Smartphone className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Compatibilité multi-appareils</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <p className="flex items-center gap-2">
+            <Check className="h-3 w-3 text-green-500 shrink-0" />
+            <span>Alertes visuelles (tous appareils)</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <Volume2 className="h-3 w-3 text-green-500 shrink-0" />
+            <span>Alertes sonores (tous appareils)</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <Check className="h-3 w-3 text-green-500 shrink-0" />
+            <span>Vibration (Android/iOS)</span>
+          </p>
+          <p className="flex items-center gap-2">
+            {supportsNativeNotifications ? (
+              <Check className="h-3 w-3 text-green-500 shrink-0" />
+            ) : (
+              <Bell className="h-3 w-3 text-yellow-500 shrink-0" />
+            )}
+            <span>
+              {supportsNativeNotifications 
+                ? "Notifications système" 
+                : "In-app uniquement (iOS Safari)"}
+            </span>
+          </p>
+        </div>
+      </div>
+
       {isDenied && (
         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive">
-            Les notifications sont bloquées. Pour les activer, modifiez les paramètres de votre navigateur 
-            pour ce site, puis rafraîchissez la page.
+            Les notifications système sont bloquées, mais vous recevrez toujours des alertes 
+            sonores et visuelles dans l'application.
           </p>
         </div>
       )}
 
       <Separator />
 
-      {/* Other notification settings - non-functional placeholders */}
+      {/* Other notification settings */}
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">Alertes financières</p>
@@ -111,23 +144,19 @@ export function TaskReminderSettings() {
       </div>
 
       {/* Info about how reminders work */}
-      {isEnabled && (
-        <>
-          <Separator />
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <BellRing className="h-4 w-4 text-primary" />
-              Comment fonctionnent les rappels ?
-            </h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Créez une tâche avec une heure précise</li>
-              <li>• Choisissez le délai de rappel (5, 10, 15, 30 min ou 1h avant)</li>
-              <li>• Vous recevrez une notification à l'heure du rappel</li>
-              <li>• Gardez l'onglet ouvert pour recevoir les notifications</li>
-            </ul>
-          </div>
-        </>
-      )}
+      <Separator />
+      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+          <BellRing className="h-4 w-4 text-primary" />
+          Comment fonctionnent les rappels ?
+        </h4>
+        <ul className="text-sm text-muted-foreground space-y-1">
+          <li>• Créez une tâche avec une heure précise</li>
+          <li>• Choisissez le délai de rappel (5, 10, 15, 30 min ou 1h avant)</li>
+          <li>• Recevez une alerte sonore + visuelle à l'heure du rappel</li>
+          <li>• <strong>Important:</strong> Gardez l'app ouverte pour les rappels</li>
+        </ul>
+      </div>
     </div>
   );
 }
