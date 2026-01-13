@@ -14,17 +14,74 @@ type Task = {
   completed: boolean;
 };
 
+// Detect if device supports native notifications
+const supportsNativeNotifications = (): boolean => {
+  if (!("Notification" in window)) return false;
+  
+  // iOS Safari doesn't support web notifications properly
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+  
+  // iOS 16.4+ PWA supports notifications, but browser doesn't
+  if (isIOS && !isStandalone) return false;
+  
+  return true;
+};
+
+// Play alarm sound
+const playAlarmSound = () => {
+  try {
+    // Create an oscillator for alarm sound (works on all devices)
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    const playBeep = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
+      
+      gainNode.gain.setValueAtTime(0.3, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    // Play a pleasant alarm pattern
+    const now = audioContext.currentTime;
+    playBeep(880, now, 0.15);
+    playBeep(880, now + 0.2, 0.15);
+    playBeep(1100, now + 0.4, 0.2);
+    
+  } catch (error) {
+    console.log("Audio not supported:", error);
+  }
+};
+
+// Vibrate device if supported
+const vibrateDevice = () => {
+  if ("vibrate" in navigator) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+};
+
 export function useTaskReminders() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+  const [isSupported, setIsSupported] = useState(true);
 
   // Request notification permission
   const requestPermission = useCallback(async () => {
-    if (!("Notification" in window)) {
-      console.log("This browser does not support notifications");
-      return false;
+    if (!supportsNativeNotifications()) {
+      // Even without native notifications, we support in-app alerts
+      setNotificationPermission("granted");
+      return true;
     }
 
     if (Notification.permission === "granted") {
@@ -42,22 +99,42 @@ export function useTaskReminders() {
     return false;
   }, []);
 
-  // Send a notification
-  const sendNotification = useCallback((title: string, body: string) => {
-    if (Notification.permission === "granted") {
-      const notification = new Notification(title, {
-        body,
-        icon: "/icons/icon-192x192.png",
-        badge: "/icons/icon-192x192.png",
-        tag: "task-reminder",
-        requireInteraction: true,
-      });
+  // Send a notification (with fallbacks for all devices)
+  const sendNotification = useCallback((title: string, body: string, taskTitle: string) => {
+    // Always play sound and vibrate (works on all devices)
+    playAlarmSound();
+    vibrateDevice();
+    
+    // Try native notification first
+    if (supportsNativeNotifications() && Notification.permission === "granted") {
+      try {
+        const notification = new Notification(title, {
+          body,
+          icon: "/logo.png",
+          badge: "/logo.png",
+          tag: "task-reminder",
+          requireInteraction: true,
+          silent: false,
+        });
 
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      } catch (error) {
+        console.log("Native notification failed:", error);
+      }
     }
+    
+    // Always show in-app toast (works everywhere including iOS)
+    toast.info(`⏰ ${taskTitle}`, {
+      description: body,
+      duration: 15000, // 15 seconds for important reminders
+      action: {
+        label: "OK",
+        onClick: () => {},
+      },
+    });
   }, []);
 
   // Mark task as reminded
@@ -117,15 +194,10 @@ export function useTaskReminders() {
         if (diffMinutes >= 0 && diffMinutes < 1) {
           sendNotification(
             "⏰ Rappel de tâche",
-            `${task.title} - dans ${task.reminder_minutes} minutes`
+            `À faire dans ${task.reminder_minutes} minutes`,
+            task.title
           );
           await markTaskAsReminded(task.id);
-          
-          // Also show a toast for in-app notification
-          toast.info(`Rappel: ${task.title}`, {
-            description: `À faire dans ${task.reminder_minutes} minutes`,
-            duration: 10000,
-          });
         }
       }
     } catch (error) {
@@ -137,16 +209,22 @@ export function useTaskReminders() {
   useEffect(() => {
     if (!user?.id) return;
 
+    // Check native notification support
+    setIsSupported(true); // We always support in-app notifications
+    
     // Check permission on mount
-    if ("Notification" in window) {
+    if (supportsNativeNotifications()) {
       setNotificationPermission(Notification.permission);
+    } else {
+      // For iOS and unsupported browsers, we use in-app notifications
+      setNotificationPermission("granted");
     }
 
     // Check immediately on mount
     checkUpcomingTasks();
 
-    // Set up interval to check every minute
-    intervalRef.current = setInterval(checkUpcomingTasks, 60 * 1000);
+    // Set up interval to check every 30 seconds for better accuracy
+    intervalRef.current = setInterval(checkUpcomingTasks, 30 * 1000);
 
     return () => {
       if (intervalRef.current) {
@@ -158,7 +236,8 @@ export function useTaskReminders() {
   return {
     notificationPermission,
     requestPermission,
-    isSupported: "Notification" in window,
+    isSupported,
+    supportsNativeNotifications: supportsNativeNotifications(),
   };
 }
 
