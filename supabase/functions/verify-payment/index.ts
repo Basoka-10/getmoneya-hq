@@ -7,6 +7,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("=== VERIFY PAYMENT START ===");
+  console.log("Method:", req.method);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -14,7 +17,7 @@ serve(async (req) => {
 
   try {
     const { payment_id, user_id, plan } = await req.json();
-    console.log(`Verifying payment ${payment_id} for user ${user_id}, plan ${plan}`);
+    console.log("Request data:", { payment_id, user_id, plan });
 
     const monerooSecretKey = Deno.env.get("MONEROO_SECRET_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -29,27 +32,29 @@ serve(async (req) => {
       );
     }
 
-    // First, check if we already have a successful payment in database
+    // D'abord vérifier si on a déjà un paiement réussi en base
+    console.log("Checking existing payment in database...");
     const { data: existingPayment } = await supabase
       .from("payments")
       .select("*")
       .eq("moneroo_payment_id", payment_id)
       .single();
 
-    console.log("Existing payment in DB:", existingPayment);
+    console.log("Existing payment:", JSON.stringify(existingPayment, null, 2));
 
-    // Check if user already has an active subscription
+    // Vérifier si l'utilisateur a déjà un abonnement actif
+    console.log("Checking existing subscription...");
     const { data: existingSubscription } = await supabase
       .from("subscriptions")
       .select("*")
       .eq("user_id", user_id)
       .single();
 
-    console.log("Existing subscription:", existingSubscription);
+    console.log("Existing subscription:", JSON.stringify(existingSubscription, null, 2));
 
-    // If subscription is already active with this plan, return success
+    // Si l'abonnement est déjà actif avec ce plan, retourner succès
     if (existingSubscription?.status === "active" && existingSubscription?.plan === plan) {
-      console.log("Subscription already active");
+      console.log("Subscription already active with correct plan");
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -60,12 +65,14 @@ serve(async (req) => {
       );
     }
 
-    // Verify payment status with Moneroo API
+    // Vérifier le statut du paiement avec l'API Moneroo
     let paymentStatus = existingPayment?.status;
     
-    if (payment_id && (!paymentStatus || paymentStatus === "pending")) {
+    if (payment_id && payment_id !== "unknown" && (!paymentStatus || paymentStatus === "pending")) {
       try {
-        console.log("Checking Moneroo API for payment status...");
+        console.log("Calling Moneroo API to verify payment status...");
+        console.log("Payment ID:", payment_id);
+        
         const monerooResponse = await fetch(`https://api.moneroo.io/v1/payments/${payment_id}`, {
           method: "GET",
           headers: {
@@ -75,37 +82,53 @@ serve(async (req) => {
           },
         });
 
+        console.log("Moneroo API response status:", monerooResponse.status);
+
         if (monerooResponse.ok) {
           const monerooData = await monerooResponse.json();
-          console.log("Moneroo payment data:", JSON.stringify(monerooData));
+          console.log("Moneroo payment data:", JSON.stringify(monerooData, null, 2));
           
+          // Format Moneroo: { data: { status: "..." } }
           paymentStatus = monerooData.data?.status || monerooData.status;
           console.log("Payment status from Moneroo:", paymentStatus);
 
-          // Update payment status in our database
-          if (paymentStatus) {
-            await supabase
+          // Mettre à jour le statut en base
+          if (paymentStatus && paymentStatus !== existingPayment?.status) {
+            console.log("Updating payment status in database...");
+            const { error: updateError } = await supabase
               .from("payments")
               .update({ 
                 status: paymentStatus,
                 updated_at: new Date().toISOString()
               })
               .eq("moneroo_payment_id", payment_id);
+            
+            if (updateError) {
+              console.error("Error updating payment status:", updateError);
+            } else {
+              console.log("Payment status updated to:", paymentStatus);
+            }
           }
         } else {
-          console.error("Moneroo API error:", monerooResponse.status, await monerooResponse.text());
+          const errorText = await monerooResponse.text();
+          console.error("Moneroo API error:", monerooResponse.status, errorText);
         }
       } catch (apiError) {
         console.error("Error calling Moneroo API:", apiError);
       }
     }
 
-    // If payment is successful, activate subscription
+    // Vérifier si le paiement est réussi
     const successStatuses = ["success", "paid", "completed", "successful"];
-    if (paymentStatus && successStatuses.includes(paymentStatus.toLowerCase())) {
-      console.log(`Payment verified as ${paymentStatus}, activating subscription...`);
+    const isSuccess = paymentStatus && successStatuses.includes(paymentStatus.toLowerCase());
+    
+    console.log("Payment status:", paymentStatus);
+    console.log("Is success:", isSuccess);
 
-      // Calculate expiry date (1 month from now)
+    if (isSuccess) {
+      console.log("=== PAYMENT VERIFIED AS SUCCESS, ACTIVATING SUBSCRIPTION ===");
+
+      // Calculer la date d'expiration (1 mois)
       const expiresAt = new Date();
       expiresAt.setMonth(expiresAt.getMonth() + 1);
 
@@ -114,16 +137,18 @@ serve(async (req) => {
         plan: plan,
         status: "active",
         payment_id: payment_id,
-        amount: existingPayment?.amount || (plan === "business" ? 17 : 7),
-        currency: existingPayment?.currency || "EUR",
+        amount: existingPayment?.amount || (plan === "business" ? 4500 : 2000),
+        currency: existingPayment?.currency || "XOF",
         started_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         updated_at: new Date().toISOString(),
       };
 
+      console.log("Subscription data:", JSON.stringify(subscriptionData, null, 2));
+
       let subscriptionResult;
       if (existingSubscription) {
-        // Update existing subscription
+        console.log("Updating existing subscription...");
         const { data, error } = await supabase
           .from("subscriptions")
           .update(subscriptionData)
@@ -133,7 +158,7 @@ serve(async (req) => {
         
         subscriptionResult = { data, error };
       } else {
-        // Create new subscription
+        console.log("Creating new subscription...");
         const { data, error } = await supabase
           .from("subscriptions")
           .insert(subscriptionData)
@@ -155,7 +180,9 @@ serve(async (req) => {
         );
       }
 
-      console.log("Subscription activated successfully:", subscriptionResult.data);
+      console.log("✅ Subscription activated successfully:", JSON.stringify(subscriptionResult.data, null, 2));
+      console.log("=== VERIFY PAYMENT SUCCESS ===");
+      
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -166,8 +193,10 @@ serve(async (req) => {
       );
     }
 
-    // Payment not yet confirmed
-    console.log(`Payment status is ${paymentStatus}, not activating`);
+    // Paiement pas encore confirmé
+    console.log(`Payment status "${paymentStatus}" is not a success status`);
+    console.log("=== VERIFY PAYMENT - NOT YET CONFIRMED ===");
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
@@ -178,7 +207,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Verify payment error:", error);
+    console.error("=== VERIFY PAYMENT ERROR ===");
+    console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: "Payment verification failed", details: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

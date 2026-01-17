@@ -6,6 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// URL de production fixe - NE PAS utiliser req.headers.get("origin")
+const RETURN_URL_BASE = "https://getmoneya.pro";
+
 interface CheckoutRequest {
   plan: "pro" | "business";
   userId: string;
@@ -22,6 +25,9 @@ interface MonerooResponse {
 }
 
 serve(async (req) => {
+  console.log("=== MONEROO CHECKOUT START ===");
+  console.log("Method:", req.method);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,13 +41,13 @@ serve(async (req) => {
     }
 
     const { plan, userId, userEmail, userName } = await req.json() as CheckoutRequest;
+    console.log("Request data:", { plan, userId, userEmail, userName });
 
     if (!plan || !userId || !userEmail) {
       throw new Error("Paramètres manquants: plan, userId, userEmail requis");
     }
 
     // Determine amount based on plan in XOF (FCFA) - integer amounts, no decimals
-    // Pro: ~2000 FCFA, Business: ~4500 FCFA (affordable for African market)
     const amounts: Record<string, number> = {
       pro: 2000, // 2000 FCFA
       business: 4500, // 4500 FCFA
@@ -53,11 +59,32 @@ serve(async (req) => {
     }
 
     console.log(`Creating Moneroo payment for plan: ${plan}, user: ${userEmail}, amount: ${amount} XOF`);
+    console.log(`Return URL base: ${RETURN_URL_BASE}`);
 
-    // Get the base URL for redirects
-    const origin = req.headers.get("origin") || "https://fisjgmjnezcchxnhihxc.lovableproject.com";
+    // Préparer l'URL de retour - Moneroo ajoutera ses propres paramètres
+    const returnUrl = `${RETURN_URL_BASE}/payment-success?plan=${plan}&user_id=${userId}`;
+    console.log("Return URL for Moneroo:", returnUrl);
 
     // Initialize Moneroo payment
+    const monerooPayload = {
+      amount: amount,
+      currency: "XOF",
+      description: `Abonnement Moneya ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
+      customer: {
+        email: userEmail,
+        first_name: userName?.split(" ")[0] || "Client",
+        last_name: userName?.split(" ").slice(1).join(" ") || "Moneya",
+      },
+      return_url: returnUrl,
+      metadata: {
+        plan: plan,
+        user_id: userId,
+        user_email: userEmail,
+      },
+    };
+
+    console.log("Moneroo request payload:", JSON.stringify(monerooPayload, null, 2));
+
     const monerooResponse = await fetch("https://api.moneroo.io/v1/payments/initialize", {
       method: "POST",
       headers: {
@@ -65,26 +92,12 @@ serve(async (req) => {
         "Authorization": `Bearer ${MONEROO_SECRET_KEY}`,
         "Accept": "application/json",
       },
-      body: JSON.stringify({
-        amount: amount,
-        currency: "XOF",
-        description: `Abonnement FreelanceBox ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
-        customer: {
-          email: userEmail,
-          first_name: userName?.split(" ")[0] || "Client",
-          last_name: userName?.split(" ").slice(1).join(" ") || "FreelanceBox",
-        },
-        return_url: `${origin}/payment-success?plan=${plan}&user_id=${userId}`,
-        metadata: {
-          plan: plan,
-          user_id: userId,
-          user_email: userEmail,
-        },
-      }),
+      body: JSON.stringify(monerooPayload),
     });
 
     const monerooData: MonerooResponse = await monerooResponse.json();
-    console.log("Moneroo response:", JSON.stringify(monerooData));
+    console.log("Moneroo response status:", monerooResponse.status);
+    console.log("Moneroo response:", JSON.stringify(monerooData, null, 2));
 
     if (!monerooResponse.ok) {
       console.error("Moneroo error:", monerooData);
@@ -92,6 +105,7 @@ serve(async (req) => {
     }
 
     const paymentId = monerooData.data?.id || "unknown";
+    console.log("Payment ID from Moneroo:", paymentId);
 
     // Store payment record in database
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -110,11 +124,17 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Error storing payment:", insertError);
+    } else {
+      console.log("Payment record stored successfully");
     }
 
-    // Return checkout URL with paymentId included
+    // Return checkout URL with paymentId included for the frontend
     const checkoutUrl = monerooData.data?.checkout_url;
-    const returnUrlWithPaymentId = `${origin}/payment-success?plan=${plan}&user_id=${userId}&paymentId=${paymentId}`;
+    const returnUrlWithPaymentId = `${RETURN_URL_BASE}/payment-success?plan=${plan}&user_id=${userId}&paymentId=${paymentId}`;
+
+    console.log("Checkout URL:", checkoutUrl);
+    console.log("Return URL with payment ID:", returnUrlWithPaymentId);
+    console.log("=== MONEROO CHECKOUT SUCCESS ===");
 
     return new Response(
       JSON.stringify({
@@ -129,6 +149,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("=== MONEROO CHECKOUT ERROR ===");
     console.error("Checkout error:", error);
     return new Response(
       JSON.stringify({ 
