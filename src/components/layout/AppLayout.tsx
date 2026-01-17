@@ -55,7 +55,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         "pt-14", // Account for header on both mobile and desktop
         "md:ml-20 lg:ml-64" // Collapsed sidebar on tablet, full on desktop
       )}>
-        <div className="p-4 md:p-5 lg:p-8">{children}</div>
+        <div className="p-3 sm:p-4 md:p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

@@ -28,15 +28,15 @@ export function StatCard({
   subtitle,
 }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 transition-all duration-200 hover:border-primary/30 hover:glow-primary">
-      <div className="flex items-center gap-2 text-muted-foreground mb-4">
-        <Icon className={cn("h-5 w-5", iconColorClasses[iconColor])} />
-        <p className="text-sm font-medium">{title}</p>
+    <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6 transition-all duration-200 hover:border-primary/30 hover:glow-primary">
+      <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3 md:mb-4">
+        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColorClasses[iconColor])} />
+        <p className="text-xs sm:text-sm font-medium">{title}</p>
       </div>
       
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-4xl font-bold tracking-tight text-card-foreground">
+          <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-card-foreground">
             {value}
           </p>
           {subtitle && (

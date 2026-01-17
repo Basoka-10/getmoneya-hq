@@ -63,7 +63,7 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-8 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
         {/* Subscription Alert */}
         <SubscriptionAlert />
 
@@ -71,7 +71,7 @@ const Dashboard = () => {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="text-center sm:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
                 Bienvenue sur <span className="text-primary">MONEYA</span> 👋
               </h1>
               <p className="mt-2 text-muted-foreground text-base md:text-lg">
@@ -104,54 +104,54 @@ const Dashboard = () => {
         </div>
 
         {/* Top Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <GuideTooltip content="Votre solde actuel = Revenus - Dépenses - Épargne. C'est l'argent disponible.">
-            <div className="rounded-xl border border-border bg-card p-6 w-full">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <Wallet className="h-5 w-5 text-primary" />
-                <p className="text-sm font-medium">Solde actuel</p>
+            <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3 md:mb-4">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <p className="text-xs sm:text-sm font-medium">Solde actuel</p>
               </div>
               {loadingStats ? (
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-muted-foreground" />
               ) : (
-                <p className="text-4xl md:text-5xl font-bold tracking-tight text-card-foreground">
+                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-card-foreground">
                   {formatHiddenAmount(stats?.balance || 0)}
-                  {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
+                  {!hideAmounts && <span className="text-lg sm:text-xl md:text-2xl ml-1">{currencyConfig.symbol}</span>}
                 </p>
               )}
             </div>
           </GuideTooltip>
           
           <GuideTooltip content="Total de vos épargnes. Cliquez sur Finances pour gérer vos économies.">
-            <div className="rounded-xl border border-border bg-card p-6 w-full">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <PiggyBank className="h-5 w-5 text-primary" />
-                <p className="text-sm font-medium">Épargne totale</p>
+            <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3 md:mb-4">
+                <PiggyBank className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <p className="text-xs sm:text-sm font-medium">Épargne totale</p>
               </div>
               {loadingStats ? (
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-muted-foreground" />
               ) : (
-                <p className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
+                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-primary">
                   {formatHiddenAmount(stats?.totalSavings || 0)}
-                  {!hideAmounts && <span className="text-2xl ml-1">{currencyConfig.symbol}</span>}
+                  {!hideAmounts && <span className="text-lg sm:text-xl md:text-2xl ml-1">{currencyConfig.symbol}</span>}
                 </p>
               )}
             </div>
           </GuideTooltip>
 
           <GuideTooltip content="Nombre de clients avec le statut 'actif'. Gérez vos clients dans la section Clients.">
-            <div className="rounded-xl border border-border bg-card p-6 w-full">
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <Users className="h-5 w-5 text-primary" />
-                <p className="text-sm font-medium">Clients actifs</p>
+            <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6 w-full">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3 md:mb-4">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <p className="text-xs sm:text-sm font-medium">Clients actifs</p>
               </div>
-              <p className="text-4xl md:text-5xl font-bold tracking-tight text-card-foreground">{activeClients}</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-card-foreground">{activeClients}</p>
             </div>
           </GuideTooltip>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           <GuideTooltip content="Somme de tous vos revenus enregistrés.">
             <div className="w-full">
               <StatCard
@@ -173,19 +173,19 @@ const Dashboard = () => {
             </div>
           </GuideTooltip>
           <GuideTooltip content="Pourcentage de vos revenus dépensés. Moins de 70% = bonne santé financière.">
-            <div className="rounded-xl border border-border bg-card p-6 w-full">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Santé financière</h3>
+            <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6 w-full">
+              <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Santé financière</h3>
               <FinancialHealth percentageSpent={stats?.percentageSpent || 0} />
             </div>
           </GuideTooltip>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 xl:grid-cols-2">
           {/* Tasks */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-card-foreground">Tâches du jour</h2>
+          <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6">
+            <div className="mb-3 sm:mb-4 flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-semibold text-card-foreground">Tâches du jour</h2>
               <Link to="/tasks" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
                 Voir tout <ArrowRight className="h-4 w-4" />
               </Link>
@@ -208,9 +208,9 @@ const Dashboard = () => {
           </div>
 
           {/* Transactions */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-card-foreground">Transactions récentes</h2>
+          <div className="rounded-xl border border-border bg-card p-3 sm:p-4 md:p-6">
+            <div className="mb-3 sm:mb-4 flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-semibold text-card-foreground">Transactions récentes</h2>
               <Link to="/finances" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
                 Voir tout <ArrowRight className="h-4 w-4" />
               </Link>
@@ -222,14 +222,14 @@ const Dashboard = () => {
                 {recentTransactions.map((t) => (
                   <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
                     <div className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-lg",
+                      "flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg",
                       t.type === "income" ? "bg-success/10 text-success" : 
                       t.type === "expense" ? "bg-destructive/10 text-destructive" : 
                       "bg-primary/10 text-primary"
                     )}>
-                      {t.type === "income" ? <ArrowDownLeft className="h-4 w-4" /> : 
-                       t.type === "expense" ? <ArrowUpRight className="h-4 w-4" /> : 
-                       <PiggyBank className="h-4 w-4" />}
+                      {t.type === "income" ? <ArrowDownLeft className="h-3 w-3 sm:h-4 sm:w-4" /> : 
+                       t.type === "expense" ? <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4" /> : 
+                       <PiggyBank className="h-3 w-3 sm:h-4 sm:w-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{t.description}</p>
