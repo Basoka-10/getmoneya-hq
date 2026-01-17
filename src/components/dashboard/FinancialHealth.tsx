@@ -15,14 +15,14 @@ export function FinancialHealth({ percentageSpent }: FinancialHealthProps) {
   const health = getHealthStatus(percentageSpent);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 sm:space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">Capital dépensé</span>
-        <span className={cn("text-sm font-semibold", health.textColor)}>
+        <span className="text-xs sm:text-sm text-muted-foreground">Capital dépensé</span>
+        <span className={cn("text-xs sm:text-sm font-semibold", health.textColor)}>
           {percentageSpent}%
         </span>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
+      <div className="h-2 sm:h-3 w-full overflow-hidden rounded-full bg-secondary">
         <div
           className={cn("h-full rounded-full transition-all duration-500", health.color)}
           style={{ width: `${Math.min(percentageSpent, 100)}%` }}
@@ -30,7 +30,7 @@ export function FinancialHealth({ percentageSpent }: FinancialHealthProps) {
       </div>
       <div className="flex items-center gap-2">
         <div className={cn("h-2 w-2 rounded-full", health.color)} />
-        <span className={cn("text-sm font-medium", health.textColor)}>
+        <span className={cn("text-xs sm:text-sm font-medium", health.textColor)}>
           État : {health.label}
         </span>
       </div>

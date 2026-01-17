@@ -82,7 +82,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
         <DialogHeader>
           <DialogTitle className="text-foreground text-base">{getTitle()}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="edit-description" className="text-sm">Description</Label>
             <Input
