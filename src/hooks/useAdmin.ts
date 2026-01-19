@@ -340,3 +340,75 @@ export function useGlobalStats() {
     },
   });
 }
+
+// Grant owner role to user
+export function useGrantOwnerRole() {
+  const queryClient = useQueryClient();
+  const logActivity = useLogActivity();
+  
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      // Check if user already has owner role
+      const { data: existing } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", "owner")
+        .maybeSingle();
+      
+      if (existing) {
+        throw new Error("L'utilisateur a déjà le rôle owner");
+      }
+      
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: "owner" });
+      
+      if (error) throw error;
+      
+      await logActivity.mutateAsync({
+        action: "owner_role_granted",
+        entity_type: "user",
+        entity_id: userId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("Accès administrateur accordé");
+    },
+    onError: (error) => {
+      toast.error("Erreur: " + error.message);
+    },
+  });
+}
+
+// Revoke owner role from user
+export function useRevokeOwnerRole() {
+  const queryClient = useQueryClient();
+  const logActivity = useLogActivity();
+  
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "owner");
+      
+      if (error) throw error;
+      
+      await logActivity.mutateAsync({
+        action: "owner_role_revoked",
+        entity_type: "user",
+        entity_id: userId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("Accès administrateur retiré");
+    },
+    onError: (error) => {
+      toast.error("Erreur: " + error.message);
+    },
+  });
+}

@@ -418,5 +418,73 @@
       "support": "Priority support",
       "api": "API access"
     }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "users": {
+      "title": "User Management",
+      "subtitle": "View and manage all MONEYA users",
+      "count": "Users",
+      "noUsers": "No users found",
+      "notProvided": "Not provided",
+      "registeredOn": "Registered on",
+      "roles": {
+        "owner": "Owner",
+        "user": "User"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "title": "Actions",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "subscription": "Subscription",
+        "changePlan": "Change plan",
+        "extend": "Extend",
+        "revoke": "Revoke",
+        "grantAdmin": "Grant Admin access",
+        "revokeAdmin": "Revoke Admin access"
+      },
+      "dialogs": {
+        "revoke": {
+          "title": "Revoke subscription",
+          "description": "Are you sure you want to revoke the subscription of",
+          "warning": "The user will be immediately downgraded to the free plan.",
+          "confirm": "Revoke"
+        },
+        "extend": {
+          "title": "Extend subscription",
+          "description": "Extend the subscription of",
+          "daysLabel": "Number of days to add",
+          "confirm": "Extend by"
+        },
+        "changePlan": {
+          "title": "Change plan",
+          "description": "Change the plan of",
+          "selectPlan": "Select a plan",
+          "confirm": "Confirm change"
+        },
+        "grantAdmin": {
+          "title": "Grant Admin access",
+          "description": "Are you sure you want to grant admin rights to",
+          "warning": "This user will have access to the admin panel and will be able to manage all users.",
+          "confirm": "Confirm"
+        },
+        "revokeAdmin": {
+          "title": "Revoke Admin access",
+          "description": "Are you sure you want to revoke admin rights from",
+          "warning": "This user will lose access to the admin panel.",
+          "confirm": "Confirm"
+        }
+      }
+    },
+    "plans": {
+      "all": "All plans",
+      "free": "Free",
+      "pro": "Pro",
+      "business": "Business"
+    }
   }
 }

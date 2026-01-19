@@ -418,5 +418,73 @@
       "support": "Support prioritaire",
       "api": "Accès API"
     }
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "subtitle": "Voir et gérer tous les utilisateurs MONEYA",
+      "count": "Utilisateurs",
+      "noUsers": "Aucun utilisateur trouvé",
+      "notProvided": "Non renseigné",
+      "registeredOn": "Inscrit le",
+      "roles": {
+        "owner": "Owner",
+        "user": "User"
+      },
+      "status": {
+        "active": "Actif",
+        "suspended": "Suspendu"
+      },
+      "actions": {
+        "title": "Actions",
+        "suspend": "Suspendre",
+        "activate": "Activer",
+        "subscription": "Abonnement",
+        "changePlan": "Changer plan",
+        "extend": "Prolonger",
+        "revoke": "Révoquer",
+        "grantAdmin": "Donner accès Admin",
+        "revokeAdmin": "Retirer accès Admin"
+      },
+      "dialogs": {
+        "revoke": {
+          "title": "Révoquer l'abonnement",
+          "description": "Êtes-vous sûr de vouloir révoquer l'abonnement de",
+          "warning": "L'utilisateur sera immédiatement rétrogradé au plan gratuit.",
+          "confirm": "Révoquer"
+        },
+        "extend": {
+          "title": "Prolonger l'abonnement",
+          "description": "Prolonger l'abonnement de",
+          "daysLabel": "Nombre de jours à ajouter",
+          "confirm": "Prolonger de"
+        },
+        "changePlan": {
+          "title": "Changer le plan",
+          "description": "Modifier le plan de",
+          "selectPlan": "Sélectionner un plan",
+          "confirm": "Confirmer le changement"
+        },
+        "grantAdmin": {
+          "title": "Donner accès Admin",
+          "description": "Êtes-vous sûr de vouloir donner les droits d'administration à",
+          "warning": "Cet utilisateur aura accès au panneau d'administration et pourra gérer tous les utilisateurs.",
+          "confirm": "Confirmer"
+        },
+        "revokeAdmin": {
+          "title": "Retirer accès Admin",
+          "description": "Êtes-vous sûr de vouloir retirer les droits d'administration à",
+          "warning": "Cet utilisateur perdra l'accès au panneau d'administration.",
+          "confirm": "Confirmer"
+        }
+      }
+    },
+    "plans": {
+      "all": "Tous les plans",
+      "free": "Gratuit",
+      "pro": "Pro",
+      "business": "Business"
+    }
   }
 }

@@ -26,8 +26,10 @@ import { downloadPDF, generatePDF } from "@/utils/pdfGenerator";
 import { PdfPreviewModal } from "@/components/modals/PdfPreviewModal";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +61,10 @@ interface LineItem {
 }
 
 const Invoices = () => {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const locale = language === 'fr' ? fr : enUS;
+
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<(Invoice & { clients: { name: string } | null }) | null>(null);
@@ -83,7 +89,7 @@ const Invoices = () => {
   const { currency, currencyConfig, formatAmount, convertToEUR, convertFromEUR } = useCurrency();
 
   const formatDate = (dateStr: string) => {
-    return format(new Date(dateStr), "d MMM yyyy", { locale: fr });
+    return format(new Date(dateStr), "d MMM yyyy", { locale });
   };
 
   // Format amount for display in active currency
@@ -199,7 +205,7 @@ const Invoices = () => {
       notes: quotation.notes || undefined,
     });
     setShowInvoiceModal(true);
-    toast.info("Créez la facture à partir de ce devis");
+    toast.info(t('invoices.convertToInvoice'));
   };
 
   // Calculate stats - documents are in active currency
@@ -249,10 +255,10 @@ const Invoices = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
-              Facturation
+              {t('invoices.title')}
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Gérez vos devis et factures.
+              {language === 'fr' ? 'Gérez vos devis et factures.' : 'Manage your quotes and invoices.'}
             </p>
           </div>
         </div>
@@ -260,30 +266,30 @@ const Invoices = () => {
         {/* Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
-            <p className="text-sm text-muted-foreground">Devis en attente</p>
+            <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Devis en attente' : 'Pending quotes'}</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
               {pendingQuotations.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatMoney(pendingQuotationsTotal)} en cours
+              {formatMoney(pendingQuotationsTotal)} {language === 'fr' ? 'en cours' : 'pending'}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
-            <p className="text-sm text-muted-foreground">Factures non payées</p>
+            <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Factures non payées' : 'Unpaid invoices'}</p>
             <p className="mt-1 text-2xl font-semibold text-destructive">
               {unpaidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatMoney(unpaidInvoicesTotal)} à encaisser
+              {formatMoney(unpaidInvoicesTotal)} {language === 'fr' ? 'à encaisser' : 'to collect'}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 shadow-card">
-            <p className="text-sm text-muted-foreground">Factures payées</p>
+            <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Factures payées' : 'Paid invoices'}</p>
             <p className="mt-1 text-2xl font-semibold text-success">
               {paidInvoices.length}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatMoney(paidInvoicesTotal)} encaissés
+              {formatMoney(paidInvoicesTotal)} {language === 'fr' ? 'encaissés' : 'collected'}
             </p>
           </div>
         </div>
@@ -293,11 +299,11 @@ const Invoices = () => {
           <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="invoices" className="gap-2">
               <FileText className="h-4 w-4" />
-              Factures
+              {t('invoices.invoices')}
             </TabsTrigger>
             <TabsTrigger value="quotations" className="gap-2">
               <FilePlus className="h-4 w-4" />
-              Devis
+              {t('invoices.quotations')}
             </TabsTrigger>
           </TabsList>
 
@@ -306,7 +312,7 @@ const Invoices = () => {
             <div className="flex justify-end">
               <Button size="sm" onClick={handleOpenNewInvoice}>
                 <Plus className="mr-2 h-4 w-4" />
-                Nouvelle facture
+                {t('invoices.addInvoice')}
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
@@ -318,27 +324,28 @@ const Invoices = () => {
                 ) : invoices.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <p className="text-muted-foreground">Aucune facture créée</p>
+                    <p className="text-muted-foreground">{t('invoices.noInvoices')}</p>
                     <Button variant="outline" className="mt-4" onClick={handleOpenNewInvoice}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Créer votre première facture
+                      {language === 'fr' ? 'Créer votre première facture' : 'Create your first invoice'}
                     </Button>
                   </div>
                 ) : (
                   <table className="w-full min-w-[640px]">
                     <thead>
                       <tr className="border-b border-border bg-muted/50">
-                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Référence</th>
-                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Client</th>
-                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Date</th>
-                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Statut</th>
-                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Montant</th>
-                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">{language === 'fr' ? 'Référence' : 'Reference'}</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">{t('invoices.fields.client')}</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">{language === 'fr' ? 'Date' : 'Date'}</th>
+                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">{t('invoices.fields.status')}</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">{t('invoices.fields.amount')}</th>
+                        <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">{language === 'fr' ? 'Actions' : 'Actions'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {invoices.map((invoice) => {
                         const status = invoiceStatusStyles[invoice.status];
+                        const statusLabel = t(`invoices.status.${invoice.status}`);
                         return (
                           <tr key={invoice.id} className="transition-colors hover:bg-muted/30">
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4">
@@ -352,7 +359,7 @@ const Invoices = () => {
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4">
                               <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", status.bg, status.text)}>
-                                {status.label}
+                                {statusLabel}
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-right text-sm font-semibold text-foreground">

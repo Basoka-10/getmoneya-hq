@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAllUsers, useToggleUserSuspension } from "@/hooks/useAdmin";
+import { useAllUsers, useToggleUserSuspension, useGrantOwnerRole, useRevokeOwnerRole } from "@/hooks/useAdmin";
 import { useRevokeSubscription, useExtendSubscription, useUpdateUserPlan } from "@/hooks/useAdminSubscriptions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -41,10 +41,14 @@ import {
   CalendarPlus, 
   ArrowUpCircle,
   AlertTriangle,
-  Mail
+  Mail,
+  ShieldCheck,
+  ShieldX
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const planBadges: Record<string, { label: string; variant: "default" | "secondary" | "outline"; icon?: React.ElementType }> = {
   free: { label: "Gratuit", variant: "outline" },
@@ -60,11 +64,17 @@ const planFilters = [
 ];
 
 export default function AdminUsers() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const locale = language === 'fr' ? fr : enUS;
+
   const { data: users, isLoading } = useAllUsers();
   const toggleSuspension = useToggleUserSuspension();
   const revokeSubscription = useRevokeSubscription();
   const extendSubscription = useExtendSubscription();
   const updateUserPlan = useUpdateUserPlan();
+  const grantOwnerRole = useGrantOwnerRole();
+  const revokeOwnerRole = useRevokeOwnerRole();
 
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
@@ -78,6 +88,9 @@ export default function AdminUsers() {
   });
   const [changePlanDialog, setChangePlanDialog] = useState<{ open: boolean; userId: string; userName: string; plan: "free" | "pro" | "business" }>({ 
     open: false, userId: "", userName: "", plan: "pro" 
+  });
+  const [adminRoleDialog, setAdminRoleDialog] = useState<{ open: boolean; userId: string; userName: string; action: "grant" | "revoke" }>({
+    open: false, userId: "", userName: "", action: "grant"
   });
 
   const filteredUsers = users?.filter((user) => {
@@ -112,13 +125,22 @@ export default function AdminUsers() {
     setChangePlanDialog({ open: false, userId: "", userName: "", plan: "pro" });
   };
 
+  const handleAdminRole = () => {
+    if (adminRoleDialog.action === "grant") {
+      grantOwnerRole.mutate({ userId: adminRoleDialog.userId });
+    } else {
+      revokeOwnerRole.mutate({ userId: adminRoleDialog.userId });
+    }
+    setAdminRoleDialog({ open: false, userId: "", userName: "", action: "grant" });
+  };
+
   const getExpiryInfo = (expiresAt: string | null) => {
     if (!expiresAt) return null;
     const expiryDate = new Date(expiresAt);
     const daysLeft = differenceInDays(expiryDate, new Date());
     
     if (daysLeft < 0) {
-      return { text: "Expiré", variant: "destructive" as const, urgent: true };
+      return { text: language === 'fr' ? "Expiré" : "Expired", variant: "destructive" as const, urgent: true };
     } else if (daysLeft <= 7) {
       return { text: `${daysLeft}j`, variant: "outline" as const, urgent: true };
     } else {
@@ -129,14 +151,14 @@ export default function AdminUsers() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Gestion des utilisateurs</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Voir et gérer tous les utilisateurs MONEYA</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">{t('admin.users.title')}</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">{t('admin.users.subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex flex-col gap-3">
-            <span className="text-base sm:text-lg">Utilisateurs ({users?.length || 0})</span>
+            <span className="text-base sm:text-lg">{t('admin.users.count')} ({users?.length || 0})</span>
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Select value={planFilter} onValueChange={setPlanFilter}>
                 <SelectTrigger className="w-full sm:w-40">
@@ -145,13 +167,19 @@ export default function AdminUsers() {
                 <SelectContent>
                   {planFilters.map((filter) => (
                     <SelectItem key={filter.value} value={filter.value}>
-                      {filter.label}
+                      {t(`admin.plans.${filter.value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder={t('common.search') + "..."}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
                 <Input
                   placeholder="Rechercher..."
                   value={search}
@@ -171,7 +199,7 @@ export default function AdminUsers() {
             </div>
           ) : filteredUsers?.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              Aucun utilisateur trouvé
+              {t('admin.users.noUsers')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -191,21 +219,21 @@ export default function AdminUsers() {
                         {/* User name and role */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-sm sm:text-base truncate">
-                            {user.full_name || "Non renseigné"}
+                            {user.full_name || t('admin.users.notProvided')}
                           </span>
                           {isOwner ? (
                             <Badge variant="default" className="gap-1 text-xs">
                               <Shield className="h-3 w-3" />
-                              Owner
+                              {t('admin.users.roles.owner')}
                             </Badge>
                           ) : (
-                            <Badge variant="secondary" className="text-xs">User</Badge>
+                            <Badge variant="secondary" className="text-xs">{t('admin.users.roles.user')}</Badge>
                           )}
                           {user.is_suspended ? (
-                            <Badge variant="destructive" className="text-xs">Suspendu</Badge>
+                            <Badge variant="destructive" className="text-xs">{t('admin.users.status.suspended')}</Badge>
                           ) : (
                             <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                              Actif
+                              {t('admin.users.status.active')}
                             </Badge>
                           )}
                         </div>
@@ -240,7 +268,7 @@ export default function AdminUsers() {
                         
                         {/* Date */}
                         <p className="text-xs text-muted-foreground">
-                          Inscrit le {format(new Date(user.created_at), "dd MMM yyyy", { locale: fr })}
+                          {t('admin.users.registeredOn')} {format(new Date(user.created_at), "dd MMM yyyy", { locale })}
                         </p>
                       </div>
                       
@@ -253,7 +281,7 @@ export default function AdminUsers() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('admin.users.actions.title')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             
                             <DropdownMenuItem
@@ -263,18 +291,18 @@ export default function AdminUsers() {
                               {user.is_suspended ? (
                                 <>
                                   <UserCheck className="h-4 w-4 mr-2" />
-                                  Activer
+                                  {t('admin.users.actions.activate')}
                                 </>
                               ) : (
                                 <>
                                   <UserX className="h-4 w-4 mr-2" />
-                                  Suspendre
+                                  {t('admin.users.actions.suspend')}
                                 </>
                               )}
                             </DropdownMenuItem>
                             
                             <DropdownMenuSeparator />
-                            <DropdownMenuLabel className="text-xs text-muted-foreground">Abonnement</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">{t('admin.users.actions.subscription')}</DropdownMenuLabel>
                             
                             <DropdownMenuItem
                               onClick={() => setChangePlanDialog({ 
@@ -285,7 +313,7 @@ export default function AdminUsers() {
                               })}
                             >
                               <ArrowUpCircle className="h-4 w-4 mr-2" />
-                              Changer plan
+                              {t('admin.users.actions.changePlan')}
                             </DropdownMenuItem>
                             
                             {plan !== "free" && (
@@ -299,7 +327,7 @@ export default function AdminUsers() {
                                   })}
                                 >
                                   <CalendarPlus className="h-4 w-4 mr-2" />
-                                  Prolonger
+                                  {t('admin.users.actions.extend')}
                                 </DropdownMenuItem>
                                 
                                 <DropdownMenuItem
@@ -311,9 +339,39 @@ export default function AdminUsers() {
                                   className="text-destructive"
                                 >
                                   <Ban className="h-4 w-4 mr-2" />
-                                  Révoquer
+                                  {t('admin.users.actions.revoke')}
                                 </DropdownMenuItem>
                               </>
+                            )}
+                            
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">Admin</DropdownMenuLabel>
+                            
+                            {isOwner ? (
+                              <DropdownMenuItem
+                                onClick={() => setAdminRoleDialog({
+                                  open: true,
+                                  userId: user.user_id,
+                                  userName: user.full_name || user.private_data?.email || "Utilisateur",
+                                  action: "revoke"
+                                })}
+                                className="text-destructive"
+                              >
+                                <ShieldX className="h-4 w-4 mr-2" />
+                                {t('admin.users.actions.revokeAdmin')}
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() => setAdminRoleDialog({
+                                  open: true,
+                                  userId: user.user_id,
+                                  userName: user.full_name || user.private_data?.email || "Utilisateur",
+                                  action: "grant"
+                                })}
+                              >
+                                <ShieldCheck className="h-4 w-4 mr-2" />
+                                {t('admin.users.actions.grantAdmin')}
+                              </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -333,23 +391,23 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <Ban className="h-5 w-5" />
-              Révoquer l'abonnement
+              {t('admin.users.dialogs.revoke.title')}
             </DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir révoquer l'abonnement de <strong>{revokeDialog.userName}</strong> ? 
-              L'utilisateur sera immédiatement rétrogradé au plan gratuit.
+              {t('admin.users.dialogs.revoke.description')} <strong>{revokeDialog.userName}</strong> ? 
+              {t('admin.users.dialogs.revoke.warning')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setRevokeDialog({ open: false, userId: "", userName: "" })}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button 
               variant="destructive" 
               onClick={handleRevoke}
               disabled={revokeSubscription.isPending}
             >
-              {revokeSubscription.isPending ? "Révocation..." : "Révoquer"}
+              {revokeSubscription.isPending ? "..." : t('admin.users.dialogs.revoke.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -361,14 +419,14 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarPlus className="h-5 w-5 text-primary" />
-              Prolonger l'abonnement
+              {t('admin.users.dialogs.extend.title')}
             </DialogTitle>
             <DialogDescription>
-              Prolonger l'abonnement de <strong>{extendDialog.userName}</strong>
+              {t('admin.users.dialogs.extend.description')} <strong>{extendDialog.userName}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium">Nombre de jours à ajouter</label>
+            <label className="text-sm font-medium">{t('admin.users.dialogs.extend.daysLabel')}</label>
             <div className="flex flex-wrap gap-2 mt-2">
               {[7, 30, 90, 365].map((days) => (
                 <Button
@@ -384,13 +442,13 @@ export default function AdminUsers() {
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setExtendDialog({ open: false, userId: "", userName: "", days: 30 })}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button 
               onClick={handleExtend}
               disabled={extendSubscription.isPending}
             >
-              {extendSubscription.isPending ? "Prolongation..." : `Prolonger de ${extendDialog.days} jours`}
+              {extendSubscription.isPending ? "..." : `${t('admin.users.dialogs.extend.confirm')} ${extendDialog.days} ${language === 'fr' ? 'jours' : 'days'}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -402,14 +460,14 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowUpCircle className="h-5 w-5 text-primary" />
-              Changer le plan
+              {t('admin.users.dialogs.changePlan.title')}
             </DialogTitle>
             <DialogDescription>
-              Modifier le plan de <strong>{changePlanDialog.userName}</strong>
+              {t('admin.users.dialogs.changePlan.description')} <strong>{changePlanDialog.userName}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium">Sélectionner un plan</label>
+            <label className="text-sm font-medium">{t('admin.users.dialogs.changePlan.selectPlan')}</label>
             <div className="flex flex-wrap gap-2 mt-2">
               {(["free", "pro", "business"] as const).map((plan) => {
                 const info = planBadges[plan];
@@ -431,13 +489,63 @@ export default function AdminUsers() {
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setChangePlanDialog({ open: false, userId: "", userName: "", plan: "pro" })}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button 
               onClick={handleChangePlan}
               disabled={updateUserPlan.isPending}
             >
-              {updateUserPlan.isPending ? "Modification..." : "Appliquer"}
+              {updateUserPlan.isPending ? "..." : t('admin.users.dialogs.changePlan.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Role Dialog */}
+      <Dialog open={adminRoleDialog.open} onOpenChange={(open) => setAdminRoleDialog({ ...adminRoleDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {adminRoleDialog.action === "grant" ? (
+                <>
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  {t('admin.users.dialogs.grantAdmin.title')}
+                </>
+              ) : (
+                <>
+                  <ShieldX className="h-5 w-5 text-destructive" />
+                  {t('admin.users.dialogs.revokeAdmin.title')}
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {adminRoleDialog.action === "grant" ? (
+                <>
+                  {t('admin.users.dialogs.grantAdmin.description')} <strong>{adminRoleDialog.userName}</strong> ?
+                  <br />
+                  <span className="text-warning">{t('admin.users.dialogs.grantAdmin.warning')}</span>
+                </>
+              ) : (
+                <>
+                  {t('admin.users.dialogs.revokeAdmin.description')} <strong>{adminRoleDialog.userName}</strong> ?
+                  <br />
+                  <span className="text-warning">{t('admin.users.dialogs.revokeAdmin.warning')}</span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setAdminRoleDialog({ open: false, userId: "", userName: "", action: "grant" })}>
+              {t('common.cancel')}
+            </Button>
+            <Button 
+              variant={adminRoleDialog.action === "revoke" ? "destructive" : "default"}
+              onClick={handleAdminRole}
+              disabled={grantOwnerRole.isPending || revokeOwnerRole.isPending}
+            >
+              {(grantOwnerRole.isPending || revokeOwnerRole.isPending) 
+                ? "..." 
+                : t('admin.users.dialogs.grantAdmin.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
