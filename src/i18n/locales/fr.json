@@ -1,0 +1,422 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "yes": "Oui",
+    "no": "Non",
+    "or": "ou",
+    "and": "et",
+    "all": "Tout",
+    "none": "Aucun",
+    "noData": "Aucune donnée",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Attention",
+    "info": "Information"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "createAccount": "Créer un compte",
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "welcomeBack": "Bon retour !",
+    "getStarted": "Commencer gratuitement"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "finances": "Finances",
+    "analysis": "Analyse",
+    "clients": "Clients",
+    "tasks": "Tâches",
+    "calendar": "Calendrier",
+    "invoices": "Facturation",
+    "api": "API",
+    "settings": "Paramètres",
+    "adminPanel": "Admin Panel"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Le seul outil au monde où tout y est",
+      "title1": "Pilotez votre",
+      "title2": "business",
+      "title3": "depuis un seul outil",
+      "subtitle": "Clients, finances, tâches, devis et factures au même endroit — commencez gratuitement.",
+      "cta": "Commencer gratuitement",
+      "noCommitment": "Sans engagement",
+      "noCard": "Sans carte bancaire"
+    },
+    "nav": {
+      "features": "Fonctionnalités",
+      "pricing": "Tarifs",
+      "howItWorks": "Comment ça marche",
+      "faq": "FAQ"
+    },
+    "benefits": {
+      "title": "Et si on vous disait que vous pouviez",
+      "subtitle": "gérer votre activité simplement...",
+      "trackFinances": {
+        "title": "Suivez vos revenus, dépenses et épargnes",
+        "description": "Sans effort, visualisez où va votre argent et épargnez intelligemment."
+      },
+      "organizeTasks": {
+        "title": "Organisez vos tâches et votre semaine",
+        "description": "Planification simple et efficace."
+      },
+      "createDocuments": {
+        "title": "Créez des devis et factures professionnels",
+        "description": "Documents PDF de qualité en quelques clics."
+      },
+      "useCalendar": {
+        "title": "Utilisez un calendrier interactif",
+        "description": "Gardez le contrôle de votre planning."
+      },
+      "cta": "Commencez gratuitement — aucune carte requise."
+    },
+    "howItWorks": {
+      "title": "Comment ça marche ?",
+      "step1": {
+        "title": "Créez votre compte gratuitement",
+        "description": "Inscrivez-vous en quelques secondes — pas de carte bancaire nécessaire."
+      },
+      "step2": {
+        "title": "Ajoutez vos données",
+        "description": "Clients, dépenses, revenus, tâches…"
+      },
+      "step3": {
+        "title": "Organisez vos journées",
+        "description": "Planifiez vos tâches et consultez votre calendrier."
+      },
+      "step4": {
+        "title": "Suivez votre activité",
+        "description": "Visualisez vos chiffres et gérez vos factures et devis."
+      }
+    },
+    "features": {
+      "title": "Fonctionnalités principales",
+      "dashboard": {
+        "title": "Tableau de bord intuitif",
+        "description": "Vue claire de vos finances et de votre activité."
+      },
+      "clients": {
+        "title": "Gestion des clients",
+        "description": "Ajoutez et modifiez vos clients facilement."
+      },
+      "documents": {
+        "title": "Devis & factures",
+        "description": "Création, conversion et téléchargement PDF pro."
+      },
+      "calendar": {
+        "title": "Tâches & calendrier",
+        "description": "Organisez vos jours et votre semaine."
+      },
+      "currencies": {
+        "title": "Devises",
+        "description": "EUR, USD, XOF — conversions réelles intégrées."
+      },
+      "settings": {
+        "title": "Paramètres personnalisables",
+        "description": "Infos perso, infos entreprise, logo."
+      }
+    },
+    "privacy": {
+      "title": "Votre confidentialité est essentielle",
+      "subtitle": "Vos données sont stockées en toute sécurité et ne sont jamais utilisées sans votre consentement.",
+      "gdpr": {
+        "title": "Confidentialité Garantie",
+        "description": "Vos données ne sont jamais utilisées pour entraîner nos modèles IA ou partagées avec des tiers."
+      },
+      "compliance": {
+        "title": "Conformité Mondiale",
+        "description": "Respecte les réglementations RGPD, CCPA et autres lois sur la protection des données."
+      },
+      "trust": {
+        "title": "Confiance Totale",
+        "description": "Transparence complète avec notre politique de confidentialité accessible."
+      },
+      "cta": "Découvrez notre engagement envers la sécurité et la conformité.",
+      "privacyPolicy": "Consulter la politique de confidentialité"
+    },
+    "testimonials": {
+      "title": "Ils l'adorent, pourquoi pas vous ?",
+      "subtitle": "Un seul outil, aucune dépense dispersée, toute votre activité devant vous.",
+      "cta": "Commencer gratuitement"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "q1": {
+        "question": "Quelle est la différence entre les offres ?",
+        "answer": "L'offre Gratuite permet de découvrir MONEYA avec 3 clients et 10 factures/devis. Pro (2,99€/mois ou 10€/an en promo) débloque 20 clients, 40 factures et exports. Business (6,99€/mois ou 30€/an en promo) offre tout en illimité. Promotion valable jusqu'au 5 janvier 2026 !"
+      },
+      "q2": {
+        "question": "Puis-je importer mes données ?",
+        "answer": "Oui — les importations seront disponibles très bientôt."
+      },
+      "q3": {
+        "question": "Puis-je changer de devise ?",
+        "answer": "Oui — EUR, USD et CFA avec conversion réelle."
+      },
+      "q4": {
+        "question": "Puis-je utiliser l'outil sur mobile ?",
+        "answer": "Oui — l'interface est entièrement responsive."
+      }
+    },
+    "footer": {
+      "copyright": "© 2025 MONEYA. Tous droits réservés.",
+      "privacyPolicy": "Politique de confidentialité",
+      "termsOfUse": "Conditions d'utilisation"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue",
+    "balance": "Solde actuel",
+    "income": "Revenus",
+    "expenses": "Dépenses",
+    "savings": "Épargne",
+    "recentTransactions": "Transactions récentes",
+    "upcomingTasks": "Tâches à venir",
+    "noTransactions": "Aucune transaction",
+    "noTasks": "Aucune tâche",
+    "viewAll": "Voir tout",
+    "addTransaction": "Ajouter une transaction",
+    "financialHealth": "Santé financière",
+    "period": {
+      "today": "Aujourd'hui",
+      "week": "Cette semaine",
+      "month": "Ce mois",
+      "year": "Cette année",
+      "all": "Tout"
+    }
+  },
+  "finances": {
+    "title": "Finances",
+    "transactions": "Transactions",
+    "addTransaction": "Nouvelle transaction",
+    "editTransaction": "Modifier la transaction",
+    "type": {
+      "income": "Revenu",
+      "expense": "Dépense",
+      "savings": "Épargne"
+    },
+    "fields": {
+      "amount": "Montant",
+      "description": "Description",
+      "category": "Catégorie",
+      "date": "Date",
+      "client": "Client"
+    },
+    "filters": {
+      "all": "Toutes",
+      "income": "Revenus",
+      "expense": "Dépenses",
+      "savings": "Épargne"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Nouveau client",
+    "editClient": "Modifier le client",
+    "noClients": "Aucun client",
+    "fields": {
+      "name": "Nom",
+      "email": "Email",
+      "phone": "Téléphone",
+      "company": "Entreprise",
+      "status": "Statut",
+      "notes": "Notes"
+    },
+    "status": {
+      "active": "Actif",
+      "prospect": "Prospect",
+      "former": "Ancien"
+    }
+  },
+  "tasks": {
+    "title": "Tâches",
+    "addTask": "Nouvelle tâche",
+    "editTask": "Modifier la tâche",
+    "noTasks": "Aucune tâche",
+    "completed": "Terminée",
+    "pending": "En cours",
+    "fields": {
+      "title": "Titre",
+      "description": "Description",
+      "dueDate": "Date d'échéance",
+      "dueTime": "Heure",
+      "priority": "Priorité",
+      "client": "Client"
+    },
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute"
+    }
+  },
+  "invoices": {
+    "title": "Facturation",
+    "invoices": "Factures",
+    "quotations": "Devis",
+    "addInvoice": "Nouvelle facture",
+    "addQuotation": "Nouveau devis",
+    "noInvoices": "Aucune facture",
+    "noQuotations": "Aucun devis",
+    "convertToInvoice": "Convertir en facture",
+    "downloadPdf": "Télécharger PDF",
+    "fields": {
+      "number": "Numéro",
+      "client": "Client",
+      "amount": "Montant",
+      "issueDate": "Date d'émission",
+      "dueDate": "Date d'échéance",
+      "validUntil": "Valide jusqu'au",
+      "status": "Statut",
+      "items": "Articles",
+      "notes": "Notes"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "sent": "Envoyée",
+      "paid": "Payée",
+      "overdue": "En retard",
+      "cancelled": "Annulée",
+      "accepted": "Accepté",
+      "rejected": "Refusé",
+      "expired": "Expiré"
+    }
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "today": "Aujourd'hui",
+    "month": "Mois",
+    "week": "Semaine",
+    "day": "Jour",
+    "addEvent": "Nouvel événement",
+    "noEvents": "Aucun événement"
+  },
+  "analysis": {
+    "title": "Analyse",
+    "overview": "Vue d'ensemble",
+    "trends": "Tendances",
+    "categories": "Par catégorie",
+    "period": "Période"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "tabs": {
+      "profile": "Profil",
+      "business": "Entreprise",
+      "subscription": "Abonnement",
+      "currency": "Devise",
+      "categories": "Catégories",
+      "notifications": "Notifications",
+      "security": "Sécurité",
+      "language": "Langue"
+    },
+    "profile": {
+      "title": "Profil utilisateur",
+      "subtitle": "Gérez vos informations personnelles et votre compte",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone",
+      "memberSince": "Membre depuis"
+    },
+    "business": {
+      "title": "Informations entreprise",
+      "subtitle": "Gérez les informations de votre entreprise",
+      "companyName": "Nom de l'entreprise",
+      "address": "Adresse",
+      "logo": "Logo"
+    },
+    "subscription": {
+      "title": "Abonnement",
+      "currentPlan": "Plan actuel",
+      "upgrade": "Améliorer",
+      "plans": {
+        "free": "Gratuit",
+        "pro": "Pro",
+        "business": "Business"
+      }
+    },
+    "currency": {
+      "title": "Devise",
+      "subtitle": "Choisissez votre devise préférée",
+      "current": "Devise actuelle"
+    },
+    "categories": {
+      "title": "Catégories",
+      "expense": "Catégories de dépenses",
+      "income": "Catégories de revenus",
+      "addCategory": "Ajouter une catégorie"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "taskReminders": "Rappels de tâches"
+    },
+    "security": {
+      "title": "Sécurité",
+      "deleteAccount": "Supprimer le compte",
+      "deleteWarning": "Cette action est irréversible"
+    },
+    "language": {
+      "title": "Langue",
+      "subtitle": "Choisissez la langue de l'application",
+      "french": "Français",
+      "english": "English"
+    },
+    "theme": {
+      "dark": "Sombre",
+      "light": "Clair"
+    }
+  },
+  "pricing": {
+    "title": "Nos offres",
+    "subtitle": "Choisissez l'offre adaptée à vos besoins",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "perMonth": "/mois",
+    "perYear": "/an",
+    "popular": "Populaire",
+    "currentPlan": "Plan actuel",
+    "choosePlan": "Choisir ce plan",
+    "free": {
+      "name": "Gratuit",
+      "description": "Pour découvrir MONEYA"
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Pour les indépendants"
+    },
+    "business": {
+      "name": "Business",
+      "description": "Pour les entreprises"
+    },
+    "features": {
+      "clients": "clients",
+      "invoices": "factures/devis",
+      "unlimited": "Illimité",
+      "exports": "Exports",
+      "support": "Support prioritaire",
+      "api": "Accès API"
+    }
+  }
+}

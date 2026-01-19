@@ -6,11 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { TaskReminderProvider } from "@/hooks/useTaskReminders";
+import "@/i18n";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
@@ -40,9 +42,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <CurrencyProvider>
-          <TooltipProvider>
-            <TaskReminderProvider>
+        <LanguageProvider>
+          <CurrencyProvider>
+            <TooltipProvider>
+              <TaskReminderProvider>
               <Toaster />
               <Sonner />
               <InstallPrompt />
@@ -145,9 +148,10 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </BrowserRouter>
-            </TaskReminderProvider>
-          </TooltipProvider>
-        </CurrencyProvider>
+              </TaskReminderProvider>
+            </TooltipProvider>
+          </CurrencyProvider>
+        </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

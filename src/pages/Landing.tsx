@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { PromoPopup } from "@/components/landing/PromoPopup";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { 
   LayoutDashboard,
   Users, 
@@ -36,6 +38,7 @@ import avatarTestimonial4 from '@/assets/avatar-testimonial-4.png';
 const Landing = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -47,79 +50,79 @@ const Landing = () => {
   const benefits = [
     {
       icon: LayoutDashboard,
-      title: "Suivez vos revenus, dépenses et épargnes",
-      description: "Sans effort, visualisez où va votre argent et épargnez intelligemment."
+      title: t('landing.benefits.trackFinances.title'),
+      description: t('landing.benefits.trackFinances.description')
     },
     {
       icon: CheckSquare,
-      title: "Organisez vos tâches et votre semaine",
-      description: "Planification simple et efficace."
+      title: t('landing.benefits.organizeTasks.title'),
+      description: t('landing.benefits.organizeTasks.description')
     },
     {
       icon: FileText,
-      title: "Créez des devis et factures professionnels",
-      description: "Documents PDF de qualité en quelques clics."
+      title: t('landing.benefits.createDocuments.title'),
+      description: t('landing.benefits.createDocuments.description')
     },
     {
       icon: Calendar,
-      title: "Utilisez un calendrier interactif",
-      description: "Gardez le contrôle de votre planning."
+      title: t('landing.benefits.useCalendar.title'),
+      description: t('landing.benefits.useCalendar.description')
     }
   ];
 
   const steps = [
     {
       number: "1",
-      title: "Créez votre compte gratuitement",
-      description: "Inscrivez-vous en quelques secondes — pas de carte bancaire nécessaire."
+      title: t('landing.howItWorks.step1.title'),
+      description: t('landing.howItWorks.step1.description')
     },
     {
       number: "2",
-      title: "Ajoutez vos données",
-      description: "Clients, dépenses, revenus, tâches…"
+      title: t('landing.howItWorks.step2.title'),
+      description: t('landing.howItWorks.step2.description')
     },
     {
       number: "3",
-      title: "Organisez vos journées",
-      description: "Planifiez vos tâches et consultez votre calendrier."
+      title: t('landing.howItWorks.step3.title'),
+      description: t('landing.howItWorks.step3.description')
     },
     {
       number: "4",
-      title: "Suivez votre activité",
-      description: "Visualisez vos chiffres et gérez vos factures et devis."
+      title: t('landing.howItWorks.step4.title'),
+      description: t('landing.howItWorks.step4.description')
     }
   ];
 
   const features = [
     {
       icon: LayoutDashboard,
-      title: "Tableau de bord intuitif",
-      description: "Vue claire de vos finances et de votre activité."
+      title: t('landing.features.dashboard.title'),
+      description: t('landing.features.dashboard.description')
     },
     {
       icon: Users,
-      title: "Gestion des clients",
-      description: "Ajoutez et modifiez vos clients facilement."
+      title: t('landing.features.clients.title'),
+      description: t('landing.features.clients.description')
     },
     {
       icon: FileText,
-      title: "Devis & factures",
-      description: "Création, conversion et téléchargement PDF pro."
+      title: t('landing.features.documents.title'),
+      description: t('landing.features.documents.description')
     },
     {
       icon: Calendar,
-      title: "Tâches & calendrier",
-      description: "Organisez vos jours et votre semaine."
+      title: t('landing.features.calendar.title'),
+      description: t('landing.features.calendar.description')
     },
     {
       icon: Globe,
-      title: "Devises",
-      description: "EUR, USD, XOF — conversions réelles intégrées."
+      title: t('landing.features.currencies.title'),
+      description: t('landing.features.currencies.description')
     },
     {
       icon: Settings,
-      title: "Paramètres personnalisables",
-      description: "Infos perso, infos entreprise, logo."
+      title: t('landing.features.settings.title'),
+      description: t('landing.features.settings.description')
     }
   ];
 
@@ -140,20 +143,20 @@ const Landing = () => {
 
   const faqs = [
     {
-      question: "Quelle est la différence entre les offres ?",
-      answer: "L'offre Gratuite permet de découvrir MONEYA avec 3 clients et 10 factures/devis. Pro (2,99€/mois ou 10€/an en promo) débloque 20 clients, 40 factures et exports. Business (6,99€/mois ou 30€/an en promo) offre tout en illimité. Promotion valable jusqu'au 5 janvier 2026 !"
+      question: t('landing.faq.q1.question'),
+      answer: t('landing.faq.q1.answer')
     },
     {
-      question: "Puis-je importer mes données ?",
-      answer: "Oui — les importations seront disponibles très bientôt."
+      question: t('landing.faq.q2.question'),
+      answer: t('landing.faq.q2.answer')
     },
     {
-      question: "Puis-je changer de devise ?",
-      answer: "Oui — EUR, USD et CFA avec conversion réelle."
+      question: t('landing.faq.q3.question'),
+      answer: t('landing.faq.q3.answer')
     },
     {
-      question: "Puis-je utiliser l'outil sur mobile ?",
-      answer: "Oui — l'interface est entièrement responsive."
+      question: t('landing.faq.q4.question'),
+      answer: t('landing.faq.q4.answer')
     }
   ];
 
@@ -171,17 +174,20 @@ const Landing = () => {
               <span className="text-xl font-bold">MONEYA</span>
             </div>
             <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
-              <a href="#fonctionnalites" className="hover:text-white transition-colors">Fonctionnalités</a>
-              <a href="#tarifs" className="hover:text-white transition-colors">Tarifs</a>
-              <a href="#comment" className="hover:text-white transition-colors">Comment ça marche</a>
-              <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+              <a href="#fonctionnalites" className="hover:text-white transition-colors">{t('landing.nav.features')}</a>
+              <a href="#tarifs" className="hover:text-white transition-colors">{t('landing.nav.pricing')}</a>
+              <a href="#comment" className="hover:text-white transition-colors">{t('landing.nav.howItWorks')}</a>
+              <a href="#faq" className="hover:text-white transition-colors">{t('landing.nav.faq')}</a>
             </div>
-            <Button 
-              onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary/90 rounded-full px-6"
-            >
-              Inscription
-            </Button>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher variant="landing" />
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="bg-primary hover:bg-primary/90 rounded-full px-6"
+              >
+                {t('auth.signup')}
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -192,24 +198,24 @@ const Landing = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-            <span className="text-white/80 text-sm">Le seul outil au monde où tout y est</span>
+            <span className="text-white/80 text-sm">{t('landing.hero.badge')}</span>
           </div>
           
           {/* Main Title */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Pilotez votre{" "}
+            {t('landing.hero.title1')}{" "}
             <span className="relative inline-block">
-              business
+              {t('landing.hero.title2')}
               <svg className="absolute -bottom-2 left-0 w-full animate-scale-in" style={{ animationDelay: "0.6s" }} viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 8C50 2 150 2 198 8" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round"/>
               </svg>
             </span>
             <br />
-            depuis un seul outil
+            {t('landing.hero.title3')}
           </h1>
           
           <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            Clients, finances, tâches, devis et factures au même endroit — commencez gratuitement.
+            {t('landing.hero.subtitle')}
           </p>
           
           {/* CTA Button */}
@@ -220,18 +226,18 @@ const Landing = () => {
               className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 rounded-full group hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-primary/25"
             >
               <ArrowRight className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              Commencer gratuitement
+              {t('landing.hero.cta')}
             </Button>
             
             {/* Trust Indicators */}
             <div className="flex items-center gap-6 text-sm text-white/50">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary" />
-                <span>Sans engagement</span>
+                <span>{t('landing.hero.noCommitment')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-white/50" />
-                <span>Sans carte bancaire</span>
+                <span>{t('landing.hero.noCard')}</span>
               </div>
             </div>
           </div>
