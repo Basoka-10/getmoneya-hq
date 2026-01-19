@@ -18,11 +18,17 @@ import { useTasks, useToggleTask, useDeleteTask } from "@/hooks/useTasks";
 import { useClients } from "@/hooks/useClients";
 import { TaskModal } from "@/components/modals/TaskModal";
 import { format, addDays, startOfWeek, isToday, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Tasks = () => {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const locale = language === 'fr' ? fr : enUS;
+  
   const [showModal, setShowModal] = useState(false);
-  const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { locale: fr }));
+  const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { locale }));
   const [selectedDay, setSelectedDay] = useState(new Date());
 
   const { data: tasks = [], isLoading } = useTasks();
@@ -46,14 +52,14 @@ const Tasks = () => {
       return {
         date,
         dateStr,
-        day: format(date, "EEE", { locale: fr }),
+        day: format(date, "EEE", { locale }),
         dayNum: format(date, "d"),
         tasks: dayTasks,
         isToday: isToday(date),
         isSelected: isSameDay(date, selectedDay),
       };
     });
-  }, [currentWeekStart, tasks, selectedDay]);
+  }, [currentWeekStart, tasks, selectedDay, locale]);
 
   const selectedDayTasks = useMemo(() => {
     const dateStr = format(selectedDay, "yyyy-MM-dd");
@@ -84,15 +90,15 @@ const Tasks = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
-              Tâches & Planning
+              {t('tasks.title')}
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Organisez votre temps et vos priorités.
+              {language === 'fr' ? 'Organisez votre temps et vos priorités.' : 'Organize your time and priorities.'}
             </p>
           </div>
           <Button size="sm" onClick={() => setShowModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Nouvelle tâche
+            {t('tasks.addTask')}
           </Button>
         </div>
 
@@ -101,11 +107,11 @@ const Tasks = () => {
           <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="today" className="gap-2">
               <Clock className="h-4 w-4" />
-              Aujourd'hui
+              {t('calendar.today')}
             </TabsTrigger>
             <TabsTrigger value="week" className="gap-2">
               <Calendar className="h-4 w-4" />
-              Semaine
+              {t('calendar.week')}
             </TabsTrigger>
           </TabsList>
 
@@ -114,11 +120,11 @@ const Tasks = () => {
             <div className="rounded-xl border border-border bg-card p-6 shadow-card">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-card-foreground capitalize">
-                  {format(new Date(), "EEEE d MMMM", { locale: fr })}
+                  {format(new Date(), "EEEE d MMMM", { locale })}
                 </h2>
                 <span className="text-sm text-muted-foreground">
                   {todayTasks.filter((t) => t.completed).length}/{todayTasks.length}{" "}
-                  terminées
+                  {t('tasks.completed').toLowerCase()}
                 </span>
               </div>
 
@@ -129,10 +135,10 @@ const Tasks = () => {
               ) : todayTasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <CheckCircle2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground">Aucune tâche pour aujourd'hui</p>
+                  <p className="text-muted-foreground">{t('tasks.noTasks')}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setShowModal(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Ajouter une tâche
+                    {t('tasks.addTask')}
                   </Button>
                 </div>
               ) : (
@@ -203,7 +209,7 @@ const Tasks = () => {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h2 className="text-lg font-semibold text-card-foreground">
-                  Semaine du {format(currentWeekStart, "d MMMM", { locale: fr })}
+                  {language === 'fr' ? 'Semaine du' : 'Week of'} {format(currentWeekStart, "d MMMM", { locale })}
                 </h2>
                 <Button variant="ghost" size="icon" onClick={goToNextWeek}>
                   <ChevronRight className="h-4 w-4" />
@@ -248,7 +254,7 @@ const Tasks = () => {
               {/* Selected Day Tasks */}
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground capitalize">
-                  Tâches du {format(selectedDay, "EEEE d MMMM", { locale: fr })}
+                  {language === 'fr' ? 'Tâches du' : 'Tasks for'} {format(selectedDay, "EEEE d MMMM", { locale })}
                 </h3>
                 {selectedDayTasks.length > 0 ? (
                   selectedDayTasks.map((task) => (
@@ -287,7 +293,7 @@ const Tasks = () => {
                   <div className="rounded-lg border border-dashed border-border p-8 text-center">
                     <Calendar className="mx-auto h-8 w-8 text-muted-foreground/50" />
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Aucune tâche prévue
+                      {t('tasks.noTasks')}
                     </p>
                   </div>
                 )}
