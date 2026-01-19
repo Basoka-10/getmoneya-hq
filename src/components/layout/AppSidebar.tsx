@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Wallet,
@@ -18,6 +19,7 @@ import {
   Star,
   MessageCircle,
   Key,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,19 +27,8 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsOwner } from "@/hooks/useAdmin";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useLanguage } from "@/contexts/LanguageContext";
 import logo from "@/assets/logo.png";
-
-const navigation = [
-  { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Finances", href: "/finances", icon: Wallet },
-  { name: "Analyse", href: "/analysis", icon: BarChart3 },
-  { name: "Clients", href: "/clients", icon: Users },
-  { name: "Tâches", href: "/tasks", icon: CheckSquare },
-  { name: "Calendrier", href: "/calendar", icon: CalendarDays },
-  { name: "Facturation", href: "/invoices", icon: FileText },
-  { name: "API", href: "/api", icon: Key },
-  { name: "Paramètres", href: "/settings", icon: Settings },
-];
 
 interface AppSidebarProps {
   onNavigate?: () => void;
@@ -45,6 +36,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const location = useLocation();
+  const { t } = useTranslation();
   // Collapsed by default on tablet (md), expanded on desktop (lg)
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -56,6 +48,19 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const { user } = useAuth();
   const { data: isOwner } = useIsOwner();
   const { currentPlan: plan } = useSubscription();
+  const { language, setLanguage } = useLanguage();
+
+  const navigation = [
+    { name: t('nav.dashboard'), href: "/dashboard", icon: LayoutDashboard },
+    { name: t('nav.finances'), href: "/finances", icon: Wallet },
+    { name: t('nav.analysis'), href: "/analysis", icon: BarChart3 },
+    { name: t('nav.clients'), href: "/clients", icon: Users },
+    { name: t('nav.tasks'), href: "/tasks", icon: CheckSquare },
+    { name: t('nav.calendar'), href: "/calendar", icon: CalendarDays },
+    { name: t('nav.invoices'), href: "/invoices", icon: FileText },
+    { name: t('nav.api'), href: "/api", icon: Key },
+    { name: t('nav.settings'), href: "/settings", icon: Settings },
+  ];
 
   // Update collapsed state on resize
   useEffect(() => {
@@ -76,11 +81,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const getPlanDisplay = () => {
     switch (plan) {
       case "business":
-        return { name: "Plan Business", icon: Crown, color: "text-purple-500" };
+        return { name: t('settings.subscription.plans.business'), icon: Crown, color: "text-purple-500" };
       case "pro":
-        return { name: "Plan Pro", icon: Star, color: "text-amber-500" };
+        return { name: t('settings.subscription.plans.pro'), icon: Star, color: "text-amber-500" };
       default:
-        return { name: "Plan Gratuit", icon: Zap, color: "text-primary" };
+        return { name: t('settings.subscription.plans.free'), icon: Zap, color: "text-primary" };
     }
   };
 
@@ -94,6 +99,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       // Navigate to settings for upgrade
       window.location.href = "/settings";
     }
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'fr' ? 'en' : 'fr');
   };
 
   return (
@@ -160,14 +169,14 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             )}
           >
             <Shield className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>Admin Panel</span>}
+            {!collapsed && <span>{t('nav.adminPanel')}</span>}
           </Link>
         )}
       </nav>
 
       {/* Bottom Section */}
       <div className="border-t border-sidebar-border p-3 space-y-3 flex-shrink-0">
-        {/* Theme Toggle - Always show both buttons */}
+        {/* Theme & Language Toggle */}
         <div className={cn(
           "flex items-center rounded-xl bg-muted/50 p-1",
           collapsed ? "flex-col gap-1" : "justify-between"
@@ -180,7 +189,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 ? "bg-card text-primary shadow-sm" 
                 : "text-muted-foreground hover:text-foreground"
             )}
-            title="Mode sombre"
+            title={t('settings.theme.dark')}
           >
             <Moon className="h-4 w-4" />
           </button>
@@ -192,9 +201,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 ? "bg-card text-primary shadow-sm" 
                 : "text-muted-foreground hover:text-foreground"
             )}
-            title="Mode clair"
+            title={t('settings.theme.light')}
           >
             <Sun className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={toggleLanguage}
+            className="flex items-center justify-center rounded-lg p-2 transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-card"
+            title={t('settings.tabs.language')}
+          >
+            <Globe className="h-4 w-4" />
+            {!collapsed && <span className="ml-1 text-xs uppercase font-medium">{language}</span>}
           </button>
         </div>
 

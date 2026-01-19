@@ -252,8 +252,8 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Et si on vous disait que vous pouviez{" "}
-              <span className="text-white/50">gérer votre activité simplement...</span>
+              {t('landing.benefits.title')}{" "}
+              <span className="text-white/50">{t('landing.benefits.subtitle')}</span>
             </h2>
           </div>
           
@@ -274,7 +274,7 @@ const Landing = () => {
           </div>
           
           <p className="text-center text-primary mt-10 text-lg">
-            Commencez gratuitement — aucune carte requise.
+            {t('landing.benefits.cta')}
           </p>
         </div>
       </section>
@@ -284,7 +284,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-              Comment ça marche ?
+              {t('landing.howItWorks.title')}
             </h2>
           </div>
           
@@ -309,7 +309,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
-              Fonctionnalités principales
+              {t('landing.features.title')}
             </h2>
           </div>
           
@@ -345,10 +345,10 @@ const Landing = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Votre confidentialité est essentielle
+              {t('landing.privacy.title')}
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Vos données sont stockées en toute sécurité et ne sont jamais utilisées sans votre consentement.
+              {t('landing.privacy.subtitle')}
             </p>
           </div>
 
@@ -360,9 +360,9 @@ const Landing = () => {
                 <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <div className="text-2xl">🇪🇺</div>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Confidentialité Garantie</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('landing.privacy.gdpr.title')}</h3>
                 <p className="text-white/60 text-sm">
-                  Vos données ne sont jamais utilisées pour entraîner nos modèles IA ou partagées avec des tiers.
+                  {t('landing.privacy.gdpr.description')}
                 </p>
               </div>
 
@@ -371,9 +371,9 @@ const Landing = () => {
                 <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Globe className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Conformité Mondiale</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('landing.privacy.compliance.title')}</h3>
                 <p className="text-white/60 text-sm">
-                  Respecte les réglementations RGPD, CCPA et autres lois sur la protection des données.
+                  {t('landing.privacy.compliance.description')}
                 </p>
               </div>
 
@@ -382,9 +382,9 @@ const Landing = () => {
                 <div className="w-14 h-14 bg-[#1a3a2a] border border-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Shield className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Confiance Totale</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('landing.privacy.trust.title')}</h3>
                 <p className="text-white/60 text-sm">
-                  Transparence complète avec notre politique de confidentialité accessible.
+                  {t('landing.privacy.trust.description')}
                 </p>
               </div>
             </div>
@@ -392,7 +392,7 @@ const Landing = () => {
             {/* CTA */}
             <div className="text-center mt-10">
               <p className="text-white/60 mb-4">
-                Découvrez notre engagement envers la sécurité et la conformité.
+                {t('landing.privacy.cta')}
               </p>
               <Button
                 variant="outline"
@@ -400,7 +400,7 @@ const Landing = () => {
                 className="border-white/20 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white rounded-xl px-6"
               >
                 <FileText className="mr-2 h-4 w-4" />
-                Consulter la politique de confidentialité
+                {t('landing.privacy.privacyPolicy')}
               </Button>
             </div>
           </div>
@@ -412,16 +412,16 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-4">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
-              Ils l'adorent, pourquoi pas vous ?
+              {t('landing.testimonials.title')}
             </h2>
           </div>
           <div className="text-center mb-12">
-            <p className="text-white/60 mb-6">Un seul outil, aucune dépense dispersée, toute votre activité devant vous.</p>
+            <p className="text-white/60 mb-6">{t('landing.testimonials.subtitle')}</p>
             <Button 
               onClick={() => navigate("/auth")}
               className="bg-primary hover:bg-primary/90 rounded-full px-6"
             >
-              Commencer gratuitement
+              {t('landing.testimonials.cta')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -454,7 +454,7 @@ const Landing = () => {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold">
-              Vous avez des questions ? On vous répond ici
+              {t('landing.faq.title')}
             </h2>
           </div>
           
@@ -481,25 +481,25 @@ const Landing = () => {
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0d0d0d] to-[#0a0a0a]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-6">
-            Commencez gratuitement
+            {t('landing.hero.cta')}
           </h2>
           <p className="text-white/60 mb-8 max-w-2xl mx-auto">
-            Pilotez votre business depuis un seul outil. Créez votre compte et démarrez maintenant.
+            {t('landing.hero.subtitle')}
           </p>
           
           {/* Trust Avatars */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="flex -space-x-2">
-              <img src={avatarTestimonial1} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial2} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial3} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial4} alt="Utilisateur" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial1} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial2} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial3} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial4} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
             </div>
             <div className="flex items-center gap-1 ml-2">
               {[1, 2, 3, 4].map((i) => (
                 <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" />
               ))}
-              {/* Demi-étoile pour 4.5 */}
+              {/* Half star for 4.5 */}
               <div className="relative h-4 w-4">
                 <Star className="absolute h-4 w-4 text-yellow-500" />
                 <div className="absolute overflow-hidden w-1/2 h-full">
@@ -507,7 +507,7 @@ const Landing = () => {
                 </div>
               </div>
             </div>
-            <span className="text-white/60 text-sm ml-1">4.5/5 — Recommandé par les entrepreneurs</span>
+            <span className="text-white/60 text-sm ml-1">4.5/5</span>
           </div>
           
           <Button 
@@ -516,11 +516,11 @@ const Landing = () => {
             className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 rounded-full group"
           >
             <ArrowRight className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            Commencer gratuitement
+            {t('landing.hero.cta')}
           </Button>
           
           <p className="text-white/40 text-sm mt-4 flex items-center justify-center gap-2">
-            Aucune carte de crédit requise
+            {t('landing.hero.noCard')}
             <CreditCard className="h-4 w-4" />
           </p>
         </div>
@@ -536,17 +536,22 @@ const Landing = () => {
             </div>
             
             <div className="flex items-center gap-6 text-sm text-white/40">
-              <span>Outil tout-en-un pour entrepreneurs</span>
               <a 
                 href="/politique-confidentialite" 
                 className="hover:text-white transition-colors underline"
               >
-                Politique de confidentialité
+                {t('landing.footer.privacyPolicy')}
+              </a>
+              <a 
+                href="/conditions-utilisation" 
+                className="hover:text-white transition-colors underline"
+              >
+                {t('landing.footer.termsOfUse')}
               </a>
             </div>
             
             <p className="text-white/40 text-sm">
-              © 2024 MONEYA. Tous droits réservés.
+              {t('landing.footer.copyright')}
             </p>
           </div>
         </div>
