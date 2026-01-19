@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { LayoutDashboard, Shield, Check, Smartphone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import mobilePreview from '@/assets/mobile-analysis-preview.jpg';
 import desktopPreview from '@/assets/desktop-dashboard-preview.png';
 
 export const DeviceMockups = () => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -103,7 +105,7 @@ export const DeviceMockups = () => {
             }}
           >
             <Smartphone className="h-4 w-4 text-primary" />
-            <span className="text-primary text-sm font-medium">100% responsive</span>
+            <span className="text-primary text-sm font-medium">{t('landing.mobile.badge')}</span>
           </div>
           <h2 
             className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 transition-all duration-700 delay-100"
@@ -112,7 +114,7 @@ export const DeviceMockups = () => {
               transform: isVisible ? 'translateY(0)' : 'translateY(20px)' 
             }}
           >
-            Utilisez <span className="text-primary">MONEYA</span> partout
+            {t('landing.mobile.title1')} <span className="text-primary">{t('landing.mobile.title2')}</span> {t('landing.mobile.title3')}
           </h2>
           <p 
             className="text-white/60 max-w-2xl mx-auto text-lg transition-all duration-700 delay-200"
@@ -121,7 +123,7 @@ export const DeviceMockups = () => {
               transform: isVisible ? 'translateY(0)' : 'translateY(20px)' 
             }}
           >
-            MONEYA est optimisé pour mobile et desktop — suivez votre activité où que vous soyez.
+            {t('landing.mobile.subtitle')}
           </p>
         </div>
 
@@ -206,8 +208,8 @@ export const DeviceMockups = () => {
                   <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] md:text-xs text-white/60">Interface</p>
-                  <p className="text-xs md:text-sm font-semibold text-white">Intuitive</p>
+                  <p className="text-[10px] md:text-xs text-white/60">{t('landing.mobile.badges.interface')}</p>
+                  <p className="text-xs md:text-sm font-semibold text-white">{t('landing.mobile.badges.intuitive')}</p>
                 </div>
               </div>
             </div>
@@ -223,8 +225,8 @@ export const DeviceMockups = () => {
                   <Shield className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] md:text-xs text-white/60">Données</p>
-                  <p className="text-xs md:text-sm font-semibold text-white">Sécurisées</p>
+                  <p className="text-[10px] md:text-xs text-white/60">{t('landing.mobile.badges.data')}</p>
+                  <p className="text-xs md:text-sm font-semibold text-white">{t('landing.mobile.badges.secure')}</p>
                 </div>
               </div>
             </div>
@@ -241,15 +243,15 @@ export const DeviceMockups = () => {
         >
           <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full hover:border-primary/30 transition-colors duration-300">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm text-white/80">Responsive design</span>
+            <span className="text-sm text-white/80">{t('landing.mobile.pills.responsive')}</span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full hover:border-primary/30 transition-colors duration-300">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm text-white/80">Synchronisation temps réel</span>
+            <span className="text-sm text-white/80">{t('landing.mobile.pills.sync')}</span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-full hover:border-primary/30 transition-colors duration-300">
             <Check className="w-4 h-4 text-primary" />
-            <span className="text-sm text-white/80">Accès depuis n'importe où</span>
+            <span className="text-sm text-white/80">{t('landing.mobile.pills.anywhere')}</span>
           </div>
         </div>
       </div>

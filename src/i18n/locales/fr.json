@@ -138,6 +138,82 @@
         "description": "Infos perso, infos entreprise, logo."
       }
     },
+    "appPreview": {
+      "badge": "Interface intuitive",
+      "title1": "Découvrez votre",
+      "title2": "tableau de bord",
+      "subtitle": "Une interface claire et puissante pour gérer toute votre activité en un coup d'œil.",
+      "badges": {
+        "simplified": "Gestion simplifiée",
+        "realtime": "Suivi en temps réel",
+        "secure": "Données sécurisées"
+      }
+    },
+    "mobile": {
+      "badge": "100% responsive",
+      "title1": "Utilisez",
+      "title2": "MONEYA",
+      "title3": "partout",
+      "subtitle": "MONEYA est optimisé pour mobile et desktop — suivez votre activité où que vous soyez.",
+      "badges": {
+        "interface": "Interface",
+        "intuitive": "Intuitive",
+        "data": "Données",
+        "secure": "Sécurisées"
+      },
+      "pills": {
+        "responsive": "Responsive design",
+        "sync": "Synchronisation temps réel",
+        "anywhere": "Accès depuis n'importe où"
+      }
+    },
+    "pricingSection": {
+      "title": "Choisissez votre offre",
+      "subtitle": "Des forfaits adaptés à chaque étape de votre croissance",
+      "promoBanner": "🎉 Promo fin d'année — Jusqu'à 85% de réduction !",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "promoInfo": "Pour les 100 premiers utilisateurs",
+      "validUntil": "Valable jusqu'au 5 janvier 2026",
+      "mostPopular": "Le plus populaire",
+      "promoDiscount": "Promo -85%",
+      "plans": {
+        "free": {
+          "name": "Gratuit",
+          "description": "Parfait pour démarrer",
+          "button": "Commencer gratuitement"
+        },
+        "pro": {
+          "name": "Pro",
+          "description": "Pour les freelances actifs",
+          "button": "Choisir Pro",
+          "promoButton": "Profiter de l'offre"
+        },
+        "business": {
+          "name": "Business",
+          "description": "Pour les agences & gros volumes",
+          "button": "Choisir Business",
+          "promoButton": "Profiter de l'offre"
+        }
+      },
+      "features": {
+        "clients3": "3 clients maximum",
+        "clients20": "20 clients",
+        "clientsUnlimited": "Clients illimités",
+        "invoices10": "10 factures",
+        "invoices40": "40 factures & devis",
+        "invoicesUnlimited": "Factures & devis illimités",
+        "quotations10": "10 devis",
+        "tasks10": "10 tâches / semaine",
+        "tasksUnlimited": "Tâches illimitées",
+        "exportPdf": "Export PDF/CSV",
+        "historyExtended": "Historique étendu",
+        "history6months": "Historique 6 mois",
+        "history1year": "Historique 1 an",
+        "analyticsAdvanced": "Analytics avancés",
+        "priorityPerformance": "Priorité performance"
+      }
+    },
     "privacy": {
       "title": "Votre confidentialité est essentielle",
       "subtitle": "Vos données sont stockées en toute sécurité et ne sont jamais utilisées sans votre consentement.",

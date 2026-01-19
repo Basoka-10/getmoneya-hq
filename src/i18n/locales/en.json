@@ -138,6 +138,82 @@
         "description": "Personal info, company info, logo."
       }
     },
+    "appPreview": {
+      "badge": "Intuitive interface",
+      "title1": "Discover your",
+      "title2": "dashboard",
+      "subtitle": "A clear and powerful interface to manage all your activity at a glance.",
+      "badges": {
+        "simplified": "Simplified management",
+        "realtime": "Real-time tracking",
+        "secure": "Secure data"
+      }
+    },
+    "mobile": {
+      "badge": "100% responsive",
+      "title1": "Use",
+      "title2": "MONEYA",
+      "title3": "everywhere",
+      "subtitle": "MONEYA is optimized for mobile and desktop — track your activity wherever you are.",
+      "badges": {
+        "interface": "Interface",
+        "intuitive": "Intuitive",
+        "data": "Data",
+        "secure": "Secure"
+      },
+      "pills": {
+        "responsive": "Responsive design",
+        "sync": "Real-time sync",
+        "anywhere": "Access from anywhere"
+      }
+    },
+    "pricingSection": {
+      "title": "Choose your plan",
+      "subtitle": "Plans adapted to every stage of your growth",
+      "promoBanner": "🎉 End of year promo — Up to 85% off!",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "promoInfo": "For the first 100 users",
+      "validUntil": "Valid until January 5, 2026",
+      "mostPopular": "Most popular",
+      "promoDiscount": "Promo -85%",
+      "plans": {
+        "free": {
+          "name": "Free",
+          "description": "Perfect to start",
+          "button": "Start for free"
+        },
+        "pro": {
+          "name": "Pro",
+          "description": "For active freelancers",
+          "button": "Choose Pro",
+          "promoButton": "Get the offer"
+        },
+        "business": {
+          "name": "Business",
+          "description": "For agencies & high volumes",
+          "button": "Choose Business",
+          "promoButton": "Get the offer"
+        }
+      },
+      "features": {
+        "clients3": "3 clients maximum",
+        "clients20": "20 clients",
+        "clientsUnlimited": "Unlimited clients",
+        "invoices10": "10 invoices",
+        "invoices40": "40 invoices & quotes",
+        "invoicesUnlimited": "Unlimited invoices & quotes",
+        "quotations10": "10 quotes",
+        "tasks10": "10 tasks / week",
+        "tasksUnlimited": "Unlimited tasks",
+        "exportPdf": "PDF/CSV export",
+        "historyExtended": "Extended history",
+        "history6months": "6 months history",
+        "history1year": "1 year history",
+        "analyticsAdvanced": "Advanced analytics",
+        "priorityPerformance": "Priority performance"
+      }
+    },
     "privacy": {
       "title": "Your privacy is essential",
       "subtitle": "Your data is stored securely and never used without your consent.",
