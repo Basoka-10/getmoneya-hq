@@ -1,7 +1,10 @@
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import { Sparkles, Zap, TrendingUp, Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const AppPreviewSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background gradient */}
@@ -12,14 +15,14 @@ export const AppPreviewSection = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-primary text-sm font-medium">Interface intuitive</span>
+            <span className="text-primary text-sm font-medium">{t('landing.appPreview.badge')}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            Découvrez votre{" "}
-            <span className="text-primary">tableau de bord</span>
+            {t('landing.appPreview.title1')}{" "}
+            <span className="text-primary">{t('landing.appPreview.title2')}</span>
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Une interface claire et puissante pour gérer toute votre activité en un coup d'œil.
+            {t('landing.appPreview.subtitle')}
           </p>
         </div>
 
@@ -32,7 +35,7 @@ export const AppPreviewSection = () => {
                 <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
                   <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-xs md:text-sm font-medium text-white">Gestion simplifiée</span>
+                <span className="text-xs md:text-sm font-medium text-white">{t('landing.appPreview.badges.simplified')}</span>
               </div>
             </div>
           </div>
@@ -43,7 +46,7 @@ export const AppPreviewSection = () => {
                 <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-xs md:text-sm font-medium text-white">Suivi en temps réel</span>
+                <span className="text-xs md:text-sm font-medium text-white">{t('landing.appPreview.badges.realtime')}</span>
               </div>
             </div>
           </div>
@@ -54,7 +57,7 @@ export const AppPreviewSection = () => {
                 <div className="w-7 h-7 md:w-8 md:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
                   <Shield className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <span className="text-xs md:text-sm font-medium text-white">Données sécurisées</span>
+                <span className="text-xs md:text-sm font-medium text-white">{t('landing.appPreview.badges.secure')}</span>
               </div>
             </div>
           </div>

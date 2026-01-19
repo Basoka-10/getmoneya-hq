@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PricingPlan {
   name: string;
@@ -146,6 +148,8 @@ interface PricingSectionProps {
 }
 
 export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSectionProps) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("yearly");
   const isLanding = variant === "landing";
   const plans = plansData[billingPeriod];
@@ -161,13 +165,13 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
             "text-3xl sm:text-4xl lg:text-5xl font-bold mb-4",
             isLanding ? "text-white" : "text-foreground"
           )}>
-            Choisissez votre offre
+            {t('landing.pricingSection.title')}
           </h2>
           <p className={cn(
             "text-lg max-w-2xl mx-auto mb-8",
             isLanding ? "text-white/60" : "text-muted-foreground"
           )}>
-            Des forfaits adaptés à chaque étape de votre croissance
+            {t('landing.pricingSection.subtitle')}
           </p>
 
           {/* Promo Banner */}
@@ -177,7 +181,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
           )}>
             <Flame className="h-4 w-4 text-orange-500" />
             <span className={cn("text-sm font-medium", isLanding ? "text-orange-400" : "text-orange-600")}>
-              🎉 Promo fin d'année — Jusqu'à 85% de réduction !
+              {t('landing.pricingSection.promoBanner')}
             </span>
             <Clock className="h-4 w-4 text-orange-500" />
           </div>
@@ -197,7 +201,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
                     : isLanding ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                Mensuel
+                {t('landing.pricingSection.monthly')}
               </button>
               <button
                 onClick={() => setBillingPeriod("yearly")}
@@ -208,7 +212,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
                     : isLanding ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                Annuel
+                {t('landing.pricingSection.yearly')}
                 {billingPeriod !== "yearly" && (
                   <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5">-85%</Badge>
                 )}
@@ -224,10 +228,10 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
             )}>
               <span className="flex items-center gap-1">
                 <span className="text-orange-500">🔥</span>
-                Pour les 100 premiers utilisateurs
+                {t('landing.pricingSection.promoInfo')}
               </span>
               <span className="hidden sm:inline">•</span>
-              <span>Valable jusqu'au 5 janvier 2026</span>
+              <span>{t('landing.pricingSection.validUntil')}</span>
             </div>
           )}
         </div>
@@ -252,13 +256,13 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-2">
                 {plan.popular && !plan.promo && (
                   <Badge className="bg-primary text-primary-foreground">
-                    Le plus populaire
+                    {t('landing.pricingSection.mostPopular')}
                   </Badge>
                 )}
                 {plan.promo && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 animate-pulse">
                     <Flame className="h-3 w-3 mr-1" />
-                    Promo -85%
+                    {t('landing.pricingSection.promoDiscount')}
                   </Badge>
                 )}
               </div>
