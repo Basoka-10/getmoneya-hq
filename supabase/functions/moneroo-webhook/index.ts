@@ -3,11 +3,50 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-moneroo-signature",
 };
 
+// HMAC SHA256 signature verification
+async function verifySignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    
+    const signatureBytes = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      encoder.encode(payload)
+    );
+    
+    const computedSignature = Array.from(new Uint8Array(signatureBytes))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    // Constant-time comparison to prevent timing attacks
+    if (computedSignature.length !== signature.length) {
+      return false;
+    }
+    
+    let result = 0;
+    for (let i = 0; i < computedSignature.length; i++) {
+      result |= computedSignature.charCodeAt(i) ^ signature.charCodeAt(i);
+    }
+    
+    return result === 0;
+  } catch (error) {
+    console.error("Signature verification error:", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
-  // Log immédiat pour confirmer la réception - AVANT tout parsing
+  // Log immédiat pour confirmer la réception
   console.log("==============================================");
   console.log("=== MONEROO WEBHOOK RECEIVED ===");
   console.log("Timestamp:", new Date().toISOString());
@@ -32,6 +71,43 @@ serve(async (req) => {
     const rawBody = await req.text();
     console.log("Raw body received:", rawBody);
     console.log("Raw body length:", rawBody.length);
+
+    // === SIGNATURE VERIFICATION ===
+    const webhookSecret = Deno.env.get("MONEROO_WEBHOOK_SECRET");
+    const signature = req.headers.get("x-moneroo-signature");
+    
+    console.log("=== SIGNATURE VERIFICATION ===");
+    console.log("Signature header present:", !!signature);
+    console.log("Webhook secret configured:", !!webhookSecret);
+    
+    if (!webhookSecret) {
+      console.error("❌ MONEROO_WEBHOOK_SECRET is not configured");
+      return new Response(
+        JSON.stringify({ error: "Webhook secret not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (!signature) {
+      console.error("❌ Missing x-moneroo-signature header - rejecting request");
+      return new Response(
+        JSON.stringify({ error: "Missing signature" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const isValidSignature = await verifySignature(rawBody, signature, webhookSecret);
+    
+    if (!isValidSignature) {
+      console.error("❌ Invalid signature - rejecting request");
+      console.error("Received signature:", signature);
+      return new Response(
+        JSON.stringify({ error: "Invalid signature" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    console.log("✅ Signature verified successfully");
 
     // Parser le JSON
     let body;
