@@ -20,16 +20,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Mobile menu button */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
+      <div className="fixed top-0 left-0 right-0 z-[60] flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
         <div className="flex items-center gap-3">
           <img src={logo} alt="MONEYA" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">MONEYA</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="relative z-[70] rounded-lg p-3 text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80 touch-manipulation"
+          aria-label="Menu"
         >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
