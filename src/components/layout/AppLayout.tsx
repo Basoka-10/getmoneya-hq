@@ -19,36 +19,44 @@ export function AppLayout({ children }: AppLayoutProps) {
         <DesktopInstallButton />
       </div>
 
-      {/* Mobile menu button */}
-      <div className="fixed top-0 left-0 right-0 z-[60] flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
-        <div className="flex items-center gap-3">
+      {/* Mobile menu button - iOS optimized */}
+      <header className="fixed top-0 left-0 right-0 z-[9999] flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden" style={{ WebkitTransform: 'translateZ(0)' }}>
+        <div className="flex items-center gap-3 pointer-events-none">
           <img src={logo} alt="MONEYA" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">MONEYA</span>
         </div>
         <button
+          type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="relative z-[70] rounded-lg p-3 text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80 touch-manipulation"
+          className="relative flex items-center justify-center w-12 h-12 -mr-2 rounded-xl text-foreground bg-muted/50 active:bg-muted select-none"
+          style={{ 
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTouchCallout: 'none',
+            touchAction: 'manipulation'
+          }}
           aria-label="Menu"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
-      </div>
+      </header>
 
       {/* Mobile sidebar overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[9998] bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          style={{ WebkitTransform: 'translateZ(0)' }}
         />
       )}
 
       {/* Sidebar - hidden on mobile unless menu is open, collapsed on tablet, full on desktop */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 md:transform-none",
+      <nav className={cn(
+        "fixed inset-y-0 left-0 z-[9997] transform transition-transform duration-300 md:transform-none",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-      )}>
+      )} style={{ WebkitTransform: mobileMenuOpen ? 'translateX(0) translateZ(0)' : 'translateX(-100%) translateZ(0)' }}>
         <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
-      </div>
+      </nav>
 
       {/* Main content */}
       <main className={cn(
