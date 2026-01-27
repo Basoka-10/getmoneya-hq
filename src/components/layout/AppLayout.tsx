@@ -20,7 +20,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Mobile menu button - iOS optimized */}
-      <header className="fixed top-0 left-0 right-0 z-[9999] flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden" style={{ WebkitTransform: 'translateZ(0)' }}>
+      <header
+        className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between border-b border-border bg-background px-4 md:hidden"
+        style={{
+          // iOS notch / safe-area support (PWA + Safari)
+          paddingTop: "env(safe-area-inset-top)",
+          height: "calc(3.5rem + env(safe-area-inset-top))",
+          WebkitTransform: "translateZ(0)",
+        }}
+      >
         <div className="flex items-center gap-3 pointer-events-none">
           <img src={logo} alt="MONEYA" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">MONEYA</span>
@@ -53,7 +61,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Sidebar - hidden on mobile unless menu is open, collapsed on tablet, full on desktop */}
       <nav className={cn(
         "fixed inset-y-0 left-0 z-[9997] transform transition-transform duration-300 md:transform-none",
-        mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        mobileMenuOpen
+          ? "translate-x-0 pointer-events-auto"
+          : "-translate-x-full pointer-events-none md:translate-x-0 md:pointer-events-auto"
       )} style={{ WebkitTransform: mobileMenuOpen ? 'translateX(0) translateZ(0)' : 'translateX(-100%) translateZ(0)' }}>
         <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
       </nav>
@@ -61,9 +71,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Main content */}
       <main className={cn(
         "min-h-screen transition-all duration-300",
-        "pt-14", // Account for header on both mobile and desktop
         "md:ml-20 lg:ml-64" // Collapsed sidebar on tablet, full on desktop
-      )}>
+      )}
+      style={{
+        // Keep content below the mobile header + iOS safe area
+        paddingTop: "calc(3.5rem + env(safe-area-inset-top))",
+      }}>
         <div className="p-3 sm:p-4 md:p-5 lg:p-8">{children}</div>
       </main>
     </div>
