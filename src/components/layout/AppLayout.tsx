@@ -19,17 +19,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         <DesktopInstallButton />
       </div>
 
-      {/* Mobile menu button - iOS optimized */}
+      {/* Mobile header - with iOS safe area (notch) support */}
       <header
-        className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between border-b border-border bg-background px-4 md:hidden"
+        className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-between border-b border-border bg-background px-4 md:hidden"
         style={{
-          // iOS notch / safe-area support (PWA + Safari)
-          paddingTop: "env(safe-area-inset-top)",
-          height: "calc(3.5rem + env(safe-area-inset-top))",
-          WebkitTransform: "translateZ(0)",
+          paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))",
+          height: "calc(3.5rem + max(0px, env(safe-area-inset-top, 0px)))",
         }}
       >
-        <div className="flex items-center gap-3 pointer-events-none">
+        <div className="flex items-center gap-3">
           <img src={logo} alt="MONEYA" className="h-8 w-8 object-contain" />
           <span className="text-lg font-bold text-foreground">MONEYA</span>
         </div>
@@ -52,30 +50,29 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile sidebar overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 z-[9998] bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[55] bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
-          style={{ WebkitTransform: 'translateZ(0)' }}
         />
       )}
 
       {/* Sidebar - hidden on mobile unless menu is open, collapsed on tablet, full on desktop */}
       <nav className={cn(
-        "fixed inset-y-0 left-0 z-[9997] transform transition-transform duration-300 md:transform-none",
+        "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 md:transform-none",
         mobileMenuOpen
-          ? "translate-x-0 pointer-events-auto"
-          : "-translate-x-full pointer-events-none md:translate-x-0 md:pointer-events-auto"
-      )} style={{ WebkitTransform: mobileMenuOpen ? 'translateX(0) translateZ(0)' : 'translateX(-100%) translateZ(0)' }}>
+          ? "translate-x-0"
+          : "-translate-x-full md:translate-x-0",
+        !mobileMenuOpen && "pointer-events-none md:pointer-events-auto"
+      )}>
         <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
       </nav>
 
       {/* Main content */}
       <main className={cn(
         "min-h-screen transition-all duration-300",
-        "md:ml-20 lg:ml-64" // Collapsed sidebar on tablet, full on desktop
+        "md:ml-20 lg:ml-64 md:pt-14"
       )}
       style={{
-        // Keep content below the mobile header + iOS safe area
-        paddingTop: "calc(3.5rem + env(safe-area-inset-top))",
+        paddingTop: "calc(3.5rem + max(0px, env(safe-area-inset-top, 0px)))",
       }}>
         <div className="p-3 sm:p-4 md:p-5 lg:p-8">{children}</div>
       </main>
