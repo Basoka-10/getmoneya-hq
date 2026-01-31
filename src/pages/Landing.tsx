@@ -166,11 +166,11 @@ const Landing = () => {
       <PromoPopup onAccept={() => navigate("/auth")} />
 
       {/* Navigation */}
-      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl" aria-label="Navigation principale">
         <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src={logo} alt="MONEYA" className="w-8 h-8 object-contain" />
+              <img src={logo} alt="MONEYA - Logiciel de gestion financière entrepreneur" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold">MONEYA</span>
             </div>
             <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
@@ -192,21 +192,21 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-36 pb-24 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section - Centre de contrôle entrepreneur */}
+      <section className="pt-36 pb-24 px-4 sm:px-6 lg:px-8" itemScope itemType="https://schema.org/WebPage">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
+          {/* Badge - Gestion financière entrepreneur */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full mb-8 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" aria-hidden="true"></span>
             <span className="text-white/80 text-sm">{t('landing.hero.badge')}</span>
           </div>
           
-          {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          {/* Main Title - Dashboard entrepreneur, tableau de bord financier */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in" style={{ animationDelay: "0.2s" }} itemProp="headline">
             {t('landing.hero.title1')}{" "}
             <span className="relative inline-block">
               {t('landing.hero.title2')}
-              <svg className="absolute -bottom-2 left-0 w-full animate-scale-in" style={{ animationDelay: "0.6s" }} viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="absolute -bottom-2 left-0 w-full animate-scale-in" style={{ animationDelay: "0.6s" }} viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M2 8C50 2 150 2 198 8" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round"/>
               </svg>
             </span>
@@ -244,14 +244,14 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* App Preview Section */}
+      {/* App Preview Section - Pilotage entreprise Moneya */}
       <AppPreviewSection />
 
-      {/* Benefits Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      {/* Benefits Section - Outil de gestion business, productivité entrepreneuriale */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8" aria-labelledby="benefits-title">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 id="benefits-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               {t('landing.benefits.title')}{" "}
               <span className="text-white/50">{t('landing.benefits.subtitle')}</span>
             </h2>
@@ -279,11 +279,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section id="comment" className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d]">
+      {/* How it Works Section - Comment piloter son business comme un pro */}
+      <section id="comment" className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d]" aria-labelledby="how-it-works-title">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+            <h2 id="how-it-works-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold">
               {t('landing.howItWorks.title')}
             </h2>
           </div>
@@ -304,11 +304,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="fonctionnalites" className="py-24 px-4 sm:px-6 lg:px-8">
+      {/* Features Section - Logiciel gestion tout-en-un, CRM, facturation */}
+      <section id="fonctionnalites" className="py-24 px-4 sm:px-6 lg:px-8" aria-labelledby="features-title">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
+            <h2 id="features-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
               {t('landing.features.title')}
             </h2>
           </div>
@@ -336,8 +336,8 @@ const Landing = () => {
       {/* Mobile & Desktop Section */}
       <DeviceMockups />
 
-      {/* Pricing Section */}
-      <section id="tarifs">
+      {/* Pricing Section - Plans Free, Pro, Business */}
+      <section id="tarifs" aria-labelledby="pricing-title">
         <PricingSection onSelectPlan={() => navigate("/auth")} variant="landing" />
       </section>
       {/* RGPD / Privacy Section */}
@@ -407,11 +407,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d]">
+      {/* Testimonials Section - Avis entrepreneurs, freelances */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0d0d0d]" aria-labelledby="testimonials-title">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-4">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
+            <h2 id="testimonials-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold italic">
               {t('landing.testimonials.title')}
             </h2>
           </div>
@@ -440,7 +440,7 @@ const Landing = () => {
                 </div>
                 <p className="text-white/80 mb-4 italic">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
-                  <img src={testimonial.avatar} alt={testimonial.author} className="w-10 h-10 rounded-full object-cover" />
+                  <img src={testimonial.avatar} alt={`Témoignage ${testimonial.author} - Utilisateur MONEYA gestion financière`} className="w-10 h-10 rounded-full object-cover" loading="lazy" />
                   <p className="text-primary font-medium">— {testimonial.author}</p>
                 </div>
               </div>
@@ -449,11 +449,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8">
+      {/* FAQ Section - Questions fréquentes gestion financière entrepreneur */}
+      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-title">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold">
+            <h2 id="faq-title" className="text-3xl sm:text-4xl font-bold">
               {t('landing.faq.title')}
             </h2>
           </div>
@@ -477,10 +477,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0d0d0d] to-[#0a0a0a]">
+      {/* Final CTA - Commencer gratuitement */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0d0d0d] to-[#0a0a0a]" aria-labelledby="cta-title">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-6">
+          <h2 id="cta-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-6">
             {t('landing.hero.cta')}
           </h2>
           <p className="text-white/60 mb-8 max-w-2xl mx-auto">
@@ -490,10 +490,10 @@ const Landing = () => {
           {/* Trust Avatars */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="flex -space-x-2">
-              <img src={avatarTestimonial1} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial2} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial3} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
-              <img src={avatarTestimonial4} alt="User" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" />
+              <img src={avatarTestimonial1} alt="Entrepreneur utilisant MONEYA" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" loading="lazy" />
+              <img src={avatarTestimonial2} alt="Freelance satisfait de MONEYA" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" loading="lazy" />
+              <img src={avatarTestimonial3} alt="Micro-entrepreneur avec MONEYA" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" loading="lazy" />
+              <img src={avatarTestimonial4} alt="Consultant utilisant MONEYA" className="w-8 h-8 rounded-full object-cover border-2 border-[#0a0a0a]" loading="lazy" />
             </div>
             <div className="flex items-center gap-1 ml-2">
               {[1, 2, 3, 4].map((i) => (
@@ -526,12 +526,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
+      {/* Footer - MONEYA logiciel gestion financière */}
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10" role="contentinfo">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <img src={logo} alt="MONEYA" className="w-8 h-8 object-contain" />
+              <img src={logo} alt="MONEYA - Solution de gestion tout-en-un pour entrepreneurs" className="w-8 h-8 object-contain" loading="lazy" />
               <span className="text-lg font-bold">MONEYA</span>
             </div>
             
