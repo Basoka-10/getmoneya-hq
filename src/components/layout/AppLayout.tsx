@@ -70,11 +70,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       <main className={cn(
         "min-h-screen transition-all duration-300",
         "md:ml-20 lg:ml-64 md:pt-14"
-      )}
-      style={{
-        paddingTop: "calc(3.5rem + max(0px, env(safe-area-inset-top, 0px)))",
-      }}>
-        <div className="p-3 sm:p-4 md:p-5 lg:p-8">{children}</div>
+      )}>
+        <div 
+          className="p-3 sm:p-4 md:p-5 lg:p-8"
+          style={{
+            paddingTop: "calc(0.75rem + 3.5rem + max(0px, env(safe-area-inset-top, 0px)))",
+          }}
+        >
+          {children}
+        </div>
       </main>
     </div>
   );

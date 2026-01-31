@@ -214,7 +214,7 @@ export function PricingSection({ onSelectPlan, variant = "landing" }: PricingSec
               >
                 {t('landing.pricingSection.yearly')}
                 {billingPeriod !== "yearly" && (
-                  <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5">-85%</Badge>
+                  <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">-85%</span>
                 )}
               </button>
             </div>
