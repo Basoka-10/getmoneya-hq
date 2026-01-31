@@ -136,7 +136,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         .from("system_settings")
         .select("setting_value")
         .eq("setting_key", "supported_currencies")
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -149,6 +149,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           await setCurrency("EUR");
         }
       }
+      // If no data, use default supported currencies (already set in state)
     } catch (err) {
       console.error("Error fetching supported currencies:", err);
     }
