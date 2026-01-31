@@ -170,6 +170,13 @@ export type Database = {
             referencedRelation: "api_keys"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "api_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       calendar_events: {
@@ -749,7 +756,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      api_keys_safe: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          key_prefix: string | null
+          last_used_at: string | null
+          name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          key_prefix?: string | null
+          last_used_at?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          key_prefix?: string | null
+          last_used_at?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_create_api_key: { Args: { _user_id: string }; Returns: boolean }
