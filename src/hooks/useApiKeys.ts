@@ -41,9 +41,10 @@ export function useApiKeys() {
   return useQuery({
     queryKey: ["api-keys"],
     queryFn: async () => {
+      // Explicitly select only needed columns - exclude key_hash for security
       const { data, error } = await supabase
         .from("api_keys")
-        .select("*")
+        .select("id, user_id, name, key_prefix, is_active, created_at, last_used_at, expires_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
