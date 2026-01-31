@@ -50,8 +50,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile sidebar overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 z-[55] bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[45] bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
 
