@@ -1,3 +1,7 @@
+# MONEYA - Logiciel de gestion financière pour entrepreneurs
+# https://getmoneya.pro
+
+# Allow all crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +16,24 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://getmoneya.pro/sitemap.xml
+
+# Disallow admin and protected app pages from indexing
+Disallow: /dashboard
+Disallow: /clients
+Disallow: /finances
+Disallow: /invoices
+Disallow: /tasks
+Disallow: /calendar
+Disallow: /analysis
+Disallow: /settings
+Disallow: /api-integrations
+Disallow: /admin
+
+# Allow public pages
+Allow: /
+Allow: /auth
+Allow: /politique-confidentialite
+Allow: /conditions-utilisation

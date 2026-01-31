@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage - Logiciel MONEYA, Centre de contrôle entrepreneur -->
+  <url>
+    <loc>https://getmoneya.pro/</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://getmoneya.pro/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getmoneya.pro/?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getmoneya.pro/"/>
+    <lastmod>2026-01-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Privacy Policy - Politique de confidentialité MONEYA -->
+  <url>
+    <loc>https://getmoneya.pro/politique-confidentialite</loc>
+    <lastmod>2026-01-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Terms of Use - Conditions d'utilisation MONEYA -->
+  <url>
+    <loc>https://getmoneya.pro/conditions-utilisation</loc>
+    <lastmod>2026-01-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Auth Page - Inscription MONEYA -->
+  <url>
+    <loc>https://getmoneya.pro/auth</loc>
+    <lastmod>2026-01-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+</urlset>
